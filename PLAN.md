@@ -66,7 +66,7 @@
 ```
 
 > 현재 로컬 작업 디렉토리는 `siftnews/` 이며, 향후 위 레포들이 이 아래에 자리 잡는다.
-> **D-015·D-021**: 루트 `siftnews/` 자체는 git 저장소화하지 않되(D-015), 공통 문서(`docs/`)는 **`sift-docs` 레포로 공개**하고, 레포 종속 설계 문서(MVP-DESIGN·SELECTION·EVENTS)는 **각 레포 `docs/`** 를 원본으로 둔다(D-021). `sift-infra` 분리 여부는 TASKS M4에서 결정.
+> **D-015·D-021**: 루트 `siftnews/` 자체는 git 저장소화하지 않되(D-015), 공통 문서(`sift-docs/`)는 **`sift-docs` 레포로 공개**하고, 레포 종속 설계 문서(MVP-DESIGN·SELECTION·EVENTS)는 **각 레포 `docs/`** 를 원본으로 둔다(D-021). `sift-infra` 분리 여부는 TASKS M4에서 결정.
 
 ---
 
