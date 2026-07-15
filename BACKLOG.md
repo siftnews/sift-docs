@@ -13,12 +13,12 @@
 - [x] 협업 흐름 규칙 — HARNESS §0.7 (이슈→PR→리뷰→병합)
 - [x] 협업 역할 분담 확정 — GitHub 쓰기(이슈·push·PR·병합)는 사람, 초안·구현·커밋은 에이전트 (D-013)
 - [x] MVP 태스크 트리 — [TASKS.md](./TASKS.md) 작성 (이슈 발행 원본)
-- [G] main 브랜치 보호 규칙 설정 (사람)
+- [x] main 브랜치 보호 규칙 설정 (사람) — sift-api 설정 확인 (2026-07-15, D-024 비고)
 - ~~루트 `siftnews/` git 저장소화~~ — D-015로 취소 (루트는 로컬 전용, git은 하위 sift-* 레포만)
 - [G] develop 처리 결정 (사람) — PR #5·#7·#9 병합으로 develop이 main보다 13커밋 앞섬 (2026-07-11): ①main 동기화 후 develop 삭제(D-012 유지) 또는 ②develop 유지로 전략 변경(DECISIONS 기록) → STATE "다음 액션" 참조
 - [G] `develop` 브랜치 삭제 (사람) — 위 결정이 ①일 때. GitHub 기본 브랜치 = main 확인 (D-012)
 - [x] 이슈 #1 push·PR — PR #2 병합 완료 (2026-07-06)
-- ~~권한 조정(git push/gh 허용)~~ · ~~gh CLI 설치~~ — D-013으로 불필요 (GitHub 쓰기는 사람)
+- ~~권한 조정(git push/gh 허용)~~ · ~~gh CLI 설치~~ — D-013으로 불필요 (GitHub 쓰기는 사람) → gh CLI는 2026-07-15 설치됨, 에이전트는 읽기 전용 (D-024)
 
 ### B. 프로젝트 골격 (코드 기초 틀) — 이슈 #1 `[chore] 프로젝트 골격 & 모듈 경계`
 - [x] (W) `common` 모듈 — `BaseEntity`(+JPA Auditing), `Clock` 빈, `BusinessException` · **DoD**: 컴파일 ✅

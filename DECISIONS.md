@@ -3,6 +3,11 @@
 > 경량 ADR. 루프가 일관성을 유지하고 과거 결정을 되돌아보기 위한 기록. **새 결정은 맨 위에 추가.**
 > 개정·폐기된 결정은 **본문을 다시 쓰지 않고 제목에 `(… 개정 → D-xxx)`를 표기**한다 (D-023).
 
+## D-024 · gh CLI 도입 — 에이전트는 읽기 전용, 쓰기 게이트 실효화 (2026-07-15)
+- **결정**: gh CLI 설치·인증 완료(사람, 2026-07-15). 에이전트에 **gh 읽기 명령**(issue/pr `list`·`view`, pr `diff`·`checks`, `repo view`, run `list`·`view`, `search`) allow. 쓰기는 D-013·D-014 그대로 사람 전담 — 기존 deny(issue/pr create, pr merge)에 issue/pr `comment`·`edit`·`close`, issue `delete`, pr `review`·`ready`, `release`, repo `create`/`edit`/`delete`, `workflow run`, `secret`, `variable set`을 추가해 게이트를 실효화. `gh api`는 읽기·쓰기 겸용이라 allow/deny 모두 제외(프롬프트 백스톱).
+- **이유**: gh 부재 시 deny 게이트는 장식이었으나 설치로 실제 게이트가 됨. 에이전트가 이슈·PR·리뷰 코멘트를 직접 조회하면 초안 작성·리뷰 반영의 컨텍스트 수집이 빨라짐. 쓰기 주도권(D-013)은 불변.
+- **비고**: D-011(feature push 허용)은 여전히 보류(D-013). settings 변경은 루트·sift-api 두 사본 동일 적용(D-023 사본 정합 대상). 부수 확인(gh api 읽기로 검증): **sift-api main 보호 규칙은 이미 설정됨** — PR 필수·strict status checks·force push/삭제 금지. 단 `enforce_admins=false`(관리자 본인은 직접 push 가능)·필수 승인 리뷰어 0명은 1인 운영으로 수용. sift-docs main은 미보호 — 사람이 직접 커밋·push하는 레포라 수용(원하면 추후 설정).
+
 ## D-023 · 문서 아키텍처 = SSoT 원본 지도 + 참조 강등 (2026-07-14)
 - **결정**: 모든 사실에 원본 1곳을 지정하고, 다른 문서는 요약 사본이 아니라 **링크 참조로 강등**한다. **원본 지도** — 결정 = DECISIONS · 확정 설계(스키마·포트·배치) = 각 레포 `docs/` · 진행 상태 = STATE(현재·다음 중심, 완료 이력은 최근 4~5건 + git 히스토리) · 작업 목록 = TASKS(이슈 후보) + BACKLOG(현 이슈 단계) · 작동 방식 = HARNESS(상태 표기 금지) · 세션 간 임시물 = `.omc/notepad`(스크래치패드 사용 금지) · graphify = 파생 인덱스(원본 아님, gitignore). 지침 충돌 시 우선순위: settings.json 게이트 > CLAUDE.md·HARNESS·DECISIONS > OMC 기본 지침.
 - **이유**: 문서 아키텍처 리뷰(2026-07-14)에서 실드리프트 다수 확인 — `.coderabbit.yaml`의 D-018 미반영(리뷰어가 폐기된 소유권 규칙으로 동작), HARNESS §2 상태 체크박스 미갱신, BACKLOG M1-4 상태 불일치, D-017 본문의 폐기 규칙 잔존, STATE 비고의 죽은 기록(coderabbit path 결함은 98ec1d5에서 이미 해소). 공통 원인 = 동일 사실의 다중 수동 사본. 정합을 기억(규칙)이 아니라 구조(원본 지도)와 장치로 강제한다.

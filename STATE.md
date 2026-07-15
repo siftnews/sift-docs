@@ -1,7 +1,7 @@
 # Sift — STATE (루프 나침반)
 
 > 매 사이클 **시작에 읽고, 종료에 갱신**한다. 현재 상황의 단일 진실원천.
-> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-07-14
+> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-07-15
 
 ## 현재 Phase
 **Phase 0 — 스캐폴딩 + 골든패스** (진행 중)
@@ -13,7 +13,6 @@
 - 👤 **M1-4 커밋·push·PR 발행** — 변경 파일: `UpdateSourcePort`(신설)·`CrawlSourcesService`/테스트(연동)·`source/adapter/out/persistence/*`(Source·Article 엔티티·매퍼·repository·adapter 8개 파일)·`AbstractIntegrationTest`(싱글톤 컨테이너 수정)·문서(MVP-DESIGN·TASKS·DECISIONS)
 - 🤖 **M1-5 `[feature] RSS 수집 어댑터 (RssFeedAdapter)` 착수** — M1-4 병합 후
 - 👤 **develop 처리 결정**: PR #5·#7·#9가 develop으로 병합되어 develop이 main보다 13커밋 앞섬 (2026-07-11 기준) — D-012(GitHub Flow, develop 삭제)와 상충. ①develop→main 동기화 후 삭제(D-012 유지) 또는 ②develop 유지로 전략 변경(DECISIONS 기록 필요) 중 결정
-- 👤 main 브랜치 보호 규칙 설정 (미완 게이트)
 - 👤 **PORTFOLIO.md 유실 처리 결정** — 복원(재작성) 또는 폐기 (아래 "정정" 참조)
 
 ## 정정 (사람 재검증·수정 흔적)
@@ -34,13 +33,13 @@
 
 ## 대기 / 블록 (게이트)
 - **develop 처리 결정** (사람) — PR #5·#7·#9 병합으로 develop이 main보다 13커밋 앞섬 (위 "다음 액션" 참조)
-- **main 브랜치 보호 규칙** 설정 (사람)
+- ~~main 브랜치 보호 규칙 설정~~ — **완료 확인 (2026-07-15, D-024 비고)**: sift-api main에 PR 필수·strict checks 설정됨 (gh api로 검증)
 - ~~#6 PR 발행·병합~~ — 완료 (PR #7 병합, 2026-07-10)
 - ~~M1-3 이슈 발행~~ — 완료 (이슈 #8 → PR #9 병합, 2026-07-11)
 - ~~이슈 #1 push·PR~~ — 완료 (PR #2 병합)
 - ~~루트 `siftnews/` git 저장소화~~ — **취소 (D-015)**: 루트는 로컬 전용, git은 하위 sift-* 레포에만
 
 ## 비고
-- **역할 분담 (D-013·D-014)**: git/GitHub 쓰기(**커밋**·이슈 발행·push·PR·병합) = 사람. 태스크 트리(TASKS.md)·이슈/PR/**커밋 메시지** 초안·브랜치·구현·자가검증 = 에이전트. gh CLI는 에이전트 필수 아님.
+- **역할 분담 (D-013·D-014)**: git/GitHub 쓰기(**커밋**·이슈 발행·push·PR·병합) = 사람. 태스크 트리(TASKS.md)·이슈/PR/**커밋 메시지** 초안·브랜치·구현·자가검증 = 에이전트. gh CLI 설치·인증 완료(2026-07-15) — 에이전트는 **읽기 전용**(이슈·PR·리뷰 코멘트 조회, D-024).
 - **구현 리듬 (D-014)**: 작은 작업 1개 → build/test 자가검증 → 에이전트가 커밋 메시지 제안 → 사람 커밋 → 다음 작업. 메시지 형식 `{type}: {한국어 요약}`.
-- 게이트(settings.json deny): git commit / push, gh issue·pr create / pr merge, git reset --hard / clean, docker compose down -v.
+- 게이트(settings.json deny): git commit / push, **gh 쓰기 전반**(issue·pr create/edit/close/comment, pr merge/review/ready, release, repo create/edit/delete, workflow run, secret 등 — D-024), git reset --hard / clean, docker compose down -v.
