@@ -152,13 +152,16 @@
 
 ## 2. 로드맵
 
-### Phase 0 — 스캐폴딩 + 골든패스 (진행 중)
-- [x] `sift-api` Spring Boot 3.5 / Java 21 / Gradle + **Spring Modulith** 채택
-- [x] 의존성(batch·jpa·postgres·validation·actuator·modulith·testcontainers), `docker-compose.yaml`(PostgreSQL + **mailpit**), 프로파일 분리(`local`), 기동 확인
-- [x] 하네스 토대: `siftnews/CLAUDE.md` + `.claude/settings.json`
-- [ ] **측정 베이스라인 골격** — Actuator 메트릭 + 배치 처리량·소요시간 로깅 (원칙 5: evals 앞당김)
-- [ ] **골든패스 = `collectionJob` 수직 슬라이스** (선정 이유는 §3)
-- [ ] 모듈 검증 테스트 `ApplicationModules.verify()`
+> **진행 상태는 이 문서에서 추적하지 않는다** — 상태의 원본은 [STATE.md](./STATE.md)·[TASKS.md](./TASKS.md) (D-023).
+> 이 절은 각 Phase의 *구성*만 정의한다.
+
+### Phase 0 — 스캐폴딩 + 골든패스
+- `sift-api` Spring Boot 3.5 / Java 21 / Gradle + **Spring Modulith** 채택
+- 의존성(batch·jpa·postgres·validation·actuator·modulith·testcontainers), `docker-compose.yaml`(PostgreSQL + **mailpit**), 프로파일 분리(`local`), 기동 확인
+- 하네스 토대: `siftnews/CLAUDE.md` + `.claude/settings.json`
+- **측정 베이스라인 골격** — Actuator 메트릭 + 배치 처리량·소요시간 로깅 (원칙 5: evals 앞당김)
+- **골든패스 = `collectionJob` 슬라이스** (범위 정의는 §3, 구현 순서는 D-020: DDD inside-out)
+- 모듈 검증 테스트 `ApplicationModules.verify()`
 
 ### Phase 1 — 기능 구현 하네스 박제
 - 골든패스에서 확립된 패턴을 `sift-api/CLAUDE.md`로 규칙화
@@ -175,6 +178,9 @@
 ---
 
 ## 3. 첫 골든패스: `collectionJob` 수직 슬라이스 (선정 이유)
+
+> 구현 *순서*는 D-020으로 재편됨 — 슬라이스 일괄 구현이 아니라 **DDD inside-out**(도메인→유스케이스→영속→RSS→배치, TASKS M1-2~7).
+> 이 절은 골든패스의 *범위*(어떤 레이어 조각으로 구성되는가) 정의로 유지된다.
 
 `Source` 컨텍스트의 수집 슬라이스를 첫 골든패스로 삼는다:
 
