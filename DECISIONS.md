@@ -1,6 +1,19 @@
 # Sift — 결정 로그 (DECISIONS)
 
 > 경량 ADR. 루프가 일관성을 유지하고 과거 결정을 되돌아보기 위한 기록. **새 결정은 맨 위에 추가.**
+> 개정·폐기된 결정은 **본문을 다시 쓰지 않고 제목에 `(… 개정 → D-xxx)`를 표기**한다 (D-023).
+
+## D-023 · 문서 아키텍처 = SSoT 원본 지도 + 참조 강등 (2026-07-14)
+- **결정**: 모든 사실에 원본 1곳을 지정하고, 다른 문서는 요약 사본이 아니라 **링크 참조로 강등**한다. **원본 지도** — 결정 = DECISIONS · 확정 설계(스키마·포트·배치) = 각 레포 `docs/` · 진행 상태 = STATE(현재·다음 중심, 완료 이력은 최근 4~5건 + git 히스토리) · 작업 목록 = TASKS(이슈 후보) + BACKLOG(현 이슈 단계) · 작동 방식 = HARNESS(상태 표기 금지) · 세션 간 임시물 = `.omc/notepad`(스크래치패드 사용 금지) · graphify = 파생 인덱스(원본 아님, gitignore). 지침 충돌 시 우선순위: settings.json 게이트 > CLAUDE.md·HARNESS·DECISIONS > OMC 기본 지침.
+- **이유**: 문서 아키텍처 리뷰(2026-07-14)에서 실드리프트 다수 확인 — `.coderabbit.yaml`의 D-018 미반영(리뷰어가 폐기된 소유권 규칙으로 동작), HARNESS §2 상태 체크박스 미갱신, BACKLOG M1-4 상태 불일치, D-017 본문의 폐기 규칙 잔존, STATE 비고의 죽은 기록(coderabbit path 결함은 98ec1d5에서 이미 해소). 공통 원인 = 동일 사실의 다중 수동 사본. 정합을 기억(규칙)이 아니라 구조(원본 지도)와 장치로 강제한다.
+- **후속 (Medium — M1-5~7 사이클에 편입)**: ① `/harness-check` 정합 검사 스킬 박제(settings 사본 diff·루프 문서 상태 일치·크로스 레포 링크·최신 D-번호의 coderabbit/CLAUDE.md 영향) ② 구조 변경 이슈 DoD에 `.coderabbit.yaml`·CLAUDE.md 요약 영향 확인 추가(D-017 확장) ③ PLAN §5·SELECTION §3 중복 스키마의 MVP-DESIGN 링크 치환 ④ 이슈 본문 체크리스트 폐지 — BACKLOG 단일 장부(이슈 본문은 배경+DoD만) ⑤ graphify 최초 빌드(M1-7 직후, 이후 병합 시 `--update`).
+- **후속 (Long-term — 트리거 도달 시에만)**: TASKS→GitHub 이슈 승격(열린 이슈 20+) · DECISIONS 파일 분할(결정 30+) · MVP-DESIGN 모듈별 분할(M3 착수) · 문서 링크 CI(첫 GitHub Actions와 함께) · 루트 로컬 전용 git(harness-check 불일치 2회 보고 시, D-015 비고 재검토) · 커밋 게이트 완화 검토(Phase 2 진입, D-010 비고) · graphify wiki/MCP(2번째 코드 레포 활성화).
+- **비고**: D-012 완결 — `implement-feature`·`unit-test`도 `~/.claude/skills-archive/`로 격리(타 프로젝트 관용구 잔존: `p_` 접두사·soft delete·BDDMockito 강제·존재하지 않는 SPEC.md 참조. Sift 골든패스의 fake 포트 테스트 패턴과 충돌). M1-7에서 Sift 기반으로 재박제. 컨텍스트 맵은 `.drawio.svg`로 변환해 sift-docs 버전 관리에 편입(D-017 형식 준수). 부수 발견: PORTFOLIO.md 유실(STATE 정정 참조).
+
+## D-022 · `Source.markCrawled()` 영속 반영 = 전용 포트 (2026-07-13)
+- **결정**: `UpdateSourcePort.markCrawled(sourceId, at)` outbound port를 신설해 `SourcePersistenceAdapter`가 구현한다. `CrawlSourcesService`는 도메인 객체의 `markCrawled()` 호출과 별개로 이 포트를 호출해 영속화한다(MVP-DESIGN §6 열린 질문 해결).
+- **이유**: `CrawlSourcesService`는 트랜잭션 경계를 갖지 않는 순수 애플리케이션 서비스이고, `LoadActiveSourcesPort`가 반환하는 `Source`는 이미 영속 컨텍스트에서 분리된 도메인 POJO라 dirty checking으로 자동 반영되지 않는다. `SaveArticlePort`와 동일한 관용구(전용 outbound port)를 따르는 것이 헥사고날 경계를 지키면서 가장 단순하다.
+- **비고**: 어댑터 내부는 `@Transactional` + JPA dirty checking으로 반영(명시적 `save()` 호출 불필요). ERD(§2)의 `source.trust_score` 컬럼은 이번 영속 어댑터 범위에서 제외 — 현재 도메인 모델(M1-2)에 필드가 없고 사용하는 유스케이스도 없어 컬럼을 추가하지 않음(YAGNI). M2 스코어링 구현 시 도메인·엔티티에 함께 추가 검토.
 
 ## D-021 · 문서 이원화 — 공통 문서는 `sift-docs` 레포 공개, 레포 종속 설계 문서는 해당 레포 `docs/` (2026-07-09)
 - **결정**: ① 레포 종속 설계 문서(MVP-DESIGN·SELECTION·EVENTS)는 **해당 코드 레포**(`sift-api/docs/`)로 이동해 원본으로 관리 — 구조 변경 PR에서 코드와 같은 diff로 리뷰·정합 유지. ② 워크스페이스 공통 문서(PLAN·HARNESS·STATE·BACKLOG·TASKS·DECISIONS)는 루트 공통 문서 디렉터리(구 `docs/` → `sift-docs/`로 개명)를 git 저장소화해 **`siftnews/sift-docs`로 공개** — 갱신 커밋 히스토리 자체가 루프 운영의 증거. ③ 스냅샷 복사(구 §0.9 위치 규칙)는 폐기 — 원본 단일화로 drift 제거. 크로스 레포 참조는 절대 URL. **D-015 부분 개정**(루트 자체는 여전히 git 금지, `sift-docs/`만 하위 레포화), D-017 위치 규칙 개정.
@@ -22,7 +35,7 @@
 - **이유**: 기사는 수집·정규화의 산물 — 생산자인 Source가 저장·스키마(URL 정규화, UNIQUE(normalized_url) 멱등)를 책임지는 것이 응집도에 맞다. 두 컨텍스트가 한 테이블을 공유하는 모호함 제거 (바운디드 컨텍스트 매핑 중 발견·결정).
 - **비고**: ⚠️ 열린 꼬리 하나 — SELECTION의 dedup은 `article.dedup_cluster_id`를 **갱신**하는데, 이는 Content가 Source 소유 데이터를 쓰는 행위. M2 Dedup 이슈에서 해소 방안 결정 필요: ① Source named interface에 갱신 오퍼레이션 추가 ② 클러스터 정보를 Content 측 테이블로 분리. 결정 시 이 항목 갱신.
 
-## D-017 · 설계 문서화 규칙 — 다이어그램 1급 산출물화 (2026-07-07)
+## D-017 · 설계 문서화 규칙 — 다이어그램 1급 산출물화 (2026-07-07 · 위치 규칙 개정 → D-021)
 - **결정**: 구조에 영향 주는 작업은 **설계 산출물(다이어그램) 먼저 작성·갱신 후 구현**한다. 도구는 정형 다이어그램(ERD·상태머신·시퀀스·플로우) = Mermaid 기본, 자유형(컨텍스트 맵·아키텍처 오버뷰) = draw.io(`.drawio.svg`). 작업용은 루트 `docs/`(로컬 전용, D-015), 포트폴리오 노출 최종본은 해당 sift-* 레포에 복사·커밋. 규칙 상세는 [HARNESS §0.9](./HARNESS.md).
 - **이유**: 사용자 요구 — 설계 측면의 문서를 제대로 만들고 넘어가는 습관을 하네스에 강제. Mermaid는 에이전트가 직접 작성·갱신 가능(자동화 적합), draw.io는 표현력이 필요한 그림에 사람이 사용.
 - **비고**: 구조 변경 이슈 DoD에 다이어그램 갱신 포함. 첫 적용 대상 = 바운디드 컨텍스트 검증(컨텍스트 맵 + 이벤트 흐름).
@@ -32,7 +45,7 @@
 - **이유**: 리뷰의 컨텍스트 격리(자기 코드 자기 리뷰 편향 방지)는 이득이지만, 루프 문서는 잠금 없는 단일 진실원천이라 다중 쓰기 시 갱신 유실이 발생. 쓰기 창구를 하나로 좁혀 조율.
 - **비고**: 루트는 git이 없으므로(D-015) 문서 충돌을 머지로 복구할 수 없음 — 규칙 준수가 유일한 방어선.
 
-## D-015 · 루트 `siftnews/`는 로컬 전용 — git 저장소화하지 않음 (2026-07-05)
+## D-015 · 루트 `siftnews/`는 로컬 전용 — git 저장소화하지 않음 (2026-07-05 · 부분 개정 → D-021: sift-docs만 레포화)
 - **결정**: 워크스페이스 루트(`siftnews/` — `docs/`·`.claude/`·루트 `CLAUDE.md` 포함)는 **git 저장소로 만들지 않고 로컬에만 둔다**. git은 하위 실제 프로젝트 레포(`sift-api`, 향후 `sift-web` 등)에만 존재한다. 기존 게이트 항목 "루트 저장소화"는 취소.
 - **이유**: 사용자 결정 — GitHub에는 실제 산출물 레포만 노출하고, 하네스·설계 문서는 로컬 작업 환경으로 유지.
 - **비고**: 트레이드오프 — `docs/`·`.claude/`는 버전 이력·백업이 없으므로 문서-코드 불일치(예: 2026-07-05 source 골격 유실 정정)를 git으로 추적할 수 없음. STATE '정정' 섹션 같은 문서 내 기록으로 보완. 필요해지면 로컬 전용 git(원격 없음)으로 재검토 가능.
@@ -47,12 +60,12 @@
 - **이유**: 사용자 선호 — GitHub 활동 기록(이슈·PR)을 본인 주도로 남기고, 외부로 나가는 쓰기는 직접 통제.
 - **비고**: 역할 분담·태스크 계층 매핑은 HARNESS §0.7. gh CLI는 에이전트 필수 아님(사람 편의). 원격 `develop` 브랜치 삭제는 사람 몫(로컬은 삭제됨).
 
-## D-012 · 타 프로젝트 글로벌 스킬 격리 + 브랜치 전략 = GitHub Flow (2026-07-04)
+## D-012 · 타 프로젝트 글로벌 스킬 격리 + 브랜치 전략 = GitHub Flow (2026-07-04 · 스킬 유지 항목 개정 → D-023: implement-feature·unit-test도 격리)
 - **결정**: ① `~/.claude/skills/`의 타 프로젝트(MSA 4계층) 스킬 — `code-review`, `full-feature-cycle`, `create-branch`, `feign-client-*`, `kafka-event-handling`, `http-test` — 을 `~/.claude/skills-archive/`로 격리. Sift용은 골든패스 완료 후 `siftnews/.claude/skills/`에 자체 박제(Phase 1). ② 브랜치 전략 명칭을 **GitHub Flow**로 정정 — `main`에서 `feature/{이슈번호}-{kebab-case}` 분기 → PR → squash 병합. develop/release 레이어 없음.
 - **이유**: 타 프로젝트 스킬이 자동 트리거되어 Sift의 Modulith·헥사고날 규칙과 배치되는 패턴(4계층·soft delete·FeignClient)을 주입할 위험. HARNESS §0.7의 실제 흐름은 Git Flow가 아니라 GitHub Flow였음.
 - **비고**: `implement-feature`(Phase 1 재활용 예정)·`unit-test`(범용)는 유지. 아카이브 스킬은 원 프로젝트 `.claude/skills/`로 이전 권장.
 
-## D-011 · push 게이트 개정 — main 보호 기반 (2026-07-04)
+## D-011 · push 게이트 개정 — main 보호 기반 (2026-07-04 · 보류 → D-013: push deny 유지)
 - **결정**: 게이트 대상은 "push 자체"가 아니라 **main 병합/변경**. main 브랜치 보호 규칙(직접 push 금지·PR 필수) 설정 후에는 feature 브랜치 push를 에이전트에 허용(settings.json deny 해제 + `gh issue`/`gh pr` allow). 보호 규칙 설정 전까지는 현행 deny 유지.
 - **이유**: §0.7 협업 흐름은 에이전트의 push+PR 생성을 전제하는데 D-007이 push 전체를 게이트로 규정해 충돌. feature push는 브랜치 보호가 있으면 되돌리기 어려운 행위가 아님. 로컬 커밋은 원래 게이트 아님(되돌리기 가능).
 - **비고**: D-007 부분 개정. 선결: gh CLI 설치·인증 + main 보호 설정 (BACKLOG A).
@@ -71,7 +84,7 @@
 - **결정**: `STATE.md` + `BACKLOG.md` + `DECISIONS.md` + 루프 프로토콜(HARNESS §0.6)로 반복·자율 개발을 운영.
 - **이유**: 루프 성공 조건 = 상태 외부화 + 작업 분해 + 명확한 완료/게이트 기준.
 
-## D-007 · 게이트 = 되돌리기 어려운 것만 (2026-06-30, 개정)
+## D-007 · 게이트 = 되돌리기 어려운 것만 (2026-06-30 · push 게이트 항목 개정 → D-011·D-013)
 - **결정**: 사람 게이트(deny)는 *되돌리기 어려운 명령*만 — `git push`, `git reset --hard`, `git clean`, `docker compose down -v`. **build·test·컴파일은 에이전트 허용** → 루프가 빌드·테스트까지 자가검증.
 - **이유**: 부작용 없는 검증까지 막으면 루프 자율성이 떨어진다. 차단은 손실·외부영향이 큰 것에 집중.
 
