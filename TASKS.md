@@ -1,7 +1,7 @@
 # Sift — TASKS (MVP 태스크 트리 = 이슈 발행 원본)
 
 > **마일스톤(M) = GitHub 마일스톤, 태스크 1개 = 이슈 1개 = PR 1개** (HARNESS §0.7).
-> 🤖 에이전트가 초안·구현, 👤 사람이 발행·커밋·push·PR·병합 (D-013·D-014).
+> 🤖 에이전트가 이슈 발행·구현·커밋·push·PR 생성(사용자 명의·기존 스타일, 가드 훅 검사), 👤 사람이 리뷰·병합·배포 승격 (D-025·D-026).
 > 발행되면 제목 앞에 `#번호`를 태깅한다. 표기: `[ ]` 대기 · `[~]` 진행 · `[x]` 병합 완료
 > 근거 문서: [PLAN.md](./PLAN.md) §5~7 · [MVP-DESIGN.md](https://github.com/siftnews/sift-api/blob/main/docs/MVP-DESIGN.md) · [SELECTION.md](https://github.com/siftnews/sift-api/blob/main/docs/SELECTION.md)
 
@@ -20,11 +20,11 @@
 - [x] **#8 `[FEAT] CrawlSources 유스케이스`** (M1-3) — PR #9로 develop 병합 완료 (2026-07-11)
   - 범위: `CrawlSourcesUseCase`(port.in) + `LoadActiveSourcesPort`·`FetchFeedPort`·`SaveArticlePort`(port.out) 정의, `CrawlSourcesService` 구현. 리뷰 반영: `LoadActiveSourcesPort.findActiveById` 추가
   - DoD: **fake 포트 기반 서비스 단위 테스트 통과** ✅
-- [~] **#10 `[FEAT] Source 영속 어댑터`** (M1-4) — PR #11 발행 (2026-07-15), 👤 리뷰·병합 대기
+- [x] **#10 `[FEAT] Source 영속 어댑터`** (M1-4) — PR #11로 develop 병합 완료 (2026-07-16)
   - 범위: Source/Article JPA 엔티티·매핑·repository·adapter (BaseEntity 상속, UNIQUE normalized_url) · `Source.markCrawled()` 영속 반영 = 전용 포트 `UpdateSourcePort`로 결정(D-022)
   - DoD: **Testcontainers 통합 테스트 통과** ✅ (중복 저장 무시 검증 포함), `ApplicationModules.verify()` 유지 ✅
   - 부수 수정: `AbstractIntegrationTest`의 Postgres 컨테이너를 `@Container`(클래스별 stop/restart) → static 블록 싱글톤 패턴으로 변경 — 통합 테스트가 2개 이상일 때 컨테이너 재시작으로 포트가 바뀌며 Spring 컨텍스트 캐시가 옛 포트를 참조해 연결 실패하던 문제 수정
-- [ ] **`[FEAT] RSS 수집 어댑터 (RssFeedAdapter)`** (M1-5)
+- [~] **#12 `[FEAT] RSS 수집 어댑터 (RssFeedAdapter)`** (M1-5) — 이슈 #12 발행, `feature/12-rss-feed-adapter` 진행 중
   - 범위: `rome` 의존성, RSS 파싱 → `RawArticle` 변환, lang 추출
   - DoD: **실제 RSS 픽스처(xml) 파싱 테스트 통과**
 - [ ] **`[FEAT] collectionJob 배치 + 측정 베이스라인`** (M1-6)

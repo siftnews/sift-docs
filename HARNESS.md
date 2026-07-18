@@ -43,12 +43,12 @@
 2. **태스크 선택** — `sift-docs/BACKLOG.md` 우선순위 최상단의 미완 작업 1개. DoD·의존성 확인
 3. **실행** — 분류(§0.5)에 따라 워크플로우(스킬/고정 절차) 또는 에이전트(분석/탐색)
 4. **검증** — 컴파일·`build`·`test`는 에이전트가 자가검증. 되돌리기 어려운 명령·배포는 게이트(사람)
-5. **커밋 제안** — 작은 작업 1개 완료·검증 통과 시 **변경 파일 + 제안 커밋 메시지** 제시 → 👤 커밋 → 다음 작업 (D-014)
+5. **커밋** — 작은 작업 1개 완료·검증 통과 시 🤖 커밋 실행 → 다음 작업 (D-026 — 형식·트레일러는 가드 훅이 검사)
 6. **기록·갱신** — STATE 갱신, BACKLOG 체크, 결정 났으면 DECISIONS 추가, 필요시 메모리
 
 **게이트 (사람 개입 지점)**
 - 되돌리기 어려운 명령 — `git reset --hard`, `git clean`, `docker compose down -v` (settings.json deny)
-- git/GitHub 쓰기 — **커밋·push·이슈 발행·PR 생성·병합 모두 사람 실행 (D-013·D-014, settings.json deny: git commit/push + gh 쓰기 전반 — D-024)**. 에이전트는 gh 읽기(이슈·PR·리뷰 코멘트 조회)로 컨텍스트를 확보하고, 커밋 포인트에서 메시지를 제안하고 대기
+- git/GitHub 쓰기 중 **병합·공개 상태 변경·인프라** — `gh pr merge`·`review`·`ready`, issue/pr `edit`·`close`·`comment`·`delete`, `release`, repo·workflow·secret·variable (D-026, settings deny). **커밋·push·이슈 발행·PR 생성은 🤖 에이전트 실행** — 모든 기록은 사용자 명의·기존 스타일, `.claude/hooks/git-gh-guard.sh`(PreToolUse)가 main push 차단·커밋 메시지 형식·이슈/PR 템플릿 준수를 검사 (D-026)
 - 외부 영향 — 스키마 파괴, 외부 발송, 배포
 - 설계 분기·모호성 — 추정 말고 질문
 - (build·test·컴파일은 게이트 아님 — 에이전트 자가검증)
@@ -63,8 +63,8 @@
 ## 0.7 협업 흐름 (GitHub) — 작업 단위 = 이슈 → PR → 리뷰 → 병합
 
 > **이슈 1개 = 루프 1회분 = PR 1개.**
-> **역할 분담 (D-013·D-014)**: git/GitHub 쓰기(**커밋**·이슈 발행·push·PR 생성·병합)는 👤 *사람*. 태스크 트리 구성·분해, 이슈/PR/**커밋 메시지** 초안, 브랜치·구현·자가검증, **gh 읽기**(이슈·PR·리뷰 코멘트 조회 — D-024)는 🤖 *에이전트*.
-> **main 직접 커밋 금지.**
+> **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성**·gh 읽기는 🤖 *에이전트* — 단 모든 기록은 사용자 명의·기존 스타일(가드 훅 검사). **병합·리뷰 승인·issue/pr edit·close·comment·release·repo/인프라 쓰기**는 👤 *사람* (settings deny).
+> **main 직접 커밋·push 금지** (브랜치 보호 + 가드 훅 이중 방어).
 
 **태스크 계층 (재귀 분해의 GitHub 매핑)**
 
@@ -78,18 +78,17 @@
 - 이슈 제목 포맷: `[FEAT|chore|docs|fix] 요약` — 실제 발행 관행 박제 (예: 이슈 #10 `[FEAT] Source 영속 어댑터`, 이슈 #1 `[chore] 프로젝트 골격 & 모듈 경계`). 본문에 **배경 + DoD + 체크리스트** 필수.
 
 **절차**
-1. 🤖 **이슈 초안** — TASKS.md에서 다음 태스크 선택 → 제목·배경·DoD·체크리스트 초안 작성
-2. 👤 **이슈 발행** — 초안 확인·발행 → 이슈 번호를 에이전트에 전달 (TASKS/BACKLOG에 `#번호` 태깅)
-3. 🤖 **브랜치** — GitHub Flow: `main`에서 `feature/{이슈번호}-{영어-kebab-case}` 분기 (예: `feature/1-module-boundaries`). develop/release 레이어 없음 (D-012)
-4. 🤖↔👤 **구현 루프** — BACKLOG로 분해 → 작은 작업마다: 🤖 구현 + build/test 자가검증 → 🤖 **커밋 메시지 제안** ("이 메시지로 커밋해 주세요: `feat: ...`") → 👤 커밋 → 다음 작은 작업 (D-014)
-5. 🤖 **PR 초안** — 이슈 링크 + 변경 요약 + 자가 리뷰(`/code-review`) 결과
-6. 👤 **push + PR 생성 + 리뷰** — 필요시 `ultrareview`(사람만 트리거 가능 — 과금·사용자 전용)
-7. 👤 **병합** — 리뷰 승인 후 squash 병합 → 🤖 main 갱신 확인, STATE·TASKS 체크
+1. 🤖 **이슈 초안 → 발행** — TASKS.md에서 다음 태스크 선택 → 제목(`[FEAT] ...`)·배경·DoD 작성 → 사용자 확인 후 `gh issue create` 실행 (D-026) → TASKS/BACKLOG에 `#번호` 태깅
+2. 🤖 **브랜치** — `develop`에서 `feature/{이슈번호}-{영어-kebab-case}` 분기 (예: `feature/12-rss-feed-adapter`). **develop = 통합, main = 배포** (D-025)
+3. 🤖 **구현 루프** — BACKLOG로 분해 → 작은 작업마다: 구현 + build/test 자가검증 → 커밋 (`{type}: {한국어 요약}`) → 다음 작은 작업
+4. 🤖 **push + PR 생성** — `git push -u origin feature/...`(대상 명시 — 가드 훅) → 자가 리뷰(`/code-review`) → `gh pr create` (base = develop, 본문에 `close #N` + 체크리스트)
+5. 👤 **리뷰** — CodeRabbit 리뷰 확인, 필요시 `ultrareview`(사람만 트리거 가능 — 과금·사용자 전용). 리뷰 지적 반영은 🤖 후속 커밋
+6. 👤 **병합** — 리뷰 승인 후 병합 (merge commit — 현 관행) → 🤖 develop 갱신 확인, STATE·TASKS 체크
+7. 👤 **배포 승격** — 마일스톤 단위로 develop → main PR (D-025)
 
-**커밋 컨벤션 (실행은 👤, 메시지 제안은 🤖 — D-014)**
-- 형식: `{type}: {한국어 요약}` — type: `feat` | `fix` | `refactor` | `test` | `chore` | `build` | `docs`. 한 줄, 트레일러 없음.
-- 단위: **작은 작업(BACKLOG 단계) 1개 = 커밋 1개.** 에이전트는 커밋 포인트마다 변경 파일 목록과 메시지를 제시하고, 커밋 확인 후 다음 작업을 진행한다.
-- 여러 단위가 이미 워킹트리에 쌓인 경우, 파일 그룹별로 나눈 커밋 시퀀스(`git add <files>` + 메시지)를 순서대로 제시한다.
+**커밋 컨벤션 (실행 🤖 — D-026, 형식은 가드 훅 강제)**
+- 형식: `{type}: {한국어 요약}` — type: `feat` | `fix` | `refactor` | `test` | `chore` | `build` | `docs`. 한 줄, **트레일러 없음(Co-Authored-By 등 에이전트 서명 금지 — 기록은 사용자 명의)**.
+- 단위: **작은 작업(BACKLOG 단계) 1개 = 커밋 1개.** 여러 단위가 워킹트리에 쌓였으면 파일 그룹별로 나눠 순서대로 커밋한다.
 
 **규칙**
 - **이슈 입도 = PR 1개로 리뷰할 분량.** 미세 작업은 이슈로 만들지 말고 BACKLOG로, 거대 작업은 이슈를 분할.
@@ -141,7 +140,7 @@
 | 요소 | 분류 | Sift에서의 모습 | 상태 |
 |---|---|---|---|
 | 규칙 주입 | — | `siftnews/CLAUDE.md` (멀티레포 워크스페이스 루트) — Modulith·헥사고날 규칙·개발 명령 | ✅ 완료 |
-| 권한·훅 | — | `.claude/settings.json` (allow/deny) + **커밋 제안 전** 테스트·포맷 훅 (커밋 실행은 사람 — D-014) | 권한 ✅ / 훅 예정 |
+| 권한·훅 | — | `.claude/settings.json` (allow/deny — D-026 재편) + `hooks/git-gh-guard.sh` PreToolUse 가드 (main push 차단·커밋 형식·이슈/PR 템플릿 검사). 루트·sift-api 사본 정합 유지 (D-023) | ✅ 완료 (D-026) |
 | 반복작업 스킬 | 워크플로우 | "유스케이스 풀구현", "소스 어댑터 추가", "배치 Job 추가", "토픽 등록" | Phase 1 |
 | 측정 골격 | — | Actuator 메트릭 + 배치 처리량·소요시간 로깅 (evals 토대) | **Phase 0~1 (앞당김)** |
 | 역할 서브에이전트 | 에이전트 | 선별-튜닝 / 성능-측정·분석 / 리뷰 | Phase 2 |

@@ -3,7 +3,17 @@
 > 경량 ADR. 루프가 일관성을 유지하고 과거 결정을 되돌아보기 위한 기록. **새 결정은 맨 위에 추가.**
 > 개정·폐기된 결정은 **본문을 다시 쓰지 않고 제목에 `(… 개정 → D-xxx)`를 표기**한다 (D-023).
 
-## D-024 · gh CLI 도입 — 에이전트는 읽기 전용, 쓰기 게이트 실효화 (2026-07-15)
+## D-026 · git/GitHub 쓰기 에이전트 위임 — 이슈·PR 생성·커밋·push + 로컬 가드 훅 (2026-07-17)
+- **결정**: D-013·D-014의 "쓰기 = 사람 전담"을 개정 — 에이전트가 **이슈 생성(`gh issue create`)·PR 생성(`gh pr create`)·`git commit`·`git push`**까지 실행한다(settings allow 승격 + deny 해제, `git add`·`git switch` 포함). **유지되는 게이트(deny)**: `gh pr merge`·`review`·`ready`, issue/pr `edit`·`close`·`comment`·`delete`, `release`, `repo *`, `workflow run`, `secret`, `variable set`, 파괴 명령(`git reset --hard`·`clean`, `compose down -v`). `gh api`는 D-024대로 allow/deny 양쪽 제외(프롬프트 백스톱). **스타일 강제**: 모든 기록은 사용자 명의로, 기존 관행 그대로 — 이슈 제목 `[FEAT|CHORE|FIX|REFACTOR|docs]` 접두어 + Description/TODO 템플릿, PR 본문 `close #N` + 체크리스트, 커밋 `{type}: {한국어 요약}` 한 줄·**트레일러 금지(Co-Authored-By 등 에이전트 서명 금지)**. **로컬 가드 훅 도입**(`.claude/hooks/git-gh-guard.sh`, PreToolUse/Bash): ① main 직접 push 차단 + push는 `origin {브랜치}` 명시 강제 ② 커밋 메시지 형식·트레일러 검사 ③ 이슈/PR 제목 접두어·PR 본문 `close #N` 검사.
+- **이유**: 사용자 결정(2026-07-17) — 루프 자율성을 높이되 기록의 명의·스타일은 본인 것으로 유지. 병합·공개 상태 변경·인프라 쓰기만 사람 게이트로 남기면 되돌리기 어려운 지점은 보호된다(main은 브랜치 보호 + 훅 이중 방어). 형식은 규칙(기억)이 아니라 훅(장치)으로 강제 — D-023 철학.
+- **비고**: 테스트 게이트 훅(push 전 `./gradlew test` 강제)은 **채택 안 함** — Testcontainers 포함 수 분짜리 실행이라 훅 타임아웃·루프 리듬과 충돌. 자가검증(§0.6)과 CI·브랜치 보호가 담당. settings 사본 정합 대상에 훅 스크립트 추가(루트·sift-api 동일 유지). ⚠️ 잔여 구멍: `~/.claude/settings.local.json`의 `Bash(gh api *)` allow가 백스톱을 무력화 — 전역 보호 훅이 이 파일 편집을 차단하므로 **사용자가 직접 해당 줄 제거 필요**.
+
+## D-025 · 브랜치 전략 확정 — develop 통합·main 배포 이원화 (2026-07-17 · D-012 브랜치 항목 개정)
+- **결정**: D-012의 "GitHub Flow(develop 없음)"를 개정 — **develop = 통합 브랜치, main = 배포 브랜치**로 공식화. feature는 develop에서 분기(`feature/{이슈번호}-{kebab}`), PR base = develop. develop→main 승격(배포)은 사람이 결정·실행. develop이 main보다 앞서 있는 것은 **정상 상태**(배포 전 통합분).
+- **이유**: 사용자 결정(2026-07-17) — main을 배포용으로 쓰는 운영 감각이 실제 관행(PR #5·#7·#9·#11 모두 develop 병합)과 이미 일치. 문서(D-012)만 실무와 어긋나 있었으므로 문서를 실무에 맞춘다.
+- **비고**: STATE의 "develop 처리 결정" 게이트 해소. develop 삭제 항목(BACKLOG A) 폐기. main 승격 주기는 마일스톤 단위로 추후 감 잡히면 기록.
+
+## D-024 · gh CLI 도입 — 에이전트는 읽기 전용, 쓰기 게이트 실효화 (2026-07-15 · 쓰기 위임으로 개정 → D-026)
 - **결정**: gh CLI 설치·인증 완료(사람, 2026-07-15). 에이전트에 **gh 읽기 명령**(issue/pr `list`·`view`, pr `diff`·`checks`, `repo view`, run `list`·`view`, `search`) allow. 쓰기는 D-013·D-014 그대로 사람 전담 — 기존 deny(issue/pr create, pr merge)에 issue/pr `comment`·`edit`·`close`, issue `delete`, pr `review`·`ready`, `release`, repo `create`/`edit`/`delete`, `workflow run`, `secret`, `variable set`을 추가해 게이트를 실효화. `gh api`는 읽기·쓰기 겸용이라 allow/deny 모두 제외(프롬프트 백스톱).
 - **이유**: gh 부재 시 deny 게이트는 장식이었으나 설치로 실제 게이트가 됨. 에이전트가 이슈·PR·리뷰 코멘트를 직접 조회하면 초안 작성·리뷰 반영의 컨텍스트 수집이 빨라짐. 쓰기 주도권(D-013)은 불변.
 - **비고**: D-011(feature push 허용)은 여전히 보류(D-013). settings 변경은 루트·sift-api 두 사본 동일 적용(D-023 사본 정합 대상). 부수 확인(gh api 읽기로 검증): **sift-api main 보호 규칙은 이미 설정됨** — PR 필수·strict status checks·force push/삭제 금지. 단 `enforce_admins=false`(관리자 본인은 직접 push 가능)·필수 승인 리뷰어 0명은 1인 운영으로 수용. sift-docs main은 미보호 — 사람이 직접 커밋·push하는 레포라 수용(원하면 추후 설정).
@@ -55,17 +65,17 @@
 - **이유**: 사용자 결정 — GitHub에는 실제 산출물 레포만 노출하고, 하네스·설계 문서는 로컬 작업 환경으로 유지.
 - **비고**: 트레이드오프 — `docs/`·`.claude/`는 버전 이력·백업이 없으므로 문서-코드 불일치(예: 2026-07-05 source 골격 유실 정정)를 git으로 추적할 수 없음. STATE '정정' 섹션 같은 문서 내 기록으로 보완. 필요해지면 로컬 전용 git(원격 없음)으로 재검토 가능.
 
-## D-014 · git 커밋도 사람 전담 — 에이전트는 커밋 포인트 제안 (2026-07-05)
+## D-014 · git 커밋도 사람 전담 — 에이전트는 커밋 포인트 제안 (2026-07-05 · 커밋 위임으로 개정 → D-026)
 - **결정**: D-013 확장 — `git commit`도 **사람이 실행**한다. 에이전트는 이슈 내 작은 작업(BACKLOG 단계) 1개를 마치고 자가검증을 통과할 때마다 **변경 파일 목록 + 제안 커밋 메시지**를 응답으로 제시하고, 사람의 커밋 확인 후 다음 작업으로 진행한다. settings.json deny에 `git commit` 추가로 강제.
 - **이유**: 사용자 선호 — 커밋 이력도 본인 손으로. 작은 작업 단위의 커밋 리듬을 대화로 유지.
 - **비고**: 메시지 형식 `{type}: {한국어 요약}` (feat|fix|refactor|test|chore|build|docs, 기존 이력 스타일). 한 줄, 트레일러 없음(사람 커밋). 커밋 단위 = 작은 작업 1개.
 
-## D-013 · GitHub 쓰기 작업 = 사람 전담 (2026-07-04)
+## D-013 · GitHub 쓰기 작업 = 사람 전담 (2026-07-04 · 쓰기 위임으로 개정 → D-026)
 - **결정**: 이슈 발행·`git push`·PR 생성·병합은 **사람이 실행**한다. 에이전트는 태스크 트리 구성·분해(`docs/TASKS.md`), 이슈/PR **초안** 작성, 브랜치·구현·커밋·자가검증까지 담당. D-011의 "보호 설정 후 feature push 에이전트 허용"은 **보류** — settings.json의 push deny 유지.
 - **이유**: 사용자 선호 — GitHub 활동 기록(이슈·PR)을 본인 주도로 남기고, 외부로 나가는 쓰기는 직접 통제.
 - **비고**: 역할 분담·태스크 계층 매핑은 HARNESS §0.7. gh CLI는 에이전트 필수 아님(사람 편의). 원격 `develop` 브랜치 삭제는 사람 몫(로컬은 삭제됨).
 
-## D-012 · 타 프로젝트 글로벌 스킬 격리 + 브랜치 전략 = GitHub Flow (2026-07-04 · 스킬 유지 항목 개정 → D-023: implement-feature·unit-test도 격리)
+## D-012 · 타 프로젝트 글로벌 스킬 격리 + 브랜치 전략 = GitHub Flow (2026-07-04 · 스킬 유지 항목 개정 → D-023 · 브랜치 전략 개정 → D-025: develop 통합·main 배포)
 - **결정**: ① `~/.claude/skills/`의 타 프로젝트(MSA 4계층) 스킬 — `code-review`, `full-feature-cycle`, `create-branch`, `feign-client-*`, `kafka-event-handling`, `http-test` — 을 `~/.claude/skills-archive/`로 격리. Sift용은 골든패스 완료 후 `siftnews/.claude/skills/`에 자체 박제(Phase 1). ② 브랜치 전략 명칭을 **GitHub Flow**로 정정 — `main`에서 `feature/{이슈번호}-{kebab-case}` 분기 → PR → squash 병합. develop/release 레이어 없음.
 - **이유**: 타 프로젝트 스킬이 자동 트리거되어 Sift의 Modulith·헥사고날 규칙과 배치되는 패턴(4계층·soft delete·FeignClient)을 주입할 위험. HARNESS §0.7의 실제 흐름은 Git Flow가 아니라 GitHub Flow였음.
 - **비고**: `implement-feature`(Phase 1 재활용 예정)·`unit-test`(범용)는 유지. 아카이브 스킬은 원 프로젝트 `.claude/skills/`로 이전 권장.
