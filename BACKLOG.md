@@ -34,7 +34,7 @@
 - [x] M1-3 `[FEAT] CrawlSources 유스케이스` — 이슈 #8 → PR #9 병합 완료 (2026-07-11 · 완료된 분해 내역은 git 히스토리 — D-023)
 - [x] M1-4 `[FEAT] Source 영속 어댑터` — 이슈 #10 → PR #11 병합 완료 (2026-07-16)
   - ⚠️ 프로토콜 이탈 기록: 이 이슈는 BACKLOG 분해 없이 구현됨 (§0.7 미준수) — 재발 방지는 D-023 후속(/harness-check)
-- [~] M1-5 `[FEAT] RSS 수집 어댑터` — 이슈 #12 → `feature/12-rss-feed-adapter` (분해는 착수 후 소급 기록 — ⚠️ 이탈 2회째)
+- [~] M1-5 `[FEAT] RSS 수집 어댑터` — 이슈 #12 → `feature/12-rss-feed-adapter` → PR #13 발행 (2026-07-19), 👤 리뷰·병합 대기 (분해는 착수 후 소급 기록 — ⚠️ 이탈 2회째)
   - [x] (W) rometools 의존성 추가 — 커밋 d2373b6
   - [x] (W) `RssFeedAdapter` — RSS 파싱 → `RawArticle` 변환, `FetchFeedPort` 구현 — 커밋 d7fc8a1
   - [x] (W) RSS 픽스처 파싱 단위 테스트 — valid/empty/missing-pubdate/malformed 4케이스 — 커밋 3b0dd9f, DoD 통과 확인 (2026-07-18)

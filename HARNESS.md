@@ -81,12 +81,13 @@
 - ⚠️ 비대화식 `gh issue/pr create --body`는 GitHub 템플릿을 자동 적용하지 않는다 — 아래 구조로 본문을 직접 작성한다. 헤딩 원문은 로컬 클론 `.github/.github/`의 [ISSUE_TEMPLATE](https://github.com/siftnews/.github/tree/main/.github/ISSUE_TEMPLATE)·[pull_request_template.md](https://github.com/siftnews/.github/blob/main/.github/pull_request_template.md) 참조.
 - **이슈 본문**: `## Description`(한 줄 "- …를 구현합니다.") + `## TODO`(체크박스 = 하위 단계, DoD 포함). 라벨은 타입과 일치(`feature`·`chore`·`documentation` 등).
 - **PR 본문**: `## Issue number`(`- close #N`) + `## Check list`(테스트 통과 확인 · 모든 commit push 확인 · merge branch 확인) + `## (Optional) Additional description`(대체로 비움). 제목은 이슈 제목 그대로.
+- **Assignees·Labels**: 이슈·PR 모두 create 시점에 지정 — `--assignee @me`(사용자 본인) + 타입 일치 라벨 `[FEAT]`→`feature` · `[CHORE]`→`chore` · `[docs]`→`documentation` · `[FIX]`→`bug`. 발행 후 소급은 불가(`edit`는 deny — 사람 몫)이므로 create에서 누락하지 말 것.
 
 **절차**
-1. 🤖 **이슈 초안 → 발행** — TASKS.md에서 다음 태스크 선택 → 제목(`[FEAT] ...`)·배경·DoD 작성 → 사용자 확인 후 `gh issue create` 실행 (D-026) → TASKS/BACKLOG에 `#번호` 태깅
+1. 🤖 **이슈 초안 → 발행** — TASKS.md에서 다음 태스크 선택 → 제목(`[FEAT] ...`)·배경·DoD 작성 → 사용자 확인 후 `gh issue create --assignee @me --label {타입 라벨}` 실행 (D-026) → TASKS/BACKLOG에 `#번호` 태깅
 2. 🤖 **브랜치** — `develop`에서 `feature/{이슈번호}-{영어-kebab-case}` 분기 (예: `feature/12-rss-feed-adapter`). **develop = 통합, main = 배포** (D-025)
 3. 🤖 **구현 루프** — BACKLOG로 분해 → 작은 작업마다: 구현 + build/test 자가검증 → 커밋 (`{type}: {한국어 요약}`) → 다음 작은 작업
-4. 🤖 **push + PR 생성** — `git push -u origin feature/...`(대상 명시 관행) → 자가 리뷰(`/code-review`) → `gh pr create` (base = develop, 본문에 `close #N` + 체크리스트)
+4. 🤖 **push + PR 생성** — `git push -u origin feature/...`(대상 명시 관행) → 자가 리뷰(`/code-review`) → `gh pr create --assignee @me --label {타입 라벨}` (base = develop, 본문에 `close #N` + 체크리스트)
 5. 👤 **리뷰** — CodeRabbit 리뷰 확인, 필요시 `ultrareview`(사람만 트리거 가능 — 과금·사용자 전용). 리뷰 지적 반영은 🤖 후속 커밋
 6. 👤 **병합** — 리뷰 승인 후 병합 (merge commit — 현 관행) → 🤖 develop 갱신 확인, STATE·TASKS 체크
 7. 👤 **배포 승격** — 마일스톤 단위로 develop → main PR (D-025)

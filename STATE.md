@@ -7,10 +7,11 @@
 **Phase 0 — 스캐폴딩 + 골든패스** (진행 중)
 
 ## 지금 (in progress)
-- **M1-5 `[FEAT] RSS 수집 어댑터` 진행 중** — 이슈 #12 → `feature/12-rss-feed-adapter`. rometools 의존성·`RssFeedAdapter`(FetchFeedPort 구현)·RSS 픽스처 파싱 단위 테스트까지 3커밋 push 완료, DoD(픽스처 파싱 테스트 통과) 확인됨(2026-07-18). PR 생성 대기. ⚠️ BACKLOG 분해 없이 착수됨(§0.7 이탈, M1-4에 이어 2회째) — 분해 소급 기록함
+- **M1-5 `[FEAT] RSS 수집 어댑터` — PR #13 발행, 리뷰·병합 대기** — 이슈 #12 → `feature/12-rss-feed-adapter` → PR #13 (base=develop, `close #12`, 2026-07-19). DoD(픽스처 파싱 테스트 통과) 확인됨. 가드 훅 폐지 커밋(4a9f29e)까지 push되어 PR 정합. ⚠️ BACKLOG 분해 없이 착수됨(§0.7 이탈, M1-4에 이어 2회째) — 분해 소급 기록함
 
 ## 다음 액션 (next)
-- 🤖 **M1-5 마무리** — PR 생성(base=develop, 본문 `close #12` — D-025·D-026 첫 실전 적용)
+- 👤 **M1-5 PR #13 리뷰·병합** — CodeRabbit 리뷰 확인 후 병합 → 🤖 develop 갱신 확인·STATE·TASKS 체크
+- 👤 **이슈 #12 라벨(`feature`)·PR #13 assignee/라벨 소급 지정** — `edit`는 deny(사람 몫). 이후 발행분부터는 🤖 create 시 `--assignee @me --label {타입 라벨}` 지정 (HARNESS §0.7 박제, 2026-07-19)
 - 👤 **main 브랜치 보호 규칙 정비** — 가드 훅 폐지(D-027)로 main 방어는 서버측 브랜치 보호만 남음. sift-docs main 포함, 사용자 진행 중 (2026-07-19)
 - 👤 **`~/.claude/settings.local.json`에서 `Bash(gh api *)` 줄 제거** — D-024 백스톱 무력화 구멍, 전역 보호 훅 때문에 에이전트가 편집 불가 (D-026 비고)
 - 👤 **PORTFOLIO.md 유실 처리 결정** — 복원(재작성) 또는 폐기 (아래 "정정" 참조)

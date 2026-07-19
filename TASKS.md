@@ -24,7 +24,7 @@
   - 범위: Source/Article JPA 엔티티·매핑·repository·adapter (BaseEntity 상속, UNIQUE normalized_url) · `Source.markCrawled()` 영속 반영 = 전용 포트 `UpdateSourcePort`로 결정(D-022)
   - DoD: **Testcontainers 통합 테스트 통과** ✅ (중복 저장 무시 검증 포함), `ApplicationModules.verify()` 유지 ✅
   - 부수 수정: `AbstractIntegrationTest`의 Postgres 컨테이너를 `@Container`(클래스별 stop/restart) → static 블록 싱글톤 패턴으로 변경 — 통합 테스트가 2개 이상일 때 컨테이너 재시작으로 포트가 바뀌며 Spring 컨텍스트 캐시가 옛 포트를 참조해 연결 실패하던 문제 수정
-- [~] **#12 `[FEAT] RSS 수집 어댑터 (RssFeedAdapter)`** (M1-5) — 이슈 #12 발행, `feature/12-rss-feed-adapter` 진행 중
+- [~] **#12 `[FEAT] RSS 수집 어댑터 (RssFeedAdapter)`** (M1-5) — PR #13 발행 (2026-07-19), 👤 리뷰·병합 대기
   - 범위: `rome` 의존성, RSS 파싱 → `RawArticle` 변환, lang 추출
   - DoD: **실제 RSS 픽스처(xml) 파싱 테스트 통과**
 - [ ] **`[FEAT] collectionJob 배치 + 측정 베이스라인`** (M1-6)
