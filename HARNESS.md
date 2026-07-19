@@ -48,7 +48,7 @@
 
 **게이트 (사람 개입 지점)**
 - 되돌리기 어려운 명령 — `git reset --hard`, `git clean`, `docker compose down -v` (settings.json deny)
-- git/GitHub 쓰기 중 **병합·공개 상태 변경·인프라** — `gh pr merge`·`review`·`ready`, issue/pr `edit`·`close`·`comment`·`delete`, `release`, repo·workflow·secret·variable (D-026, settings deny). **커밋·push·이슈 발행·PR 생성은 🤖 에이전트 실행** — 모든 기록은 사용자 명의·기존 스타일, `.claude/hooks/git-gh-guard.sh`(PreToolUse)가 main push 차단·커밋 메시지 형식·이슈/PR 템플릿 준수를 검사 (D-026)
+- git/GitHub 쓰기 중 **병합·공개 상태 변경·인프라** — `gh pr merge`·`review`·`ready`, issue/pr `edit`·`close`·`comment`·`delete`, `release`, repo·workflow·secret·variable (D-026, settings deny). **커밋·push·이슈 발행·PR 생성은 🤖 에이전트 실행** — 모든 기록은 사용자 명의·기존 스타일(§0.7 컨벤션 준수 — 검사 장치 없음, D-027). main push 방어 = GitHub 브랜치 보호
 - 외부 영향 — 스키마 파괴, 외부 발송, 배포
 - 설계 분기·모호성 — 추정 말고 질문
 - (build·test·컴파일은 게이트 아님 — 에이전트 자가검증)
@@ -63,8 +63,8 @@
 ## 0.7 협업 흐름 (GitHub) — 작업 단위 = 이슈 → PR → 리뷰 → 병합
 
 > **이슈 1개 = 루프 1회분 = PR 1개.**
-> **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성**·gh 읽기는 🤖 *에이전트* — 단 모든 기록은 사용자 명의·기존 스타일(가드 훅 검사). **병합·리뷰 승인·issue/pr edit·close·comment·release·repo/인프라 쓰기**는 👤 *사람* (settings deny).
-> **main 직접 커밋·push 금지** (브랜치 보호 + 가드 훅 이중 방어).
+> **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성**·gh 읽기는 🤖 *에이전트* — 단 모든 기록은 사용자 명의·기존 스타일(아래 컨벤션을 스스로 준수 — 검사 장치 없음, D-027). **병합·리뷰 승인·issue/pr edit·close·comment·release·repo/인프라 쓰기**는 👤 *사람* (settings deny).
+> **main 직접 커밋·push 금지** (GitHub 브랜치 보호로 강제 — D-027).
 
 **태스크 계층 (재귀 분해의 GitHub 매핑)**
 
@@ -86,12 +86,12 @@
 1. 🤖 **이슈 초안 → 발행** — TASKS.md에서 다음 태스크 선택 → 제목(`[FEAT] ...`)·배경·DoD 작성 → 사용자 확인 후 `gh issue create` 실행 (D-026) → TASKS/BACKLOG에 `#번호` 태깅
 2. 🤖 **브랜치** — `develop`에서 `feature/{이슈번호}-{영어-kebab-case}` 분기 (예: `feature/12-rss-feed-adapter`). **develop = 통합, main = 배포** (D-025)
 3. 🤖 **구현 루프** — BACKLOG로 분해 → 작은 작업마다: 구현 + build/test 자가검증 → 커밋 (`{type}: {한국어 요약}`) → 다음 작은 작업
-4. 🤖 **push + PR 생성** — `git push -u origin feature/...`(대상 명시 — 가드 훅) → 자가 리뷰(`/code-review`) → `gh pr create` (base = develop, 본문에 `close #N` + 체크리스트)
+4. 🤖 **push + PR 생성** — `git push -u origin feature/...`(대상 명시 관행) → 자가 리뷰(`/code-review`) → `gh pr create` (base = develop, 본문에 `close #N` + 체크리스트)
 5. 👤 **리뷰** — CodeRabbit 리뷰 확인, 필요시 `ultrareview`(사람만 트리거 가능 — 과금·사용자 전용). 리뷰 지적 반영은 🤖 후속 커밋
 6. 👤 **병합** — 리뷰 승인 후 병합 (merge commit — 현 관행) → 🤖 develop 갱신 확인, STATE·TASKS 체크
 7. 👤 **배포 승격** — 마일스톤 단위로 develop → main PR (D-025)
 
-**커밋 컨벤션 (실행 🤖 — D-026, 형식은 가드 훅 강제)**
+**커밋 컨벤션 (실행 🤖 — D-026)**
 - 형식: `{type}: {한국어 요약}` — type: `feat` | `fix` | `refactor` | `test` | `chore` | `build` | `docs`. 한 줄, **트레일러 없음(Co-Authored-By 등 에이전트 서명 금지 — 기록은 사용자 명의)**.
 - 단위: **작은 작업(BACKLOG 단계) 1개 = 커밋 1개.** 여러 단위가 워킹트리에 쌓였으면 파일 그룹별로 나눠 순서대로 커밋한다.
 
@@ -145,7 +145,7 @@
 | 요소 | 분류 | Sift에서의 모습 | 상태 |
 |---|---|---|---|
 | 규칙 주입 | — | `siftnews/CLAUDE.md` (멀티레포 워크스페이스 루트) — Modulith·헥사고날 규칙·개발 명령 | ✅ 완료 |
-| 권한·훅 | — | `.claude/settings.json` (allow/deny — D-026 재편) + `hooks/git-gh-guard.sh` PreToolUse 가드 (main push 차단·커밋 형식·이슈/PR 템플릿 검사). 루트·sift-api 사본 정합 유지 (D-023) | ✅ 완료 (D-026) |
+| 권한·훅 | — | `.claude/settings.json` (allow/deny — D-026 재편, 훅 없음 — 가드 훅은 D-027로 폐지). 루트·sift-api 사본 정합 유지 (D-023) | ✅ 완료 |
 | 반복작업 스킬 | 워크플로우 | "유스케이스 풀구현", "소스 어댑터 추가", "배치 Job 추가", "토픽 등록" | Phase 1 |
 | 측정 골격 | — | Actuator 메트릭 + 배치 처리량·소요시간 로깅 (evals 토대) | **Phase 0~1 (앞당김)** |
 | 역할 서브에이전트 | 에이전트 | 선별-튜닝 / 성능-측정·분석 / 리뷰 | Phase 2 |

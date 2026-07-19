@@ -16,7 +16,7 @@
 - [x] main 브랜치 보호 규칙 설정 (사람) — sift-api 설정 확인 (2026-07-15, D-024 비고)
 - ~~루트 `siftnews/` git 저장소화~~ — D-015로 취소 (루트는 로컬 전용, git은 하위 sift-* 레포만)
 - [x] develop 처리 결정 — **develop 유지 확정 (2026-07-17, D-025)**: develop = 통합, main = 배포. 삭제 항목 폐기
-- [x] git/GitHub 쓰기 위임 + 가드 훅 (2026-07-17, D-026) — settings 재편 + `git-gh-guard.sh` + HARNESS 개정
+- [x] git/GitHub 쓰기 위임 + 가드 훅 (2026-07-17, D-026) — settings 재편 + `git-gh-guard.sh` + HARNESS 개정 → **가드 훅은 폐지 (2026-07-19, D-027)**: main 방어는 브랜치 보호로, 형식은 컨벤션 준수
 - [x] 이슈 #1 push·PR — PR #2 병합 완료 (2026-07-06)
 - ~~권한 조정(git push/gh 허용)~~ · ~~gh CLI 설치~~ — D-013으로 불필요 → gh CLI 설치·읽기 전용 (D-024) → **쓰기 위임으로 최종 개정 (D-026, 2026-07-17)**
 

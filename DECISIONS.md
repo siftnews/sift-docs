@@ -3,7 +3,12 @@
 > 경량 ADR. 루프가 일관성을 유지하고 과거 결정을 되돌아보기 위한 기록. **새 결정은 맨 위에 추가.**
 > 개정·폐기된 결정은 **본문을 다시 쓰지 않고 제목에 `(… 개정 → D-xxx)`를 표기**한다 (D-023).
 
-## D-026 · git/GitHub 쓰기 에이전트 위임 — 이슈·PR 생성·커밋·push + 로컬 가드 훅 (2026-07-17)
+## D-027 · 가드 훅 폐지 — main 방어는 브랜치 보호로 일원화, 형식은 컨벤션 준수 (2026-07-19 · D-026 가드 훅 항목 개정)
+- **결정**: D-026의 로컬 가드 훅(`.claude/hooks/git-gh-guard.sh`)을 삭제하고 두 settings(루트·sift-api)의 PreToolUse 등록을 해제한다. **쓰기 위임과 deny 게이트는 D-026 그대로 유지.** 형식(커밋 `{type}: {한국어 요약}` 한 줄·트레일러 금지·이슈/PR 템플릿·push 대상 명시)은 CLAUDE.md·HARNESS §0.7·메모리 지침으로 준수하고, main push 방어는 **GitHub 브랜치 보호 규칙으로 일원화** — 규칙 정비는 사용자가 직접 (sift-docs main 포함, 진행 중).
+- **이유**: 사용자 결정(2026-07-19) — 훅 검토에서 우회 경로(`git push origin HEAD`·`+` refspec force·`--amend` 형식 미검사)와 fail-open 한계(jq 부재·래핑 명령 미매치) 확인. 클라이언트측 부분 장치를 유지·패치하기보다, 되돌리기 어려운 지점(main)은 서버측 브랜치 보호로 옮기고 형식은 지침·리뷰가 담당.
+- **비고**: D-023 "기억이 아니라 장치로 강제"의 부분 후퇴 — 형식 이탈은 amend·후속 커밋으로 교정 가능한 가역 영역이라 수용, 이탈 사례가 반복되면 재도입 재검토. settings 사본 정합 대상에서 훅 스크립트 제외.
+
+## D-026 · git/GitHub 쓰기 에이전트 위임 — 이슈·PR 생성·커밋·push + 로컬 가드 훅 (2026-07-17 · 가드 훅 항목 개정 → D-027)
 - **결정**: D-013·D-014의 "쓰기 = 사람 전담"을 개정 — 에이전트가 **이슈 생성(`gh issue create`)·PR 생성(`gh pr create`)·`git commit`·`git push`**까지 실행한다(settings allow 승격 + deny 해제, `git add`·`git switch` 포함). **유지되는 게이트(deny)**: `gh pr merge`·`review`·`ready`, issue/pr `edit`·`close`·`comment`·`delete`, `release`, `repo *`, `workflow run`, `secret`, `variable set`, 파괴 명령(`git reset --hard`·`clean`, `compose down -v`). `gh api`는 D-024대로 allow/deny 양쪽 제외(프롬프트 백스톱). **스타일 강제**: 모든 기록은 사용자 명의로, 기존 관행 그대로 — 이슈 제목 `[FEAT|CHORE|FIX|REFACTOR|docs]` 접두어 + Description/TODO 템플릿, PR 본문 `close #N` + 체크리스트, 커밋 `{type}: {한국어 요약}` 한 줄·**트레일러 금지(Co-Authored-By 등 에이전트 서명 금지)**. **로컬 가드 훅 도입**(`.claude/hooks/git-gh-guard.sh`, PreToolUse/Bash): ① main 직접 push 차단 + push는 `origin {브랜치}` 명시 강제 ② 커밋 메시지 형식·트레일러 검사 ③ 이슈/PR 제목 접두어·PR 본문 `close #N` 검사.
 - **이유**: 사용자 결정(2026-07-17) — 루프 자율성을 높이되 기록의 명의·스타일은 본인 것으로 유지. 병합·공개 상태 변경·인프라 쓰기만 사람 게이트로 남기면 되돌리기 어려운 지점은 보호된다(main은 브랜치 보호 + 훅 이중 방어). 형식은 규칙(기억)이 아니라 훅(장치)으로 강제 — D-023 철학.
 - **비고**: 테스트 게이트 훅(push 전 `./gradlew test` 강제)은 **채택 안 함** — Testcontainers 포함 수 분짜리 실행이라 훅 타임아웃·루프 리듬과 충돌. 자가검증(§0.6)과 CI·브랜치 보호가 담당. settings 사본 정합 대상에 훅 스크립트 추가(루트·sift-api 동일 유지). ⚠️ 잔여 구멍: `~/.claude/settings.local.json`의 `Bash(gh api *)` allow가 백스톱을 무력화 — 전역 보호 훅이 이 파일 편집을 차단하므로 **사용자가 직접 해당 줄 제거 필요**.

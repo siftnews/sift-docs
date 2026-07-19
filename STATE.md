@@ -1,17 +1,17 @@
 # Sift — STATE (루프 나침반)
 
 > 매 사이클 **시작에 읽고, 종료에 갱신**한다. 현재 상황의 단일 진실원천.
-> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-07-18
+> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-07-19
 
 ## 현재 Phase
 **Phase 0 — 스캐폴딩 + 골든패스** (진행 중)
 
 ## 지금 (in progress)
 - **M1-5 `[FEAT] RSS 수집 어댑터` 진행 중** — 이슈 #12 → `feature/12-rss-feed-adapter`. rometools 의존성·`RssFeedAdapter`(FetchFeedPort 구현)·RSS 픽스처 파싱 단위 테스트까지 3커밋 push 완료, DoD(픽스처 파싱 테스트 통과) 확인됨(2026-07-18). PR 생성 대기. ⚠️ BACKLOG 분해 없이 착수됨(§0.7 이탈, M1-4에 이어 2회째) — 분해 소급 기록함
-- **하네스 개편 (D-025·D-026) 적용 완료 (2026-07-17)** — git/GitHub 쓰기 위임 + 가드 훅. 새 세션부터 훅·권한 유효
 
 ## 다음 액션 (next)
 - 🤖 **M1-5 마무리** — PR 생성(base=develop, 본문 `close #12` — D-025·D-026 첫 실전 적용)
+- 👤 **main 브랜치 보호 규칙 정비** — 가드 훅 폐지(D-027)로 main 방어는 서버측 브랜치 보호만 남음. sift-docs main 포함, 사용자 진행 중 (2026-07-19)
 - 👤 **`~/.claude/settings.local.json`에서 `Bash(gh api *)` 줄 제거** — D-024 백스톱 무력화 구멍, 전역 보호 훅 때문에 에이전트가 편집 불가 (D-026 비고)
 - 👤 **PORTFOLIO.md 유실 처리 결정** — 복원(재작성) 또는 폐기 (아래 "정정" 참조)
 
@@ -24,6 +24,7 @@
 - 이슈 #1 커밋은 4개가 아니라 **3개** (common / 모듈경계+검증테스트 / 테스트인프라).
 
 ## 최근 완료 (최근 4~5건만 유지 — 이전 이력은 git 히스토리, D-023)
+- **가드 훅 폐지 (2026-07-19, D-027 — D-026 개정)** — 훅 검토에서 우회 경로(`git push origin HEAD`·`+` refspec·`--amend` 형식 미검사)·fail-open 한계 확인 → 사용자 결정으로 `git-gh-guard.sh` 삭제·settings 훅 등록 해제(두 사본 정합 유지). 형식 준수는 지침·리뷰로, main 방어는 GitHub 브랜치 보호로 일원화(👤 규칙 정비 진행 중). 부수: 조직 `.github` 템플릿 레포를 워크스페이스 루트에 클론, 이슈·PR 본문 템플릿 구조를 HARNESS §0.7에 박제(2026-07-19)
 - **하네스 개편 — git/GitHub 쓰기 위임 + 가드 훅 (2026-07-17, D-025·D-026)** — ① 브랜치 전략 확정: develop 통합·main 배포(D-025, develop 게이트 해소) ② 쓰기 위임: 이슈·PR 생성·커밋·push를 에이전트 실행으로 승격, 병합·edit·close·comment·release·인프라는 deny 유지 ③ `.claude/hooks/git-gh-guard.sh` 신설(main push 차단·force 금지·push 대상 명시 강제·커밋 메시지 형식·트레일러 금지·이슈/PR 제목·close #N 검사 — 19케이스 검증 통과) ④ settings 두 사본 재편·정합(`git branch` 표기 불일치 해소 포함) ⑤ HARNESS §0.6·§0.7·§1 개정. 계기: gh 이슈·PR 스타일 정독(2026-07-17) 후 사용자 결정
 - **M1-4 `[FEAT] Source 영속 어댑터` 병합 ✅ (이슈 #10 → PR #11 → develop, 2026-07-16)**
 - **gh CLI 도입(D-024) + 문서 정합 점검 (2026-07-15~16)** — settings 두 사본에 gh 읽기 allow·쓰기 deny 보강, main 보호 게이트 완료 확인(sift-api 설정됨). 정합 점검 결과 반영: M1-4 상태를 PR #11 발행 기준으로 동기화(STATE·BACKLOG·TASKS), 이슈 제목 컨벤션을 실제 관행 `[FEAT|chore|docs|fix]`로 박제(HARNESS §0.7), MVP-DESIGN 시드 표 cadence 컬럼 제거(D-019)·trust_score 보류 주석(D-022)
@@ -40,6 +41,6 @@
 - ~~루트 `siftnews/` git 저장소화~~ — **취소 (D-015)**: 루트는 로컬 전용, git은 하위 sift-* 레포에만
 
 ## 비고
-- **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성** = 에이전트 (모든 기록은 사용자 명의·기존 스타일, 가드 훅 검사). **병합·리뷰 승인·issue/pr edit·close·comment·release·repo/인프라 쓰기** = 사람.
+- **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성** = 에이전트 (모든 기록은 사용자 명의·기존 스타일 — HARNESS §0.7 컨벤션을 스스로 준수, 검사 장치 없음 D-027). **병합·리뷰 승인·issue/pr edit·close·comment·release·repo/인프라 쓰기** = 사람.
 - **구현 리듬 (D-026)**: 작은 작업 1개 → build/test 자가검증 → 에이전트 커밋(`{type}: {한국어 요약}` 한 줄, 트레일러 금지) → 다음 작업.
-- 게이트(settings.json deny + 가드 훅): gh pr merge/review/ready, issue·pr edit/close/comment/delete, release, repo, workflow run, secret, variable — 그리고 훅으로 main push·force push·형식 위반 차단. 파괴 명령: git reset --hard / clean, docker compose down -v. `gh api`는 allow/deny 양쪽 제외(백스톱) — ⚠️ settings.local.json의 `gh api *` allow 제거는 사람 대기.
+- 게이트(settings.json deny): gh pr merge/review/ready, issue·pr edit/close/comment/delete, release, repo, workflow run, secret, variable. 파괴 명령: git reset --hard / clean, docker compose down -v. main push 방어 = GitHub 브랜치 보호(D-027). `gh api`는 allow/deny 양쪽 제외(백스톱) — ⚠️ settings.local.json의 `gh api *` allow 제거는 사람 대기.
