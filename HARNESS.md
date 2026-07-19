@@ -75,7 +75,12 @@
 | 태스크 내 하위 단계 | 이슈 본문 체크리스트 | `BACKLOG.md` (루프가 집는 단위) |
 
 - 태스크가 PR 1개 분량을 넘으면 **이슈를 분할**하고 TASKS.md에 반영한다.
-- 이슈 제목 포맷: `[FEAT|chore|docs|fix] 요약` — 실제 발행 관행 박제 (예: 이슈 #10 `[FEAT] Source 영속 어댑터`, 이슈 #1 `[chore] 프로젝트 골격 & 모듈 경계`). 본문에 **배경 + DoD + 체크리스트** 필수.
+- 이슈 제목 포맷: `[FEAT|CHORE|FIX|REFACTOR|docs] 요약` — 실제 발행 관행 박제 (예: 이슈 #10 `[FEAT] Source 영속 어댑터`, 이슈 #1 `[chore] 프로젝트 골격 & 모듈 경계`). 본문 구조는 아래 템플릿.
+
+**이슈·PR 본문 템플릿 (원본 = 조직 [`.github`](https://github.com/siftnews/.github) 레포 — 로컬 클론 `siftnews/.github/`)**
+- ⚠️ 비대화식 `gh issue/pr create --body`는 GitHub 템플릿을 자동 적용하지 않는다 — 아래 구조로 본문을 직접 작성한다. 헤딩 원문은 로컬 클론 `.github/.github/`의 [ISSUE_TEMPLATE](https://github.com/siftnews/.github/tree/main/.github/ISSUE_TEMPLATE)·[pull_request_template.md](https://github.com/siftnews/.github/blob/main/.github/pull_request_template.md) 참조.
+- **이슈 본문**: `## Description`(한 줄 "- …를 구현합니다.") + `## TODO`(체크박스 = 하위 단계, DoD 포함). 라벨은 타입과 일치(`feature`·`chore`·`documentation` 등).
+- **PR 본문**: `## Issue number`(`- close #N`) + `## Check list`(테스트 통과 확인 · 모든 commit push 확인 · merge branch 확인) + `## (Optional) Additional description`(대체로 비움). 제목은 이슈 제목 그대로.
 
 **절차**
 1. 🤖 **이슈 초안 → 발행** — TASKS.md에서 다음 태스크 선택 → 제목(`[FEAT] ...`)·배경·DoD 작성 → 사용자 확인 후 `gh issue create` 실행 (D-026) → TASKS/BACKLOG에 `#번호` 태깅
