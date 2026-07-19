@@ -34,10 +34,9 @@
 - [x] M1-3 `[FEAT] CrawlSources 유스케이스` — 이슈 #8 → PR #9 병합 완료 (2026-07-11 · 완료된 분해 내역은 git 히스토리 — D-023)
 - [x] M1-4 `[FEAT] Source 영속 어댑터` — 이슈 #10 → PR #11 병합 완료 (2026-07-16)
   - ⚠️ 프로토콜 이탈 기록: 이 이슈는 BACKLOG 분해 없이 구현됨 (§0.7 미준수) — 재발 방지는 D-023 후속(/harness-check)
-- [~] M1-5 `[FEAT] RSS 수집 어댑터` — 이슈 #12 → `feature/12-rss-feed-adapter` → PR #13 발행 (2026-07-19), 👤 리뷰·병합 대기 (분해는 착수 후 소급 기록 — ⚠️ 이탈 2회째)
-  - [x] (W) rometools 의존성 추가 — 커밋 d2373b6
-  - [x] (W) `RssFeedAdapter` — RSS 파싱 → `RawArticle` 변환, `FetchFeedPort` 구현 — 커밋 d7fc8a1
-  - [x] (W) RSS 픽스처 파싱 단위 테스트 — valid/empty/missing-pubdate/malformed 4케이스 — 커밋 3b0dd9f, DoD 통과 확인 (2026-07-18)
+- [x] M1-5 `[FEAT] RSS 수집 어댑터` — 이슈 #12 → PR #13 병합 완료 (2026-07-19 · 완료된 분해 내역은 git 히스토리 — D-023)
+  - ⚠️ 프로토콜 이탈 기록: BACKLOG 분해 없이 착수, 소급 기록 (§0.7 미준수 — M1-4에 이어 2회째)
+- (다음) M1-6 `[FEAT] collectionJob 배치 + 측정 베이스라인` — 이슈 발행 후 **착수 전에** 여기에 구현 단계 분해 (⚠️ 이탈 3회 방지)
 
 ## Phase 1 이후 — [TASKS.md](./TASKS.md) M1(골든패스 박제)~M4 참조
 - 이슈가 발행되면 해당 태스크를 이 파일에 구현 단계로 분해해 루프를 돈다 (§0.7 절차 4)
