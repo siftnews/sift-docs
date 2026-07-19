@@ -11,7 +11,6 @@
 
 ## 다음 액션 (next)
 - 👤 **M1-5 PR #13 리뷰·병합** — CodeRabbit 리뷰 확인 후 병합 → 🤖 develop 갱신 확인·STATE·TASKS 체크
-- 👤 **이슈 #12 라벨(`feature`)·PR #13 assignee/라벨 소급 지정** — `edit`는 deny(사람 몫). 이후 발행분부터는 🤖 create 시 `--assignee @me --label {타입 라벨}` 지정 (HARNESS §0.7 박제, 2026-07-19)
 - 👤 **main 브랜치 보호 규칙 정비** — 가드 훅 폐지(D-027)로 main 방어는 서버측 브랜치 보호만 남음. sift-docs main 포함, 사용자 진행 중 (2026-07-19)
 - 👤 **`~/.claude/settings.local.json`에서 `Bash(gh api *)` 줄 제거** — D-024 백스톱 무력화 구멍, 전역 보호 훅 때문에 에이전트가 편집 불가 (D-026 비고)
 - 👤 **PORTFOLIO.md 유실 처리 결정** — 복원(재작성) 또는 폐기 (아래 "정정" 참조)
@@ -25,6 +24,7 @@
 - 이슈 #1 커밋은 4개가 아니라 **3개** (common / 모듈경계+검증테스트 / 테스트인프라).
 
 ## 최근 완료 (최근 4~5건만 유지 — 이전 이력은 git 히스토리, D-023)
+- **gh issue/pr edit 허용 + assignee·라벨 컨벤션 박제 (2026-07-19, D-028)** — edit를 deny→allow(assignee·라벨 관리 용도 한정, 제목·본문은 사람 — deny 완화는 분류기 차단으로 사용자가 직접 적용). 이슈 #12 `feature` 라벨·PR #13 assignee/라벨 소급 지정 완료. create 시 `--assignee @me --label {타입 라벨}` 컨벤션 HARNESS §0.7 박제
 - **가드 훅 폐지 (2026-07-19, D-027 — D-026 개정)** — 훅 검토에서 우회 경로(`git push origin HEAD`·`+` refspec·`--amend` 형식 미검사)·fail-open 한계 확인 → 사용자 결정으로 `git-gh-guard.sh` 삭제·settings 훅 등록 해제(두 사본 정합 유지). 형식 준수는 지침·리뷰로, main 방어는 GitHub 브랜치 보호로 일원화(👤 규칙 정비 진행 중). 부수: 조직 `.github` 템플릿 레포를 워크스페이스 루트에 클론, 이슈·PR 본문 템플릿 구조를 HARNESS §0.7에 박제(2026-07-19)
 - **하네스 개편 — git/GitHub 쓰기 위임 + 가드 훅 (2026-07-17, D-025·D-026)** — ① 브랜치 전략 확정: develop 통합·main 배포(D-025, develop 게이트 해소) ② 쓰기 위임: 이슈·PR 생성·커밋·push를 에이전트 실행으로 승격, 병합·edit·close·comment·release·인프라는 deny 유지 ③ `.claude/hooks/git-gh-guard.sh` 신설(main push 차단·force 금지·push 대상 명시 강제·커밋 메시지 형식·트레일러 금지·이슈/PR 제목·close #N 검사 — 19케이스 검증 통과) ④ settings 두 사본 재편·정합(`git branch` 표기 불일치 해소 포함) ⑤ HARNESS §0.6·§0.7·§1 개정. 계기: gh 이슈·PR 스타일 정독(2026-07-17) 후 사용자 결정
 - **M1-4 `[FEAT] Source 영속 어댑터` 병합 ✅ (이슈 #10 → PR #11 → develop, 2026-07-16)**
@@ -42,6 +42,6 @@
 - ~~루트 `siftnews/` git 저장소화~~ — **취소 (D-015)**: 루트는 로컬 전용, git은 하위 sift-* 레포에만
 
 ## 비고
-- **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성** = 에이전트 (모든 기록은 사용자 명의·기존 스타일 — HARNESS §0.7 컨벤션을 스스로 준수, 검사 장치 없음 D-027). **병합·리뷰 승인·issue/pr edit·close·comment·release·repo/인프라 쓰기** = 사람.
+- **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성** = 에이전트 (모든 기록은 사용자 명의·기존 스타일 — HARNESS §0.7 컨벤션을 스스로 준수, 검사 장치 없음 D-027). **병합·리뷰 승인·issue/pr close·comment·release·repo/인프라 쓰기** = 사람. issue/pr `edit`는 에이전트 허용이되 assignee·라벨 관리 용도만 (D-028).
 - **구현 리듬 (D-026)**: 작은 작업 1개 → build/test 자가검증 → 에이전트 커밋(`{type}: {한국어 요약}` 한 줄, 트레일러 금지) → 다음 작업.
-- 게이트(settings.json deny): gh pr merge/review/ready, issue·pr edit/close/comment/delete, release, repo, workflow run, secret, variable. 파괴 명령: git reset --hard / clean, docker compose down -v. main push 방어 = GitHub 브랜치 보호(D-027). `gh api`는 allow/deny 양쪽 제외(백스톱) — ⚠️ settings.local.json의 `gh api *` allow 제거는 사람 대기.
+- 게이트(settings.json deny): gh pr merge/review/ready, issue·pr close/comment/delete, release, repo, workflow run, secret, variable (edit는 D-028로 allow — assignee·라벨 용도만). 파괴 명령: git reset --hard / clean, docker compose down -v. main push 방어 = GitHub 브랜치 보호(D-027). `gh api`는 allow/deny 양쪽 제외(백스톱) — ⚠️ settings.local.json의 `gh api *` allow 제거는 사람 대기.

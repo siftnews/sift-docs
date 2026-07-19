@@ -48,7 +48,7 @@
 
 **게이트 (사람 개입 지점)**
 - 되돌리기 어려운 명령 — `git reset --hard`, `git clean`, `docker compose down -v` (settings.json deny)
-- git/GitHub 쓰기 중 **병합·공개 상태 변경·인프라** — `gh pr merge`·`review`·`ready`, issue/pr `edit`·`close`·`comment`·`delete`, `release`, repo·workflow·secret·variable (D-026, settings deny). **커밋·push·이슈 발행·PR 생성은 🤖 에이전트 실행** — 모든 기록은 사용자 명의·기존 스타일(§0.7 컨벤션 준수 — 검사 장치 없음, D-027). main push 방어 = GitHub 브랜치 보호
+- git/GitHub 쓰기 중 **병합·공개 상태 변경·인프라** — `gh pr merge`·`review`·`ready`, issue/pr `close`·`comment`·`delete`, `release`, repo·workflow·secret·variable (D-026, settings deny). issue/pr `edit`는 🤖 허용이되 **assignee·라벨 관리 용도로만** — 제목·본문 수정은 사람 (D-028). **커밋·push·이슈 발행·PR 생성은 🤖 에이전트 실행** — 모든 기록은 사용자 명의·기존 스타일(§0.7 컨벤션 준수 — 검사 장치 없음, D-027). main push 방어 = GitHub 브랜치 보호
 - 외부 영향 — 스키마 파괴, 외부 발송, 배포
 - 설계 분기·모호성 — 추정 말고 질문
 - (build·test·컴파일은 게이트 아님 — 에이전트 자가검증)
@@ -63,7 +63,7 @@
 ## 0.7 협업 흐름 (GitHub) — 작업 단위 = 이슈 → PR → 리뷰 → 병합
 
 > **이슈 1개 = 루프 1회분 = PR 1개.**
-> **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성**·gh 읽기는 🤖 *에이전트* — 단 모든 기록은 사용자 명의·기존 스타일(아래 컨벤션을 스스로 준수 — 검사 장치 없음, D-027). **병합·리뷰 승인·issue/pr edit·close·comment·release·repo/인프라 쓰기**는 👤 *사람* (settings deny).
+> **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성**·gh 읽기는 🤖 *에이전트* — 단 모든 기록은 사용자 명의·기존 스타일(아래 컨벤션을 스스로 준수 — 검사 장치 없음, D-027). **병합·리뷰 승인·issue/pr close·comment·release·repo/인프라 쓰기**는 👤 *사람* (settings deny). issue/pr `edit`는 🤖 assignee·라벨 관리 용도로만 허용 — 제목·본문 수정은 👤 (D-028).
 > **main 직접 커밋·push 금지** (GitHub 브랜치 보호로 강제 — D-027).
 
 **태스크 계층 (재귀 분해의 GitHub 매핑)**
@@ -81,7 +81,7 @@
 - ⚠️ 비대화식 `gh issue/pr create --body`는 GitHub 템플릿을 자동 적용하지 않는다 — 아래 구조로 본문을 직접 작성한다. 헤딩 원문은 로컬 클론 `.github/.github/`의 [ISSUE_TEMPLATE](https://github.com/siftnews/.github/tree/main/.github/ISSUE_TEMPLATE)·[pull_request_template.md](https://github.com/siftnews/.github/blob/main/.github/pull_request_template.md) 참조.
 - **이슈 본문**: `## Description`(한 줄 "- …를 구현합니다.") + `## TODO`(체크박스 = 하위 단계, DoD 포함). 라벨은 타입과 일치(`feature`·`chore`·`documentation` 등).
 - **PR 본문**: `## Issue number`(`- close #N`) + `## Check list`(테스트 통과 확인 · 모든 commit push 확인 · merge branch 확인) + `## (Optional) Additional description`(대체로 비움). 제목은 이슈 제목 그대로.
-- **Assignees·Labels**: 이슈·PR 모두 create 시점에 지정 — `--assignee @me`(사용자 본인) + 타입 일치 라벨 `[FEAT]`→`feature` · `[CHORE]`→`chore` · `[docs]`→`documentation` · `[FIX]`→`bug`. 발행 후 소급은 불가(`edit`는 deny — 사람 몫)이므로 create에서 누락하지 말 것.
+- **Assignees·Labels**: 이슈·PR 모두 create 시점에 지정 — `--assignee @me`(사용자 본인) + 타입 일치 라벨 `[FEAT]`→`feature` · `[CHORE]`→`chore` · `[docs]`→`documentation` · `[FIX]`→`bug`. 누락 시 `gh issue/pr edit --add-assignee @me --add-label {라벨}`로 소급 가능 (D-028 — `edit`는 assignee·라벨 용도로만, 제목·본문 수정은 사람).
 
 **절차**
 1. 🤖 **이슈 초안 → 발행** — TASKS.md에서 다음 태스크 선택 → 제목(`[FEAT] ...`)·배경·DoD 작성 → 사용자 확인 후 `gh issue create --assignee @me --label {타입 라벨}` 실행 (D-026) → TASKS/BACKLOG에 `#번호` 태깅
