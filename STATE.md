@@ -12,8 +12,6 @@
 ## 다음 액션 (next)
 - 🤖 **M1-7 이슈 초안 작성 → 사용자 확인 → 발행** — `gh issue create --assignee @me --label chore` → BACKLOG 분해 후 착수. 범위에 Sift용 `code-review`·`create-branch` 스킬 박제(D-012)와 D-009 잠정 결정 확정 포함
 - 👤 **M1-6 e2e 게이트 확인** — `bootRun`으로 실제 RSS → `article` 적재 + 측정 로그 확인. PR #15는 병합됐으나 이 실환경 게이트는 미확인 상태로 남아 있다 (BACKLOG C의 `[G]` 항목)
-- 👤 **CI 체크를 브랜치 보호의 required로 등록** — `.github/workflows/ci.yml`이 develop에 있으나(03397b4), 필수 체크로 걸리지 않으면 게이트 역할을 못 한다. repo 설정은 사람 영역 (D-026)
-- 👤 **main 브랜치 보호 규칙 정비** — 가드 훅 폐지(D-027)로 main 방어는 서버측 브랜치 보호만 남음. sift-docs main 포함, 사용자 진행 중 (2026-07-19)
 - 👤 **PORTFOLIO.md 유실 처리 결정** — 복원(재작성) 또는 폐기 (아래 "정정" 참조)
 
 ## 정정 (사람 재검증·수정 흔적)
@@ -36,6 +34,7 @@
 ## 대기 / 블록 (게이트)
 - ~~develop 처리 결정~~ — **해소 (2026-07-17, D-025)**: develop = 통합 브랜치, main = 배포 브랜치로 공식화. develop이 앞서 있는 것은 정상(배포 전 통합분), 승격은 마일스톤 단위로 사람이 결정
 - ~~main 브랜치 보호 규칙 설정~~ — **완료 확인 (2026-07-15, D-024 비고)**: sift-api main에 PR 필수·strict checks 설정됨 (gh api로 검증)
+- ~~CI required 체크 등록 + main 보호 정비~~ — **완료 확인 (2026-07-22, gh api 검증)**: sift-api **main·develop 양쪽** `build & test` required + strict + PR 필수 설정됨(develop도 신규 보호). `enforce_admins=false`·승인 0명은 1인 운영 수용(D-024 불변). sift-docs main은 미보호 유지(사람 직접 커밋 레포 — D-024 수용), sift-harness는 private이라 보호 불가(Pro 필요, 수용)
 - ~~#6 PR 발행·병합~~ — 완료 (PR #7 병합, 2026-07-10)
 - ~~M1-3 이슈 발행~~ — 완료 (이슈 #8 → PR #9 병합, 2026-07-11)
 - ~~이슈 #1 push·PR~~ — 완료 (PR #2 병합)
