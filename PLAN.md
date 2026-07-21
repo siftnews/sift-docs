@@ -1,6 +1,6 @@
 # Sift — 뉴스레터 배치 서비스 기획안
 
-> 프로젝트명: **Sift** (체로 거르다 = 원하는 뉴스만 선별) · 최종 수정: 2026-07-07 · 상태: 구현 진행 (진행 추적은 STATE.md)
+> 프로젝트명: **Sift** (체로 거르다 = 원하는 뉴스만 선별) · 최종 수정: 2026-07-22 · 상태: 구현 진행 (진행 추적은 STATE.md)
 >
 > 구성: 백엔드 + 프론트엔드 · GitHub 조직 [`siftnews`](https://github.com/siftnews) 로 관리 (브랜드 표기는 `Sift`)
 
@@ -124,21 +124,10 @@ RSS/API 수집  ──▶  중복제거·필터링  ──▶  스케줄 도래 
 
 발송은 **"발송 작업 생성"과 "실제 전송"을 분리**하는 것이 안정성의 핵심이다.
 
-### 데이터 모델 (초안)
+### 데이터 모델
 
-```
-topic          (id, name, slug, ...)                                 -- 선별 기준 (→ SELECTION.md)
-subscription   (id, subscriber_id, topic_id, status)                 -- 토픽 구독
-issue          (id, topic_id, title, status, scheduled_at, published_at)  -- 토픽당 1회분
-delivery_job   (id, issue_id, total_count, status, created_at)        -- 발송 한 회
-delivery_task  (id, job_id, subscriber_id, email,                     -- 개별 1건 (핵심)
-                status[PENDING|SENDING|SENT|FAILED|DEAD],
-                attempt_count, next_retry_at, last_error, sent_at)
-subscriber     (id, email, status[ACTIVE|UNSUB|BOUNCED], preferred_send_hour)  -- 수신 시각 구독자 선택 (D-019)
-```
-
-> `delivery_task`가 멱등성·재시도·집계의 단일 기준점.
-> 토픽·선별 관련 상세 스키마(`article`, `article_score`, `issue_item` 등)는 [SELECTION.md](https://github.com/siftnews/sift-api/blob/main/docs/SELECTION.md) 참고.
+> **확정 스키마의 원본은 [MVP-DESIGN §2 ERD·테이블 정의](https://github.com/siftnews/sift-api/blob/main/docs/MVP-DESIGN.md)** — 초안 스키마 사본은 제거(D-023 후속 ③, 2026-07-22 — 사본 drift로 `idempotency_key` 누락이 실제 발생).
+> 구조 요약: `subscriber → subscription → topic` · `issue → delivery_job → delivery_task`. `delivery_task`(UNIQUE `idempotency_key`)가 멱등성·재시도·집계의 단일 기준점.
 
 ### 상태 머신
 
