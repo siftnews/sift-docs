@@ -1,7 +1,7 @@
 # Sift — TASKS (MVP 태스크 트리 = 이슈 발행 원본)
 
 > **마일스톤(M) = GitHub 마일스톤, 태스크 1개 = 이슈 1개 = PR 1개** (HARNESS §0.7).
-> 🤖 에이전트가 이슈 발행·구현·커밋·push·PR 생성(사용자 명의·기존 스타일, 가드 훅 검사), 👤 사람이 리뷰·병합·배포 승격 (D-025·D-026).
+> 🤖 에이전트가 이슈 발행·구현·커밋·push·PR 생성(사용자 명의·기존 스타일, §0.7 컨벤션 자율 준수 — D-027), 👤 사람이 리뷰·병합·배포 승격 (D-025·D-026).
 > 발행되면 제목 앞에 `#번호`를 태깅한다. 표기: `[ ]` 대기 · `[~]` 진행 · `[x]` 병합 완료
 > 근거 문서: [PLAN.md](./PLAN.md) §5~7 · [MVP-DESIGN.md](https://github.com/siftnews/sift-api/blob/main/docs/MVP-DESIGN.md) · [SELECTION.md](https://github.com/siftnews/sift-api/blob/main/docs/SELECTION.md)
 

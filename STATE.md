@@ -1,7 +1,7 @@
 # Sift — STATE (루프 나침반)
 
 > 매 사이클 **시작에 읽고, 종료에 갱신**한다. 현재 상황의 단일 진실원천.
-> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-07-21
+> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-07-22
 
 ## 현재 Phase
 **Phase 0 — 스캐폴딩 + 골든패스** (진행 중)
@@ -14,10 +14,11 @@
 - 👤 **M1-6 e2e 게이트 확인** — `bootRun`으로 실제 RSS → `article` 적재 + 측정 로그 확인. PR #15는 병합됐으나 이 실환경 게이트는 미확인 상태로 남아 있다 (BACKLOG C의 `[G]` 항목)
 - 👤 **CI 체크를 브랜치 보호의 required로 등록** — `.github/workflows/ci.yml`이 develop에 있으나(03397b4), 필수 체크로 걸리지 않으면 게이트 역할을 못 한다. repo 설정은 사람 영역 (D-026)
 - 👤 **main 브랜치 보호 규칙 정비** — 가드 훅 폐지(D-027)로 main 방어는 서버측 브랜치 보호만 남음. sift-docs main 포함, 사용자 진행 중 (2026-07-19)
-- 👤 **`~/.claude/settings.local.json`에서 `Bash(gh api *)` 줄 제거** — D-024 백스톱 무력화 구멍, 전역 보호 훅 때문에 에이전트가 편집 불가 (D-026 비고)
+- 👤 **`Bash(gh api *)` allow 줄 제거 (2곳)** — D-024 백스톱 무력화 구멍. 위치 정정(2026-07-22): `~/.claude/settings.local.json`은 하네스 이관으로 소멸, 실제 위치는 ① 워크스페이스 `.claude/settings.local.json` ② 하네스 시드 `sift-harness/workspace/local/settings.local.json`(부트스트랩마다 구멍 재생산). 전역 보호 훅이 `settings.local.json` 편집을 차단해 에이전트 수정 불가 (D-026 비고)
 - 👤 **PORTFOLIO.md 유실 처리 결정** — 복원(재작성) 또는 폐기 (아래 "정정" 참조)
 
 ## 정정 (사람 재검증·수정 흔적)
+- **(2026-07-22) 스킬 격리 풀림 발견 → 삭제로 종결** — D-012·D-023의 skills-archive 격리가 풀려 타 프로젝트 MSA 스킬 8종(code-review·create-branch·feign-client 2종·full-feature-cycle·http-test·implement-feature·kafka-event-handling·unit-test)이 `~/.claude/skills/`에 복원돼 있었음(하네스 이관 2026-07-22 과정 추정, skills-archive는 비어 있음). 사용자 결정으로 아카이브가 아닌 **삭제**로 종결(graphify.bak 백업 디렉터리 포함). 하네스 관리 심링크 3종(algo-pacemaker·graphify·symlink)만 유지 — M1-7에서 Sift용 code-review·create-branch 재박제 예정은 불변.
 - **(2026-07-14) PORTFOLIO.md 실종** — 최근 완료(2026-07-05)에 작성 기록이 있으나 워크스페이스·sift-docs 어디에도 실물 없음. `docs/` → `sift-docs/` 이전(D-021) 과정 유실 추정 (루트 git 부재 시기라 이력 없음 — D-015 트레이드오프 실증 2번째 사례). 복원 여부는 사용자 결정 대기.
 - **(2026-07-14) `.coderabbit.yaml` path 결함은 이미 해소** — 기존 비고의 "후속 수정 대기"는 죽은 기록: 98ec1d5(2026-07-06)에서 path 병합으로 수정 완료됨을 git 이력으로 확인. 스크래치패드의 `coderabbit-final.yaml` 사본도 유실 확인(세션 임시 디렉터리 소멸) — 이후 세션 간 임시물은 `.omc/notepad` 사용 (D-023).
 
