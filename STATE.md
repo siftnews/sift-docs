@@ -14,7 +14,6 @@
 - 👤 **M1-6 e2e 게이트 확인** — `bootRun`으로 실제 RSS → `article` 적재 + 측정 로그 확인. PR #15는 병합됐으나 이 실환경 게이트는 미확인 상태로 남아 있다 (BACKLOG C의 `[G]` 항목)
 - 👤 **CI 체크를 브랜치 보호의 required로 등록** — `.github/workflows/ci.yml`이 develop에 있으나(03397b4), 필수 체크로 걸리지 않으면 게이트 역할을 못 한다. repo 설정은 사람 영역 (D-026)
 - 👤 **main 브랜치 보호 규칙 정비** — 가드 훅 폐지(D-027)로 main 방어는 서버측 브랜치 보호만 남음. sift-docs main 포함, 사용자 진행 중 (2026-07-19)
-- 👤 **`Bash(gh api *)` allow 줄 제거 (2곳)** — D-024 백스톱 무력화 구멍. 위치 정정(2026-07-22): `~/.claude/settings.local.json`은 하네스 이관으로 소멸, 실제 위치는 ① 워크스페이스 `.claude/settings.local.json` ② 하네스 시드 `sift-harness/workspace/local/settings.local.json`(부트스트랩마다 구멍 재생산). 전역 보호 훅이 `settings.local.json` 편집을 차단해 에이전트 수정 불가 (D-026 비고)
 - 👤 **PORTFOLIO.md 유실 처리 결정** — 복원(재작성) 또는 폐기 (아래 "정정" 참조)
 
 ## 정정 (사람 재검증·수정 흔적)
@@ -45,4 +44,4 @@
 ## 비고
 - **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성** = 에이전트 (모든 기록은 사용자 명의·기존 스타일 — HARNESS §0.7 컨벤션을 스스로 준수, 검사 장치 없음 D-027). **병합·리뷰 승인·issue/pr close·comment·release·repo/인프라 쓰기** = 사람. issue/pr `edit`는 에이전트 허용이되 assignee·라벨 관리 용도만 (D-028).
 - **구현 리듬 (D-026)**: 작은 작업 1개 → build/test 자가검증 → 에이전트 커밋(`{type}: {한국어 요약}` 한 줄, 트레일러 금지) → 다음 작업.
-- 게이트(settings.json deny): gh pr merge/review/ready, issue·pr close/comment/delete, release, repo, workflow run, secret, variable (edit는 D-028로 allow — assignee·라벨 용도만). 파괴 명령: git reset --hard / clean, docker compose down -v. main push 방어 = GitHub 브랜치 보호(D-027). `gh api`는 allow/deny 양쪽 제외(백스톱) — ⚠️ settings.local.json의 `gh api *` allow 제거는 사람 대기.
+- 게이트(settings.json deny): gh pr merge/review/ready, issue·pr close/comment/delete, release, repo, workflow run, secret, variable (edit는 D-028로 allow — assignee·라벨 용도만). 파괴 명령: git reset --hard / clean, docker compose down -v. main push 방어 = GitHub 브랜치 보호(D-027). `gh api`는 allow/deny 양쪽 제외(백스톱) — settings.local.json의 `gh api *` allow는 워크스페이스·하네스 시드 양쪽 제거 완료(👤 2026-07-22, 백스톱 복원).
