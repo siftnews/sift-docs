@@ -25,7 +25,7 @@
 - [x] (W) Modulith 모듈 경계 선언 — source/content/subscriber/delivery/tracking `package-info` + `allowedDependencies={"common"}` · **DoD**: 구조 생성 ✅
 - [x] (W) 모듈 검증 테스트 `ApplicationModulesTest` — `ApplicationModules.verify()` · **DoD**: verify 통과 ✅
 - [x] (W) 테스트 인프라 — testcontainers 의존성 + `AbstractIntegrationTest` 베이스 + `application-test.yaml` ✅
-- [ ] (W) 측정 베이스라인 골격 — Actuator + 배치 처리량·소요시간 로깅 · **→ TASKS M1 `collectionJob 배치 + 측정 베이스라인` 이슈로 이동** (배치 있어야 측정 대상 존재)
+- [x] (W) 측정 베이스라인 골격 — Actuator + 배치 처리량·소요시간 로깅 · **M1-6(이슈 #14 → PR #15)에서 `CollectionMetricsListener`로 구현 완료** (2026-07-21)
 
 ### C. 골든패스 (collectionJob)
 > **D-020 재편 (2026-07-07)**: 이 섹션의 구 분해(레이어 단위·DoD 컴파일)는 폐기 — TASKS M1-2~7(DDD inside-out, 단계별 테스트 DoD)로 대체.
@@ -36,7 +36,11 @@
   - ⚠️ 프로토콜 이탈 기록: 이 이슈는 BACKLOG 분해 없이 구현됨 (§0.7 미준수) — 재발 방지는 D-023 후속(/harness-check)
 - [x] M1-5 `[FEAT] RSS 수집 어댑터` — 이슈 #12 → PR #13 병합 완료 (2026-07-19 · 완료된 분해 내역은 git 히스토리 — D-023)
   - ⚠️ 프로토콜 이탈 기록: BACKLOG 분해 없이 착수, 소급 기록 (§0.7 미준수 — M1-4에 이어 2회째)
-- (다음) M1-6 `[FEAT] collectionJob 배치 + 측정 베이스라인` — 이슈 발행 후 **착수 전에** 여기에 구현 단계 분해 (⚠️ 이탈 3회 방지)
+- [x] M1-6 `[FEAT] collectionJob 배치 + 측정 베이스라인` — 이슈 #14 → PR #15 병합 완료 (2026-07-21 · 착수 전 분해 ✅ 이탈 3회 방지 준수 · 완료된 분해 내역 (1)~(3)은 git 히스토리 — D-023)
+  - [G] **e2e 게이트 (👤) 미확인** — `bootRun`으로 실제 RSS → `article` 적재 + 측정 로그 확인. 코드 경로는 병합됐으나 실환경 검증은 남음
+  - 남은 결정: 배치 경로의 `markCrawled`(`UpdateSourcePort`)는 **미반영 상태로 병합** — 기본 제외 확정 vs 후속 이슈. 배치 ↔ 비배치 `CrawlSourcesService` 역할 경계와 함께 M1-7에서 정리
+  - 미반영 리뷰(Trivial): 테스트 4파일의 `Fake*Port` 중복 → `adapter/in/batch/support` 패키지 추출 (선택 · PR 병합으로 코멘트가 묻혀 여기 기록)
+- [ ] M1-7 `[chore] 골든패스 패턴 박제` — 이슈 발행 후 **착수 전에** 여기에 구현 단계 분해 (§0.7 절차 4)
 
 ## Phase 1 이후 — [TASKS.md](./TASKS.md) M1(골든패스 박제)~M4 참조
 - 이슈가 발행되면 해당 태스크를 이 파일에 구현 단계로 분해해 루프를 돈다 (§0.7 절차 4)

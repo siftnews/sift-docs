@@ -27,9 +27,11 @@
 - [x] **#12 `[FEAT] RSS 수집 어댑터 (RssFeedAdapter)`** (M1-5) — PR #13으로 develop 병합 완료 (2026-07-19)
   - 범위: `rome` 의존성, RSS 파싱 → `RawArticle` 변환, lang 추출
   - DoD: **실제 RSS 픽스처(xml) 파싱 테스트 통과** ✅ (valid/empty/missing-pubdate/malformed 4케이스)
-- [ ] **`[FEAT] collectionJob 배치 + 측정 베이스라인`** (M1-6)
+- [x] **#14 `[FEAT] collectionJob 배치 + 측정 베이스라인`** (M1-6) — PR #15로 develop 병합 완료 (2026-07-21)
   - 범위: Spring Batch Job(인바운드 어댑터, chunk=50), Actuator 노출, 처리량·소요시간 계측 (원칙 5)
-  - DoD: **`bootRun`으로 실제 RSS → `article` 적재 확인 (👤 실환경 게이트)**, 측정 로그 출력
+  - DoD: 측정 로그 출력 ✅ (`CollectionMetricsListener` — read/write count·소요시간) · **`bootRun`으로 실제 RSS → `article` 적재 확인 (👤 실환경 게이트) ⏳ 미확인** — 코드 경로는 병합됐으나 실환경 검증은 남음
+  - 리뷰 반영: 소스별 오류 skip 격리(한 소스 실패가 Job 전체를 죽이지 않도록), step 실패 시 원인 예외 로깅. UseCase 우회 지적은 MVP-DESIGN §3① 이원화 근거로 반박 유지
+  - 남은 결정: 배치 경로의 `markCrawled`(`UpdateSourcePort`)는 미반영 상태로 병합 — 기본 제외 확정 vs 후속 이슈 (M1-7에서 배치 ↔ `CrawlSourcesService` 역할 경계와 함께 정리)
 - [ ] **`[chore] 골든패스 패턴 박제`** (M1-7) — 하네스 산출물 (Phase 0→1 전환점)
   - 범위: 골든패스에서 확립된 패턴 → `sift-api/CLAUDE.md` 규칙화 + "유스케이스 풀구현" 스킬(`implement-feature` 확장), D-009 잠정 결정 확정
   - DoD: 스킬로 두 번째 유스케이스 생산 가능 상태
