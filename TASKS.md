@@ -37,7 +37,7 @@
 > **M1 잔여물 (M2 진행 중 정리 — D-029)**: ① D-009(도메인↔JPA 분리) → **분리 유지 확정 (2026-07-22)** ② markCrawled 배치 반영 결정 — 기본 제외 vs 후속 이슈 [👤 미결] ③ SELECTION.md §3 중복 스키마 → MVP-DESIGN 링크 치환 [sift-api 이슈→PR]
 > **스킬 박제**(유스케이스 풀구현·`code-review`·`create-branch`)·`sift-api/CLAUDE.md` 규칙화는 M2 유스케이스에서 공통 패턴 추출 (D-029 — 1개 예시 조기 박제 회피).
 
-- [ ] **`[FEAT] Topic 도메인 + 시드 3종`** — Topic 도메인(POJO, D-009 분리) + topic 테이블·영속 어댑터 + dev/ai/econ 시드 (MVP-DESIGN §1). **소스 RSS URL 확정·source 시드는 별도 이슈로 분리**
+- [~] **#17 `[FEAT] Topic 도메인 + 시드 3종`** — Topic 도메인(POJO, D-009 분리) + topic 테이블·영속 + dev/ai/econ 시드 (MVP-DESIGN §1). **소스 RSS URL 확정·source 시드는 별도 이슈로 분리**. 브랜치 `feature/17-topic-domain-seed`
 - [ ] **`[FEAT] 소스 RSS URL 확정 + source 시드`** — MVP-DESIGN §1 소스 시드(한/영 토픽당 2~3개) 실제 RSS URL 확정 + source 행 시드. **M1-6 e2e 게이트(실 RSS → article 적재)를 여기서 해소** (D-029 잔여물 분리)
 - [ ] **`[FEAT] 선별 1/3: Normalize + Dedup`** — 정규화 검증·컷, 클러스터링(`dedup_cluster_id`) · ⚠️ 열린 질문: SimHash vs Jaccard → 이슈 안에서 결정·DECISIONS 기록
 - [ ] **`[FEAT] 선별 2/3: Filter + Score`** — 토픽 필터, 가중합 스코어링, `article_score` + **breakdown JSON** (튜닝·eval 토대)

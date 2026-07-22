@@ -7,7 +7,7 @@
 **Phase 0 (골든패스) 완주 → Phase 1 (선별) 진입** — 골든패스 코드 경로는 M1-6에서 완주, M1-7 박제 태스크는 해체(D-029). 다음 태스크 M2부터 Phase 1
 
 ## 지금 (in progress)
-- **M2 착수 준비 (Phase 1)** — 첫 태스크 M2 `[FEAT] Topic 도메인 + 시드 3종` 이슈 초안 확인 → 발행 예정 (한 태스크 = 한 이슈, §0.7). 착수 전 M1 잔여물 정리(D-009 확정·markCrawled 결정·SELECTION §3 치환 — D-029). 스킬 박제는 M2 유스케이스에서 공통 패턴 추출로 연기
+- **#17 `[FEAT] Topic 도메인 + 시드 3종` 구현 (Phase 1, M2-1)** — 발행·브랜치(`feature/17-topic-domain-seed`) 완료. BACKLOG 4단계 분해(도메인→JpaEntity→시드→verify). D-009 분리 유지 확정 적용. outbound 포트는 선별 유스케이스 생길 때로 미룸(YAGNI)
 
 ## 다음 액션 (next)
 - 🤖 **M2 `[FEAT] Topic 도메인 + 시드 3종` 발행 → 구현** — D-009 분리 유지 확정(2026-07-22)로 착수 조건 갖춤. 소스 RSS URL 확정·source 시드는 별도 이슈로 분리(e2e 게이트도 그 이슈에서 해소). 미결 잔여물: markCrawled 결정 [👤]·SELECTION §3 치환 [sift-api PR]
