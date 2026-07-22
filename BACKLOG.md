@@ -41,13 +41,13 @@
   - 남은 결정: 배치 경로의 `markCrawled`(`UpdateSourcePort`)는 **미반영 상태로 병합** — 기본 제외 확정 vs 후속 이슈. 배치 ↔ 비배치 `CrawlSourcesService` 역할 경계와 함께 M1-7에서 정리
   - 미반영 리뷰(Trivial): 테스트 4파일의 `Fake*Port` 중복 → `adapter/in/batch/support` 패키지 추출 (선택 · PR 병합으로 코멘트가 묻혀 여기 기록)
 
-## Phase 1 — M2-1 (#17) Topic 도메인 + 시드 3종 [진행]
-> 브랜치 `feature/17-topic-domain-seed` (base develop). DDD inside-out, 단계별 테스트 DoD (D-020).
-- [ ] (W) Topic 도메인 POJO + 불변식 (content/domain, JPA·Spring 무의존 — D-009 분리) · **DoD**: 도메인 단위 테스트 (slug 필수·정규화, keywordWeights 기본, exclude/include 규칙)
-- [ ] (W) `topic` JpaEntity + 매핑 + JpaRepository (content/adapter/out/persistence, BaseEntity 상속, UNIQUE slug) · **DoD**: Testcontainers 통합 테스트 (저장·slug 유니크)
-- [ ] (W) dev/ai/econ 시드 — 프로파일 가드 시더, 멱등 (MVP-DESIGN §1 키워드) · **DoD**: 기동 후 3개 적재 확인
-- [ ] (W) `ApplicationModules.verify()` 통과 (content allowedDependencies 유지)
-> 비고: outbound 포트(`LoadTopicPort`)·영속 어댑터는 소비자(선별 유스케이스)가 생기는 후속 M2 태스크로 미룸 — 이 이슈는 도메인·엔티티·시드까지 (YAGNI).
+## Phase 1 — M2-1 (#17 → PR #18) Topic 도메인 + 시드 3종 [리뷰 대기]
+> 브랜치 `feature/17-topic-domain-seed` (base develop). DDD inside-out, 단계별 테스트 DoD (D-020). 전체 테스트 통과 ✅
+- [x] (W) Topic 도메인 POJO + 불변식 (content/domain, JPA·Spring 무의존 — D-009 분리) · **DoD**: 도메인 단위 테스트 8건 ✅ (slug 정규화·필수값, 컬렉션 기본, 검증 규칙)
+- [x] (W) `topic` JpaEntity + 매핑 + JpaRepository (BaseEntity 상속, UNIQUE slug, 키워드/가중치 JSON 컬럼) · **DoD**: Testcontainers 통합 2건 ✅ (JSON 라운드트립·slug 유니크)
+- [x] (W) dev/ai/econ 시드 — 프로파일 가드(`@Profile("!test")`) 시더, slug 멱등 · **DoD**: 시더 통합 테스트 1건 ✅ (3종 적재·재실행 멱등)
+- [x] (W) `ApplicationModules.verify()` 통과 (content allowedDependencies 유지) ✅
+> 비고: outbound 포트(`LoadTopicPort`)·영속 어댑터는 소비자(선별 유스케이스)가 생기는 후속 M2 태스크로 미룸 (YAGNI). PR #18 CodeRabbit 감시 Monitor 가동 중.
 
 ## Phase 1 이후 — [TASKS.md](./TASKS.md) M2~M4 참조
 - 이슈가 발행되면 해당 태스크를 이 파일에 구현 단계로 분해해 루프를 돈다 (§0.7 절차 4)
