@@ -3,6 +3,11 @@
 > 경량 ADR. 루프가 일관성을 유지하고 과거 결정을 되돌아보기 위한 기록. **새 결정은 맨 위에 추가.**
 > 개정·폐기된 결정은 **본문을 다시 쓰지 않고 제목에 `(… 개정 → D-xxx)`를 표기**한다 (D-023).
 
+## D-030 · 선별 Dedup — Jaccard 제목 유사도 + dedup_cluster_id는 Source named interface로 갱신 (2026-07-22 · D-018 꼬리 해소)
+- **결정**: ① Dedup 2차(제목 유사도)는 **Jaccard 토큰 유사도**(임계값 기본 0.7, 튜닝 대상)로 구현 — SimHash는 대규모 전환이 필요할 때 성능 로드맵에서 재검토. ② `article.dedup_cluster_id` 갱신은 **Source가 port.in named interface에 노출하는 갱신 오퍼레이션**(예: `updateDedupCluster(articleId, clusterId)`)을 Content가 호출해 수행한다 — article 스키마의 주인은 Source(D-018)이므로 컬럼 갱신도 Source가 통제. 별도 클러스터 테이블 분리안은 기각(article.dedup_cluster_id 컬럼이 족적이 됨). 후보 기사 조회도 Source named interface 경유(D-018).
+- **이유**: 사용자 결정(2026-07-22). Jaccard는 구현·튜닝이 단순해 MVP·측정 우선 원칙에 맞다. 클러스터 갱신을 Source가 통제하면 Modulith 경계(Content→Source는 named interface만)와 D-018 소유권이 함께 지켜진다.
+- **비고**: M2-2(#선별 1/3)는 content 도메인·애플리케이션 로직(정규화 컷 + Jaccard 클러스터링 + 서비스, fake 포트 단위 테스트)까지. Source named interface 실제 어댑터·조회/갱신 배선은 selectionJob 배치(M2-5) 또는 후속에서 연결(YAGNI — 소비 배치가 생길 때). SELECTION §3의 D-018 꼬리 경고 해소.
+
 ## D-029 · M1-7 골든패스 박제 태스크 해체 — 스킬 박제는 M2로 연기 (2026-07-22 · D-012 스킬 박제 시점 개정 · D-020 M1-7 항목 개정)
 - **결정**: TASKS M1-7 `[chore] 골든패스 패턴 박제`를 **해체**한다. 스킬 박제(유스케이스 풀구현·`code-review`·`create-branch`)와 `sift-api/CLAUDE.md` 규칙화는 **M2(2번째 유스케이스 selectionJob)를 만들며/만든 뒤 공통 패턴 추출**로 연기. M1-7에 묶여 있던 잔여물 3건은 M2 착수 전 정리 또는 M2 이슈에 편입: ① **D-009**(도메인↔JPA 분리) 잠정 결정 확정 — 골든패스 코드 검토 후(👤 설계 분기) ② **markCrawled 배치 반영** 결정 — 기본 제외 확정 vs 후속 이슈(👤) ③ **SELECTION.md §3 중복 스키마 → MVP-DESIGN 링크 치환**(sift-api 이슈→PR, D-023 후속 ③). **Phase 0→1 전환은 M2로 이뤄진다.**
 - **이유**: 하네스 원칙 2("2번 했으면 박제")·원칙 1("박제할 패턴이 없는 상태에서 스킬부터 만들면 헛돈다")에 비춰, 유스케이스 1개(collectionJob)만으로 스킬을 굳히면 M2에서 재작업 가능성이 크다. 무엇이 공통이고 무엇이 매번 달라지는지는 2번째 유스케이스에서 드러난다. 사용자 결정(2026-07-22) — 골든패스 코드 경로는 M1-6에서 완주했으므로, 박제는 selectionJob이라는 2번째 반복이 생길 때로 미룬다.
@@ -63,7 +68,7 @@
 ## D-018 · Article 애그리거트 = Source 컨텍스트 소유 (2026-07-07)
 - **결정**: `Article`(과 article 테이블)은 **Source 컨텍스트가 소유**한다. Content는 후보 기사를 Source가 노출하는 **named interface(port.in) 경유로 조회**만 한다 (Modulith 규칙 준수). PLAN §3의 "기사 저장 = Content 책임" 기술은 오기로 보고 정정.
 - **이유**: 기사는 수집·정규화의 산물 — 생산자인 Source가 저장·스키마(URL 정규화, UNIQUE(normalized_url) 멱등)를 책임지는 것이 응집도에 맞다. 두 컨텍스트가 한 테이블을 공유하는 모호함 제거 (바운디드 컨텍스트 매핑 중 발견·결정).
-- **비고**: ⚠️ 열린 꼬리 하나 — SELECTION의 dedup은 `article.dedup_cluster_id`를 **갱신**하는데, 이는 Content가 Source 소유 데이터를 쓰는 행위. M2 Dedup 이슈에서 해소 방안 결정 필요: ① Source named interface에 갱신 오퍼레이션 추가 ② 클러스터 정보를 Content 측 테이블로 분리. 결정 시 이 항목 갱신.
+- **비고**: ~~⚠️ 열린 꼬리~~ **해소 (2026-07-22, D-030)**: dedup의 `article.dedup_cluster_id` 갱신은 **Source named interface에 갱신 오퍼레이션 추가**(옵션 ①)로 결정 — Content가 named interface로 호출, Source가 자기 컬럼 갱신을 통제. 별도 테이블 분리(옵션 ②)는 기각.
 
 ## D-017 · 설계 문서화 규칙 — 다이어그램 1급 산출물화 (2026-07-07 · 위치 규칙 개정 → D-021)
 - **결정**: 구조에 영향 주는 작업은 **설계 산출물(다이어그램) 먼저 작성·갱신 후 구현**한다. 도구는 정형 다이어그램(ERD·상태머신·시퀀스·플로우) = Mermaid 기본, 자유형(컨텍스트 맵·아키텍처 오버뷰) = draw.io(`.drawio.svg`). 작업용은 루트 `docs/`(로컬 전용, D-015), 포트폴리오 노출 최종본은 해당 sift-* 레포에 복사·커밋. 규칙 상세는 [HARNESS §0.9](./HARNESS.md).
