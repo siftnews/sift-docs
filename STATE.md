@@ -7,7 +7,8 @@
 **Phase 0 (골든패스) 완주 → Phase 1 (선별) 진입** — 골든패스 코드 경로는 M1-6에서 완주, M1-7 박제 태스크는 해체(D-029). 다음 태스크 M2부터 Phase 1
 
 ## 지금 (in progress)
-- **#17 `[FEAT] Topic 도메인 + 시드 3종` → PR #18 리뷰 대기 (Phase 1, M2-1)** — BACKLOG 4단계 전부 구현·자가검증 완료(도메인 단위 8 + 통합 3, 전체 테스트 통과, verify 유지). 3커밋 push, PR #18 발행(base develop, close #17). CodeRabbit 감시 Monitor 가동. 👤 리뷰·병합 대기
+- **#19 `[FEAT] 선별 1/3: Normalize + Dedup` 구현 (Phase 1, M2-2)** — `feature/17`(PR #18) 위 스택 브랜치 `feature/19-...`. D-030(Jaccard·Source named interface 클러스터 갱신) 확정. content 로직·서비스(fake 포트)까지 구현, 실 어댑터는 M2-5 배치. #18 병합 후 base develop 재지정 필요
+- **#17 → PR #18 리뷰 대기 (M2-1)** — 구현·리뷰 반영(0fb7499) 완료, 👤 병합 대기. PR은 사용자가 퇴근 후 확인
 
 ## 다음 액션 (next)
 - 🤖 **M2 `[FEAT] Topic 도메인 + 시드 3종` 발행 → 구현** — D-009 분리 유지 확정(2026-07-22)로 착수 조건 갖춤. 소스 RSS URL 확정·source 시드는 별도 이슈로 분리(e2e 게이트도 그 이슈에서 해소). 미결 잔여물: markCrawled 결정 [👤]·SELECTION §3 치환 [sift-api PR]

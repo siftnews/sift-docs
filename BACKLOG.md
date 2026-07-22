@@ -49,6 +49,14 @@
 - [x] (W) `ApplicationModules.verify()` 통과 (content allowedDependencies 유지) ✅
 > 비고: outbound 포트(`LoadTopicPort`)·영속 어댑터는 소비자(선별 유스케이스)가 생기는 후속 M2 태스크로 미룸 (YAGNI). PR #18 CodeRabbit 감시 Monitor 가동 중.
 
+## Phase 1 — M2-2 (#19) 선별 1/3 Normalize + Dedup [진행]
+> 스택 브랜치 `feature/19-selection-normalize-dedup` (base `feature/17`, #18 병합 후 develop 재지정). D-030 적용. DDD inside-out, fake 포트 단위 테스트.
+- [ ] (W) content 도메인 `CandidateArticle` 값 타입 + Normalize 컷 규칙(언어 불일치·본문 최소 길이 drop) · **DoD**: 도메인 단위 테스트
+- [ ] (W) Jaccard 제목 유사도 + 클러스터링(normalizedUrl 1차 완전일치 + Jaccard≥0.7 2차 → cluster, 대표 선정) · **DoD**: 도메인 단위 테스트
+- [ ] (W) `NormalizeDedupUseCase`(in) + `LoadCandidateArticlesPort`·`UpdateArticleClusterPort`(out) + `NormalizeDedupService` · **DoD**: fake 포트 서비스 단위 테스트
+- [ ] (W) `ApplicationModules.verify()` 유지
+> 비고: Source named interface 실 어댑터·후보 조회/갱신 배선은 selectionJob 배치(M2-5)에서 연결(YAGNI). 후보 기사는 content-side `CandidateArticle`로 표현(source.domain.Article 직접 참조 금지 — Modulith 경계).
+
 ## Phase 1 이후 — [TASKS.md](./TASKS.md) M2~M4 참조
 - 이슈가 발행되면 해당 태스크를 이 파일에 구현 단계로 분해해 루프를 돈다 (§0.7 절차 4)
 - Sift용 `code-review` · `create-branch` 스킬 박제는 **M2로 이동** (D-029 — 2번째 유스케이스에서 공통 패턴 추출, D-012 시점 개정)
