@@ -40,8 +40,7 @@
   - [G] **e2e 게이트 (👤) 미확인** — `bootRun`으로 실제 RSS → `article` 적재 + 측정 로그 확인. 코드 경로는 병합됐으나 실환경 검증은 남음
   - 남은 결정: 배치 경로의 `markCrawled`(`UpdateSourcePort`)는 **미반영 상태로 병합** — 기본 제외 확정 vs 후속 이슈. 배치 ↔ 비배치 `CrawlSourcesService` 역할 경계와 함께 M1-7에서 정리
   - 미반영 리뷰(Trivial): 테스트 4파일의 `Fake*Port` 중복 → `adapter/in/batch/support` 패키지 추출 (선택 · PR 병합으로 코멘트가 묻혀 여기 기록)
-- ~~M1-7 `[chore] 골든패스 패턴 박제`~~ — **해체 (2026-07-22, D-029)**: 스킬 박제·`sift-api/CLAUDE.md` 규칙화는 M2(2번째 유스케이스)로 이동. 잔여물 3건(D-009 확정·markCrawled 결정·SELECTION §3 치환)은 M2 착수 전 정리/편입 — TASKS 참조
 
-## Phase 1 이후 — [TASKS.md](./TASKS.md) M1(골든패스 박제)~M4 참조
+## Phase 1 이후 — [TASKS.md](./TASKS.md) M2~M4 참조
 - 이슈가 발행되면 해당 태스크를 이 파일에 구현 단계로 분해해 루프를 돈다 (§0.7 절차 4)
 - Sift용 `code-review` · `create-branch` 스킬 박제는 **M2로 이동** (D-029 — 2번째 유스케이스에서 공통 패턴 추출, D-012 시점 개정)

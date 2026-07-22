@@ -32,10 +32,10 @@
   - DoD: 측정 로그 출력 ✅ (`CollectionMetricsListener` — read/write count·소요시간) · **`bootRun`으로 실제 RSS → `article` 적재 확인 (👤 실환경 게이트) ⏳ 미확인** — 코드 경로는 병합됐으나 실환경 검증은 남음
   - 리뷰 반영: 소스별 오류 skip 격리(한 소스 실패가 Job 전체를 죽이지 않도록), step 실패 시 원인 예외 로깅. UseCase 우회 지적은 MVP-DESIGN §3① 이원화 근거로 반박 유지
   - 남은 결정: 배치 경로의 `markCrawled`(`UpdateSourcePort`)는 미반영 상태로 병합 — 기본 제외 확정 vs 후속 이슈 (M1-7에서 배치 ↔ `CrawlSourcesService` 역할 경계와 함께 정리)
-- ~~**`[chore] 골든패스 패턴 박제`** (M1-7)~~ — **해체 (2026-07-22, D-029)**: 유스케이스 1개(collectionJob)만으로 스킬을 굳히면 헛돈다(원칙 1·2). 스킬 박제(유스케이스 풀구현·`code-review`·`create-branch`)와 `sift-api/CLAUDE.md` 규칙화는 **M2로 이동** — 2번째 유스케이스(selectionJob)에서 공통 패턴 추출. Phase 0→1 전환도 M2로.
-  - 남은 정리 (M2 착수 전 또는 M2 편입): ① **D-009**(도메인↔JPA 분리) 잠정 결정 확정 — 골든패스 코드 검토 후 (👤 설계 분기) ② **markCrawled 배치 반영** 결정 — 기본 제외 확정 vs 후속 이슈 (👤) ③ **SELECTION.md §3 중복 스키마 → MVP-DESIGN 링크 치환** (sift-api 이슈→PR, D-023 후속 ③)
-
 ## M2 — 선별 (Phase 1)
+
+> **M1 잔여물 (M2 착수 전 정리 / 첫 이슈 편입 — D-029)**: ① D-009(도메인↔JPA 분리) 잠정 결정 확정 [👤 설계 분기] ② markCrawled 배치 반영 결정 — 기본 제외 vs 후속 이슈 [👤] ③ SELECTION.md §3 중복 스키마 → MVP-DESIGN 링크 치환 [sift-api 이슈→PR]
+> **스킬 박제**(유스케이스 풀구현·`code-review`·`create-branch`)·`sift-api/CLAUDE.md` 규칙화는 M2 유스케이스에서 공통 패턴 추출 (D-029 — 1개 예시 조기 박제 회피).
 
 - [ ] **`[FEAT] Topic 도메인 + 시드 3종`** — topic 테이블, dev/ai/econ 시드 (MVP-DESIGN §1), 소스 RSS URL 확정 포함
 - [ ] **`[FEAT] 선별 1/3: Normalize + Dedup`** — 정규화 검증·컷, 클러스터링(`dedup_cluster_id`) · ⚠️ 열린 질문: SimHash vs Jaccard → 이슈 안에서 결정·DECISIONS 기록

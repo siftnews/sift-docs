@@ -7,7 +7,7 @@
 **Phase 0 (골든패스) 완주 → Phase 1 (선별) 진입** — 골든패스 코드 경로는 M1-6에서 완주, M1-7 박제 태스크는 해체(D-029). 다음 태스크 M2부터 Phase 1
 
 ## 지금 (in progress)
-- (전환) **M1-7 해체 → M2로 (D-029, 2026-07-22)** — 유스케이스 1개(collectionJob)만으로 스킬을 굳히면 헛돈다(원칙 1·2). 스킬 박제(유스케이스 풀구현·`code-review`·`create-branch`)와 `sift-api/CLAUDE.md` 규칙화는 **M2(2번째 유스케이스 selectionJob)에서 공통 패턴 추출로 연기**. 다음 태스크 = M2 `[FEAT] Topic 도메인 + 시드 3종`
+- **M2 착수 준비 (Phase 1)** — 첫 태스크 M2 `[FEAT] Topic 도메인 + 시드 3종` 이슈 초안 확인 → 발행 예정 (한 태스크 = 한 이슈, §0.7). 착수 전 M1 잔여물 정리(D-009 확정·markCrawled 결정·SELECTION §3 치환 — D-029). 스킬 박제는 M2 유스케이스에서 공통 패턴 추출로 연기
 
 ## 다음 액션 (next)
 - 🤖 **M2 `[FEAT] Topic 도메인 + 시드 3종` 이슈 초안 → 사용자 확인 → 발행** — TASKS M2 첫 태스크. 착수 전 잔여물 정리/편입: ① D-009(도메인↔JPA) 확정 [👤 설계 분기] ② markCrawled 배치 반영 결정 [👤] ③ SELECTION §3 스키마 치환 [sift-api 이슈→PR]
