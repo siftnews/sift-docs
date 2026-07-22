@@ -4,13 +4,13 @@
 > 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-07-22
 
 ## 현재 Phase
-**Phase 0 — 스캐폴딩 + 골든패스** (진행 중)
+**Phase 0 (골든패스) 완주 → Phase 1 (선별) 진입** — 골든패스 코드 경로는 M1-6에서 완주, M1-7 박제 태스크는 해체(D-029). 다음 태스크 M2부터 Phase 1
 
 ## 지금 (in progress)
-- (착수 대기) **M1-7 `[chore] 골든패스 패턴 박제`** — 다음 태스크이자 **Phase 0 → 1 전환점**. 골든패스(M1-2~6, 유스케이스 1회 완주)에서 확립된 패턴을 `sift-api/CLAUDE.md` 규칙 + "유스케이스 풀구현" 스킬로 굳힌다 (하네스 원칙 2 "2번 했으면 박제"). 이슈 발행 → BACKLOG 분해(착수 전) → 구현 순서 (§0.7)
+- (전환) **M1-7 해체 → M2로 (D-029, 2026-07-22)** — 유스케이스 1개(collectionJob)만으로 스킬을 굳히면 헛돈다(원칙 1·2). 스킬 박제(유스케이스 풀구현·`code-review`·`create-branch`)와 `sift-api/CLAUDE.md` 규칙화는 **M2(2번째 유스케이스 selectionJob)에서 공통 패턴 추출로 연기**. 다음 태스크 = M2 `[FEAT] Topic 도메인 + 시드 3종`
 
 ## 다음 액션 (next)
-- 🤖 **M1-7 이슈 초안 작성 → 사용자 확인 → 발행** — `gh issue create --assignee @me --label chore` → BACKLOG 분해 후 착수. 범위에 Sift용 `code-review`·`create-branch` 스킬 박제(D-012)와 D-009 잠정 결정 확정 포함
+- 🤖 **M2 `[FEAT] Topic 도메인 + 시드 3종` 이슈 초안 → 사용자 확인 → 발행** — TASKS M2 첫 태스크. 착수 전 잔여물 정리/편입: ① D-009(도메인↔JPA) 확정 [👤 설계 분기] ② markCrawled 배치 반영 결정 [👤] ③ SELECTION §3 스키마 치환 [sift-api 이슈→PR]
 - 👤 **M1-6 e2e 게이트 확인** — `bootRun`으로 실제 RSS → `article` 적재 + 측정 로그 확인. PR #15는 병합됐으나 이 실환경 게이트는 미확인 상태로 남아 있다 (BACKLOG C의 `[G]` 항목)
 - 👤 **PORTFOLIO.md 유실 처리 결정** — 복원(재작성) 또는 폐기 (아래 "정정" 참조)
 
