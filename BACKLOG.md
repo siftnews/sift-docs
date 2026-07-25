@@ -41,21 +41,33 @@
   - 남은 결정: 배치 경로의 `markCrawled`(`UpdateSourcePort`)는 **미반영 상태로 병합** — 기본 제외 확정 vs 후속 이슈. 배치 ↔ 비배치 `CrawlSourcesService` 역할 경계와 함께 M1-7에서 정리
   - 미반영 리뷰(Trivial): 테스트 4파일의 `Fake*Port` 중복 → `adapter/in/batch/support` 패키지 추출 (선택 · PR 병합으로 코멘트가 묻혀 여기 기록)
 
-## Phase 1 — M2-1 (#17 → PR #18) Topic 도메인 + 시드 3종 [리뷰 대기]
+## Phase 1 — M2-1 (#17 → PR #18) Topic 도메인 + 시드 3종 [병합 완료 2026-07-23]
 > 브랜치 `feature/17-topic-domain-seed` (base develop). DDD inside-out, 단계별 테스트 DoD (D-020). 전체 테스트 통과 ✅
 - [x] (W) Topic 도메인 POJO + 불변식 (content/domain, JPA·Spring 무의존 — D-009 분리) · **DoD**: 도메인 단위 테스트 8건 ✅ (slug 정규화·필수값, 컬렉션 기본, 검증 규칙)
 - [x] (W) `topic` JpaEntity + 매핑 + JpaRepository (BaseEntity 상속, UNIQUE slug, 키워드/가중치 JSON 컬럼) · **DoD**: Testcontainers 통합 2건 ✅ (JSON 라운드트립·slug 유니크)
 - [x] (W) dev/ai/econ 시드 — 프로파일 가드(`@Profile("!test")`) 시더, slug 멱등 · **DoD**: 시더 통합 테스트 1건 ✅ (3종 적재·재실행 멱등)
 - [x] (W) `ApplicationModules.verify()` 통과 (content allowedDependencies 유지) ✅
-> 비고: outbound 포트(`LoadTopicPort`)·영속 어댑터는 소비자(선별 유스케이스)가 생기는 후속 M2 태스크로 미룸 (YAGNI). PR #18 CodeRabbit 감시 Monitor 가동 중.
+> 비고: outbound 포트(`LoadTopicPort`)·영속 어댑터는 소비자(선별 유스케이스)가 생기는 후속 M2 태스크로 미룸 (YAGNI). 리뷰 반영 `0fb7499`(scoreThreshold 유한값·slug 로케일·컬렉션 null 검증).
 
-## Phase 1 — M2-2 (#19 → PR #20) 선별 1/3 Normalize + Dedup [리뷰 대기]
-> 스택 브랜치 `feature/19-...` (base `feature/17`/PR #18, #18 병합 후 develop 재지정). D-030 적용. 전체 테스트 통과 ✅
+## Phase 1 — M2-2 (#19 → PR #20) 선별 1/3 Normalize + Dedup [병합 완료 2026-07-23]
+> 스택 브랜치 `feature/19-...` (base `feature/17`/PR #18 → develop 재지정 후 병합). D-030 적용. 전체 테스트 통과 ✅
 - [x] (W) content 도메인 `CandidateArticle` + Normalize 컷(`ArticleNormalizer`: 언어·본문 최소 길이) · **DoD**: 도메인 단위 ✅
 - [x] (W) Jaccard 유사도(`TitleSimilarity`) + 클러스터링(`DedupClusterer`: URL 1차 + Jaccard≥0.7 union-find, 최신 대표) · **DoD**: 도메인 단위 ✅
 - [x] (W) `NormalizeDedupUseCase`/`Summary` + `LoadCandidateArticlesPort`·`UpdateArticleClusterPort` + `NormalizeDedupService` · **DoD**: fake 포트 서비스 단위 ✅
 - [x] (W) `ApplicationModules.verify()` 유지 ✅
-> 비고: Source named interface 실 어댑터·후보 조회/갱신 배선은 selectionJob 배치(M2-5)에서 연결(YAGNI). PR #20 CodeRabbit 감시 Monitor 가동. #18·#20 순서 병합 필요.
+> 비고: Source named interface 실 어댑터·후보 조회/갱신 배선은 selectionJob 배치(M2-5)에서 연결(YAGNI). **CodeRabbit Major(재실행 멱등성) 수용 → 이슈 #21로 분리**, 나머지 지적은 해소.
+
+## Phase 1 — M2-2 후속 (#21) normalizeDedup 재실행 멱등성 [착수 대기]
+> 브랜치 미생성(`feature/21-normalize-dedup-idempotency` 예정, base develop). **범위·설계 D-031 확정** — fake 포트까지, 실 어댑터 배선은 M2-5 유지.
+> 전제: 후보 로드가 **윈도우**여야 멱등성이 성립한다 — "신규만" 로드면 이전 실행에 묶인 기사가 후보에 없어 되돌릴 대상 자체가 없다.
+- [ ] (W) 후보 로드 범위 = 윈도우로 확정 — `LoadCandidateArticlesPort.loadCandidates()`에 기간 파라미터 도입(예: `loadCandidates(Instant from, Instant to)`) · **DoD**: 시그니처 변경 + fake 반영, 기존 테스트 통과
+- [ ] (W) `clusterId = "c-" + min(memberIds)`로 변경 (`DedupClusterer`) — `representativeId`는 최신 `publishedAt` 기준 현행 유지, id 발급 기준과 대표 선정을 분리 · **DoD**: `DedupClustererTest`에 "신규 기사 합류 후에도 clusterId 유지" 케이스 추가
+- [ ] (W) 실행 단위 클러스터 상태 교체 (`NormalizeDedupService`) — 로드한 후보 **전체**에 대해 계산 결과를 덮어쓴다. 컷 탈락 기사는 `null`로 해제(현재는 생존 기사만 갱신해 잔존) · **DoD**: 서비스 단위 테스트
+- [ ] (W) `UpdateArticleClusterPort` 벌크 갱신 — 단건 루프(`updateCluster` × N) → 일괄 시그니처(예: `updateClusters(Map<Long, String>)`, 해제는 `null` 값). 갱신 건수가 후보 수만큼 늘어나므로 배선 전에 정리 · **DoD**: fake 포트 반영 + 서비스 테스트
+- [ ] (W) 순차 재실행 회귀 테스트 (`NormalizeDedupServiceTest`) · **DoD**: ① 1회차에 묶였다가 2회차에 컷 탈락한 기사의 clusterId가 비워짐 ② 신규 기사 합류 후에도 기존 멤버의 clusterId 불변 ③ 같은 입력 2회 실행 결과 동일(멱등)
+- [ ] (W) `ApplicationModules.verify()` 유지 · **DoD**: 모듈 검증 테스트 통과
+- [ ] (선택) `NormalizeDedupSummary`에 해제 건수(cleared) 추가 — 측정 우선 원칙 5, 재실행 시 상태 교체량 가시화
+> 미포함(M2-5로): Source named interface 실 어댑터, Testcontainers 통합 검증, 윈도우 크기의 운영값 확정(트리거 주기와 함께 결정).
 
 ## Phase 1 이후 — [TASKS.md](./TASKS.md) M2~M4 참조
 - 이슈가 발행되면 해당 태스크를 이 파일에 구현 단계로 분해해 루프를 돈다 (§0.7 절차 4)

@@ -37,12 +37,16 @@
 > **M1 잔여물 (M2 진행 중 정리 — D-029)**: ① D-009(도메인↔JPA 분리) → **분리 유지 확정 (2026-07-22)** ② markCrawled 배치 반영 결정 — 기본 제외 vs 후속 이슈 [👤 미결] ③ SELECTION.md §3 중복 스키마 → MVP-DESIGN 링크 치환 [sift-api 이슈→PR]
 > **스킬 박제**(유스케이스 풀구현·`code-review`·`create-branch`)·`sift-api/CLAUDE.md` 규칙화는 M2 유스케이스에서 공통 패턴 추출 (D-029 — 1개 예시 조기 박제 회피).
 
-- [~] **#17 `[FEAT] Topic 도메인 + 시드 3종`** — Topic 도메인(POJO, D-009 분리) + topic 테이블·영속 + dev/ai/econ 시드 (MVP-DESIGN §1). **소스 RSS URL 확정·source 시드는 별도 이슈로 분리**. 브랜치 `feature/17-topic-domain-seed`
+- [x] **#17 `[FEAT] Topic 도메인 + 시드 3종`** — PR #18로 develop 병합 완료 (2026-07-23). Topic 도메인(POJO, D-009 분리) + topic 테이블·영속 + dev/ai/econ 시드 (MVP-DESIGN §1). **소스 RSS URL 확정·source 시드는 별도 이슈로 분리**
+- [x] **#19 `[FEAT] 선별 1/3: Normalize + Dedup`** — PR #20으로 develop 병합 완료 (2026-07-23). 정규화 컷 + Jaccard 클러스터링(`dedup_cluster_id`, 임계 0.7), D-030 적용. content 로직·서비스(fake 포트)까지, 실 어댑터는 M2-5 배치
+  - 후속 분리: **#21 재실행 멱등성** (CodeRabbit Major 수용)
+- [~] **#21 `[FEAT] 선별 normalizeDedup 재실행 멱등성`** — 후보 집합 정의(윈도우 로드) + 실행 단위 클러스터 상태 교체 + `clusterId = "c-" + min(memberIds)` + 벌크 갱신 (D-031). 범위는 fake 포트까지 — 실 어댑터 배선은 M2-5 유지. 브랜치 미생성
+  - DoD: **fake 포트 서비스 단위 테스트 통과** — "이전 실행에 묶였다가 이번엔 컷 탈락한 기사"의 clusterId가 비워짐을 순차 재실행으로 검증
 - [ ] **`[FEAT] 소스 RSS URL 확정 + source 시드`** — MVP-DESIGN §1 소스 시드(한/영 토픽당 2~3개) 실제 RSS URL 확정 + source 행 시드. **M1-6 e2e 게이트(실 RSS → article 적재)를 여기서 해소** (D-029 잔여물 분리)
-- [~] **#19 `[FEAT] 선별 1/3: Normalize + Dedup`** — 정규화 컷 + Jaccard 클러스터링(`dedup_cluster_id`, 임계 0.7). 유사도 알고리즘·cluster 갱신 경계는 D-030 확정. content 로직·서비스(fake 포트)까지, 실 어댑터는 M2-5 배치. 스택 브랜치 `feature/19-...`(base `feature/17`, #18 병합 후 재지정)
 - [ ] **`[FEAT] 선별 2/3: Filter + Score`** — 토픽 필터, 가중합 스코어링, `article_score` + **breakdown JSON** (튜닝·eval 토대)
 - [ ] **`[FEAT] 선별 3/3: Rank & Select`** — threshold·랭킹·다양성(MMR 여부 결정), `issue` + `issue_item` 생성
 - [ ] **`[FEAT] selectionJob 배치 + selectionTrigger`** — Step 조립, 매일 발행 기준 시각 트리거(@Scheduled, 시각은 이 이슈에서 확정 — D-019)
+  - **여기서 Source named interface 실 어댑터 배선** — `LoadCandidateArticlesPort`(윈도우 조회)·`UpdateArticleClusterPort`(벌크 갱신)의 실 구현 + Testcontainers 통합 검증 (D-030·D-031)
   - M2 공통 DoD: build/test 통과 + 시드 토픽으로 이슈 1건 생성 확인
 
 ## M3 — 구독·발송 (Phase 1)

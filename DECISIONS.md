@@ -3,6 +3,11 @@
 > 경량 ADR. 루프가 일관성을 유지하고 과거 결정을 되돌아보기 위한 기록. **새 결정은 맨 위에 추가.**
 > 개정·폐기된 결정은 **본문을 다시 쓰지 않고 제목에 `(… 개정 → D-xxx)`를 표기**한다 (D-023).
 
+## D-031 · normalizeDedup 재실행 멱등성 — 윈도우 후보 + 실행 단위 상태 교체 + clusterId는 최소 멤버 id (2026-07-25 · D-030 후속)
+- **결정**: 이슈 #21의 범위와 설계를 다음으로 확정한다. ① **clusterId = `"c-" + min(memberIds)`** — 대표 기사(`representativeId`, 최신 `publishedAt`)와 **id 발급 기준을 분리**한다. 신규 기사는 항상 더 큰 articleId를 받으므로 클러스터에 합류해도 최소 id가 유지돼 재실행에 안정적이다. ② **후보 로드는 윈도우** — `LoadCandidateArticlesPort`에 기간 파라미터를 두고, 매 실행이 윈도우 내 후보 **전체**를 다시 계산해 상태를 교체한다. 컷 탈락 기사는 clusterId를 `null`로 해제(현행은 생존 기사만 갱신해 이전 클러스터가 잔존). ③ **범위는 fake 포트까지** — Source named interface 실 어댑터 배선·Testcontainers 통합 검증은 M2-5(selectionJob)에 그대로 남긴다. ④ `updateCluster` 단건 루프는 벌크 시그니처로 정리.
+- **이유**: 사용자 결정(2026-07-25). 멱등성은 후보 집합 범위에 종속된다 — "신규만" 로드하면 이전 실행에 묶인 기사가 후보에 없어 되돌릴 대상 자체가 없으므로, 윈도우 로드가 멱등성의 전제다. clusterId를 대표 id에서 파생하면 더 최신 기사가 합류할 때마다 id가 바뀌어(D-030 구현의 `DedupClusterer`) 탈락 해제만으로는 멱등성이 확보되지 않는다 — 최소 멤버 id는 이 변동을 없애면서 대표 선정 로직은 건드리지 않는다. 실 어댑터를 함께 넣으면 M2-5의 핵심 덩어리를 당겨오게 되어 리뷰 단위가 커지므로 분리 유지.
+- **비고**: PR #20 CodeRabbit Major 지적("생존 기사에만 `updateCluster` 호출 → 탈락 기사 clusterId 잔존")의 수용 결론. 클러스터 병합(두 클러스터가 신규 기사로 연결)이 일어나면 최소 id도 바뀌지만, 이는 클러스터 정체성 자체가 달라진 경우라 수용. 윈도우 **크기**의 운영값은 트리거 주기와 함께 M2-5에서 확정. 세션 역할 분담(문서 세션이 루프 문서 쓰기 창구, 구현 세션은 코드만)은 D-016 쓰기 주인 단일화의 적용.
+
 ## D-030 · 선별 Dedup — Jaccard 제목 유사도 + dedup_cluster_id는 Source named interface로 갱신 (2026-07-22 · D-018 꼬리 해소)
 - **결정**: ① Dedup 2차(제목 유사도)는 **Jaccard 토큰 유사도**(임계값 기본 0.7, 튜닝 대상)로 구현 — SimHash는 대규모 전환이 필요할 때 성능 로드맵에서 재검토. ② `article.dedup_cluster_id` 갱신은 **Source가 port.in named interface에 노출하는 갱신 오퍼레이션**(예: `updateDedupCluster(articleId, clusterId)`)을 Content가 호출해 수행한다 — article 스키마의 주인은 Source(D-018)이므로 컬럼 갱신도 Source가 통제. 별도 클러스터 테이블 분리안은 기각(article.dedup_cluster_id 컬럼이 족적이 됨). 후보 기사 조회도 Source named interface 경유(D-018).
 - **이유**: 사용자 결정(2026-07-22). Jaccard는 구현·튜닝이 단순해 MVP·측정 우선 원칙에 맞다. 클러스터 갱신을 Source가 통제하면 Modulith 경계(Content→Source는 named interface만)와 D-018 소유권이 함께 지켜진다.
