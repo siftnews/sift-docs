@@ -3,6 +3,11 @@
 > 경량 ADR. 루프가 일관성을 유지하고 과거 결정을 되돌아보기 위한 기록. **새 결정은 맨 위에 추가.**
 > 개정·폐기된 결정은 **본문을 다시 쓰지 않고 제목에 `(… 개정 → D-xxx)`를 표기**한다 (D-023).
 
+## D-032 · 선별 윈도우 기준 컬럼 = `article.created_at` + 윈도우 불변식 3종 (2026-07-25 · D-031 구현 중 파생, 이슈 #21 → PR #22)
+- **결정**: ① 후보 로드 윈도우 `[from, to)`의 기준 컬럼은 **`article.created_at`(수집 시각)**. `published_at`은 쓰지 않는다. ② M2-5 배선이 반드시 지켜야 할 **윈도우 불변식 3종**을 `LoadCandidateArticlesPort` javadoc과 [MVP-DESIGN §4 ③](https://github.com/siftnews/sift-api/blob/main/docs/MVP-DESIGN.md)에 명문화한다 — (1) `dedup_cluster_id`는 그 기사를 마지막으로 포함한 실행의 윈도우 기준 결과이므로 윈도우가 다른 값끼리는 비교·집계 불가, (2) scoreStep·selectStep의 대상 집합은 직전 `normalizeDedupStep` 윈도우의 **부분집합**이어야 한다, (3) 한 runDate의 모든 selectionJob 실행은 동일한 `[from, to)`를 공유해야 한다.
+- **이유**: `published_at`은 nullable이라(발행시각 없는 피드 — 의도된 설계) 윈도우 조회에서 null인 기사가 통째로 누락되고, 피드 백필·소스 장애 복구로 뒤늦게 수집된 과거 기사가 영영 클러스터링되지 않는다. `created_at`은 수집 시점이 곧 처리 대상 편입 시점이라 누락이 없다. 불변식을 문서화하는 이유는 `normalizeDedupStep`이 **토픽 독립 전역 단계인데 selectionJob은 토픽마다 기동**되기 때문 — 불변식이 깨지면 예외 없이 조용히 틀린 결과가 난다(윈도우 밖으로 밀려난 기사가 옛 clusterId를 유지 → trendScore 과소 계산 + MMR 다양성 페널티 미적용으로 같은 사건 기사가 한 이슈에 중복 게재).
+- **비고**: 대표 기사 선정은 별개로 `published_at` 기준을 유지한다(최신 보도가 대표). 윈도우 **크기**의 운영값은 트리거 주기와 함께 M2-5에서 확정. 불변식 (2)·(3)은 코드로 강제되지 않는 문서 계약이라, M2-5에서 Step 조립 시 검증 지점을 둘지 함께 판단할 것.
+
 ## D-031 · normalizeDedup 재실행 멱등성 — 윈도우 후보 + 실행 단위 상태 교체 + clusterId는 최소 멤버 id (2026-07-25 · D-030 후속)
 - **결정**: 이슈 #21의 범위와 설계를 다음으로 확정한다. ① **clusterId = `"c-" + min(memberIds)`** — 대표 기사(`representativeId`, 최신 `publishedAt`)와 **id 발급 기준을 분리**한다. 신규 기사는 항상 더 큰 articleId를 받으므로 클러스터에 합류해도 최소 id가 유지돼 재실행에 안정적이다. ② **후보 로드는 윈도우** — `LoadCandidateArticlesPort`에 기간 파라미터를 두고, 매 실행이 윈도우 내 후보 **전체**를 다시 계산해 상태를 교체한다. 컷 탈락 기사는 clusterId를 `null`로 해제(현행은 생존 기사만 갱신해 이전 클러스터가 잔존). ③ **범위는 fake 포트까지** — Source named interface 실 어댑터 배선·Testcontainers 통합 검증은 M2-5(selectionJob)에 그대로 남긴다. ④ `updateCluster` 단건 루프는 벌크 시그니처로 정리.
 - **이유**: 사용자 결정(2026-07-25). 멱등성은 후보 집합 범위에 종속된다 — "신규만" 로드하면 이전 실행에 묶인 기사가 후보에 없어 되돌릴 대상 자체가 없으므로, 윈도우 로드가 멱등성의 전제다. clusterId를 대표 id에서 파생하면 더 최신 기사가 합류할 때마다 id가 바뀌어(D-030 구현의 `DedupClusterer`) 탈락 해제만으로는 멱등성이 확보되지 않는다 — 최소 멤버 id는 이 변동을 없애면서 대표 선정 로직은 건드리지 않는다. 실 어댑터를 함께 넣으면 M2-5의 핵심 덩어리를 당겨오게 되어 리뷰 단위가 커지므로 분리 유지.

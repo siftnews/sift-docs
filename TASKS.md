@@ -40,8 +40,9 @@
 - [x] **#17 `[FEAT] Topic 도메인 + 시드 3종`** — PR #18로 develop 병합 완료 (2026-07-23). Topic 도메인(POJO, D-009 분리) + topic 테이블·영속 + dev/ai/econ 시드 (MVP-DESIGN §1). **소스 RSS URL 확정·source 시드는 별도 이슈로 분리**
 - [x] **#19 `[FEAT] 선별 1/3: Normalize + Dedup`** — PR #20으로 develop 병합 완료 (2026-07-23). 정규화 컷 + Jaccard 클러스터링(`dedup_cluster_id`, 임계 0.7), D-030 적용. content 로직·서비스(fake 포트)까지, 실 어댑터는 M2-5 배치
   - 후속 분리: **#21 재실행 멱등성** (CodeRabbit Major 수용)
-- [~] **#21 `[FEAT] 선별 normalizeDedup 재실행 멱등성`** — 후보 집합 정의(윈도우 로드) + 실행 단위 클러스터 상태 교체 + `clusterId = "c-" + min(memberIds)` + 벌크 갱신 (D-031). 범위는 fake 포트까지 — 실 어댑터 배선은 M2-5 유지. 브랜치 미생성
-  - DoD: **fake 포트 서비스 단위 테스트 통과** — "이전 실행에 묶였다가 이번엔 컷 탈락한 기사"의 clusterId가 비워짐을 순차 재실행으로 검증
+- [x] **#21 `[FEAT] 선별 normalizeDedup 재실행 멱등성`** — PR #22로 develop 병합 완료 (2026-07-25). 윈도우 로드 + 실행 단위 상태 교체 + `clusterId = "c-" + min(memberIds)` + 벌크 갱신 (D-031). 범위는 fake 포트까지 — 실 어댑터 배선은 M2-5 유지
+  - DoD: **fake 포트 서비스 단위 테스트 통과 ✅** (79건 전체 통과, CI pass) — 탈락 해제·신규 합류 시 clusterId 불변·동일 입력 동일 결과 3종 회귀
+  - 파생 결정: 윈도우 기준 컬럼 = `article.created_at`, 윈도우 불변식 3종 명문화 (D-032)
 - [ ] **`[FEAT] 소스 RSS URL 확정 + source 시드`** — MVP-DESIGN §1 소스 시드(한/영 토픽당 2~3개) 실제 RSS URL 확정 + source 행 시드. **M1-6 e2e 게이트(실 RSS → article 적재)를 여기서 해소** (D-029 잔여물 분리)
 - [ ] **`[FEAT] 선별 2/3: Filter + Score`** — 토픽 필터, 가중합 스코어링, `article_score` + **breakdown JSON** (튜닝·eval 토대)
 - [ ] **`[FEAT] 선별 3/3: Rank & Select`** — threshold·랭킹·다양성(MMR 여부 결정), `issue` + `issue_item` 생성

@@ -57,17 +57,19 @@
 - [x] (W) `ApplicationModules.verify()` 유지 ✅
 > 비고: Source named interface 실 어댑터·후보 조회/갱신 배선은 selectionJob 배치(M2-5)에서 연결(YAGNI). **CodeRabbit Major(재실행 멱등성) 수용 → 이슈 #21로 분리**, 나머지 지적은 해소.
 
-## Phase 1 — M2-2 후속 (#21) normalizeDedup 재실행 멱등성 [착수 대기]
-> 브랜치 미생성(`feature/21-normalize-dedup-idempotency` 예정, base develop). **범위·설계 D-031 확정** — fake 포트까지, 실 어댑터 배선은 M2-5 유지.
+## Phase 1 — M2-2 후속 (#21 → PR #22) normalizeDedup 재실행 멱등성 [병합 완료 2026-07-25]
+> 브랜치 `feature/21-normalize-dedup-idempotency` (base develop). **범위·설계 D-031 확정** — fake 포트까지, 실 어댑터 배선은 M2-5 유지. 테스트 79건 통과·CI pass ✅
 > 전제: 후보 로드가 **윈도우**여야 멱등성이 성립한다 — "신규만" 로드면 이전 실행에 묶인 기사가 후보에 없어 되돌릴 대상 자체가 없다.
-- [ ] (W) 후보 로드 범위 = 윈도우로 확정 — `LoadCandidateArticlesPort.loadCandidates()`에 기간 파라미터 도입(예: `loadCandidates(Instant from, Instant to)`) · **DoD**: 시그니처 변경 + fake 반영, 기존 테스트 통과
-- [ ] (W) `clusterId = "c-" + min(memberIds)`로 변경 (`DedupClusterer`) — `representativeId`는 최신 `publishedAt` 기준 현행 유지, id 발급 기준과 대표 선정을 분리 · **DoD**: `DedupClustererTest`에 "신규 기사 합류 후에도 clusterId 유지" 케이스 추가
-- [ ] (W) 실행 단위 클러스터 상태 교체 (`NormalizeDedupService`) — 로드한 후보 **전체**에 대해 계산 결과를 덮어쓴다. 컷 탈락 기사는 `null`로 해제(현재는 생존 기사만 갱신해 잔존) · **DoD**: 서비스 단위 테스트
-- [ ] (W) `UpdateArticleClusterPort` 벌크 갱신 — 단건 루프(`updateCluster` × N) → 일괄 시그니처(예: `updateClusters(Map<Long, String>)`, 해제는 `null` 값). 갱신 건수가 후보 수만큼 늘어나므로 배선 전에 정리 · **DoD**: fake 포트 반영 + 서비스 테스트
-- [ ] (W) 순차 재실행 회귀 테스트 (`NormalizeDedupServiceTest`) · **DoD**: ① 1회차에 묶였다가 2회차에 컷 탈락한 기사의 clusterId가 비워짐 ② 신규 기사 합류 후에도 기존 멤버의 clusterId 불변 ③ 같은 입력 2회 실행 결과 동일(멱등)
-- [ ] (W) `ApplicationModules.verify()` 유지 · **DoD**: 모듈 검증 테스트 통과
-- [ ] (선택) `NormalizeDedupSummary`에 해제 건수(cleared) 추가 — 측정 우선 원칙 5, 재실행 시 상태 교체량 가시화
-> 미포함(M2-5로): Source named interface 실 어댑터, Testcontainers 통합 검증, 윈도우 크기의 운영값 확정(트리거 주기와 함께 결정).
+- [x] (W) 후보 로드 범위 = 윈도우로 확정 — `loadCandidates(Instant from, Instant to)`, `[from, to)` 반열림 · **DoD**: 시그니처 변경 + fake 반영 ✅
+- [x] (W) `clusterId = "c-" + min(memberIds)`로 변경 (`DedupClusterer`) — `representativeId`는 최신 `publishedAt` 기준 현행 유지 · **DoD**: `DedupClustererTest` 안정성 케이스 ✅
+- [x] (W) 실행 단위 클러스터 상태 교체 (`NormalizeDedupService`) — 후보 전체를 `null`로 채운 뒤 클러스터 소속만 덮어써 컷 탈락 기사를 해제 · **DoD**: 서비스 단위 테스트 ✅
+- [x] (W) `UpdateArticleClusterPort` 벌크 갱신 — `updateClusters(Map<Long, String>)`, `null` 값 = 해제. `TreeMap`으로 articleId 오름차순 고정(재현성·lock order) · **DoD**: fake 포트 반영 ✅
+- [x] (W) 순차 재실행 회귀 테스트 (`NormalizeDedupServiceTest`) · **DoD**: ① 탈락 시 clusterId 비워짐 ② 신규 합류 후 기존 멤버 clusterId 불변 ③ 동일 입력 동일 결과 ✅
+- [x] (W) `ApplicationModules.verify()` 유지 ✅
+- [ ] (선택) `NormalizeDedupSummary`에 해제 건수(cleared) 추가 — **미반영**. 측정 우선 원칙 5 관점에서 재실행 상태 교체량이 안 보이므로 M2-5 배선 때 재검토
+> 자체 리뷰 교정 4건: 회귀 테스트가 실제로는 회귀를 못 잡던 결함(픽스처에서 최소 id와 대표가 우연히 동일) · 후보 0건 시 빈 맵 → `IN ()` SQL 오류 가능 → 조기 반환 + 계약 명시 · `from`/`to` 무검증이 파라미터 실수를 "후보 없음" 성공 로그로 위장 · `CandidateArticle.articleId` null 방어.
+> 미포함(M2-5로): Source named interface 실 어댑터, Testcontainers 통합 검증(`[from, to)` 실 경계 포함), 윈도우 크기 운영값 확정.
+> ⚠️ 이 PR은 **CodeRabbit 리뷰 없이 병합**됨(`Review rate limited` — 체크는 pass 표시). STATE 정정 참조.
 
 ## Phase 1 이후 — [TASKS.md](./TASKS.md) M2~M4 참조
 - 이슈가 발행되면 해당 태스크를 이 파일에 구현 단계로 분해해 루프를 돈다 (§0.7 절차 4)
