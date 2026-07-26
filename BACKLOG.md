@@ -37,7 +37,7 @@
 - [x] M1-5 `[FEAT] RSS 수집 어댑터` — 이슈 #12 → PR #13 병합 완료 (2026-07-19 · 완료된 분해 내역은 git 히스토리 — D-023)
   - ⚠️ 프로토콜 이탈 기록: BACKLOG 분해 없이 착수, 소급 기록 (§0.7 미준수 — M1-4에 이어 2회째)
 - [x] M1-6 `[FEAT] collectionJob 배치 + 측정 베이스라인` — 이슈 #14 → PR #15 병합 완료 (2026-07-21 · 착수 전 분해 ✅ 이탈 3회 방지 준수 · 완료된 분해 내역 (1)~(3)은 git 히스토리 — D-023)
-  - [G] **e2e 게이트 (👤) 미확인** — `bootRun`으로 실제 RSS → `article` 적재 + 측정 로그 확인. 코드 경로는 병합됐으나 실환경 검증은 남음
+  - [x] ~~[G] e2e 게이트 (👤) 미확인~~ — **해소 (2026-07-26, 이슈 #23)**: 실 RSS → `article` 258건 적재, 9개 소스 전부. 이 게이트를 여는 과정에서 수집 결함 4건이 드러났다(#23 섹션 참조)
   - 남은 결정: 배치 경로의 `markCrawled`(`UpdateSourcePort`)는 **미반영 상태로 병합** — 기본 제외 확정 vs 후속 이슈. 배치 ↔ 비배치 `CrawlSourcesService` 역할 경계와 함께 M1-7에서 정리
   - 미반영 리뷰(Trivial): 테스트 4파일의 `Fake*Port` 중복 → `adapter/in/batch/support` 패키지 추출 (선택 · PR 병합으로 코멘트가 묻혀 여기 기록)
 
@@ -71,16 +71,25 @@
 > 미포함(M2-5로): Source named interface 실 어댑터, Testcontainers 통합 검증(`[from, to)` 실 경계 포함), 윈도우 크기 운영값 확정.
 > ⚠️ 이 PR은 **CodeRabbit 리뷰 없이 병합**됨(`Review rate limited` — 체크는 pass 표시). STATE 정정 참조.
 
-## Phase 1 — #23 소스 RSS URL 확정 + source 시드 [진행 중]
+## Phase 1 — #23 소스 RSS URL 확정 + source 시드 [PR #24 리뷰 대기]
 > 브랜치 `feature/23-source-rss-seed` (base develop). 착수 전 분해 ✅ (§0.7 절차 3 — M1-4·M1-5 이탈 재발 방지)
 > 소스 9종은 2026-07-26 실 응답으로 검증(HTTP 200 + RSS 루트 태그 + 최근 갱신) — 목록·제외 사유는 [이슈 #23](https://github.com/siftnews/sift-api/issues/23) 본문이 원본.
-- [ ] (W) `Source.create` 팩토리 + 불변식 — 현재 `restore`만 존재해 시드가 도메인을 거칠 수 없다 (`Topic.create` 패턴) · **DoD**: 도메인 단위 테스트
-- [ ] (W) `SourceSeedData` — 소스 9종 정의 (dev 3 / ai 3 / econ 3, 한국어 4 · 영어 5)
-- [ ] (W) `SourceSeeder` — 기동 시 시드, `@Profile("!test")`, `url` 기준 멱등 · **DoD**: Testcontainers 통합 (9종 적재 · 재실행 멱등)
-- [ ] (W) `ApplicationModules.verify()` 유지
-- [ ] (W) `sift-api/docs/MVP-DESIGN.md` §1 소스 시드 표를 확정 URL로 갱신 (D-017 규칙 2 — 코드와 같은 diff)
-- [ ] [G] **e2e 확인 (👤)** — `./gradlew bootRun --args='--spring.batch.job.enabled=true'` → 실 RSS 수집 → `article` 적재 + `CollectionMetricsListener` 측정 로그. **M1-6 잔여 게이트(BACKLOG C `[G]`) 해소 지점**
-> ⚠️ 착수 중 발견: `spring.batch.job.enabled: false`인데 **collectionJob 상시 트리거가 어느 이슈에도 배정돼 있지 않다**(`selectionTrigger`는 M2-5에 있으나 collection 쪽은 없음). `bootRun`만으로 Job이 기동되지 않는 것이 M1-6 e2e 게이트가 계속 미해결로 남은 실질적 원인. 이번 이슈는 일회 기동으로 확인하고, 상시 트리거(`@Scheduled`, MVP-DESIGN §3① "매시간")는 **별도 후속 이슈로 분리** — TASKS M2에 추가 필요.
+- [x] (W) `Source.create` 팩토리 + 불변식 — 피드 url은 **정규화 없이 원본 보존**(쿼리로 피드를 구분하는 사이트가 있어 `UriNormalizer` 재사용 불가) · **DoD**: 도메인 단위 11건 ✅
+- [x] (W) `SourceSeedData` — 소스 9종 정의 (dev 3 / ai 3 / econ 3, 한국어 4 · 영어 5)
+- [x] (W) `SourceSeeder` — `@Profile("!test")`, `url` 기준 멱등 · **DoD**: Testcontainers 통합 3건 ✅
+- [x] (W) `ApplicationModules.verify()` 유지 ✅
+- [x] (W) `sift-api/docs/MVP-DESIGN.md` §1 소스 시드 표를 확정 URL로 갱신 ✅
+- [x] [G] **e2e 게이트 해소 ✅** — 실 RSS 수집 → `article` **258건 적재, 9개 소스 전부**(`read=9 write=9 skip=0`). **M1-6 잔여 게이트(BACKLOG C `[G]`) 닫힘**
+
+**e2e가 잡아낸 수집 결함 4건** — 첫 실행은 9개 중 4개 소스만 수집됐고, 원인이 전부 코드 결함이었다. 시드만 넣고 끝냈으면 모두 묻혔을 것들이다.
+- [x] ① **시더가 배치 Job보다 늦게 실행** — `JobLauncherApplicationRunner`(order 0) vs `@Order` 없는 러너(`LOWEST_PRECEDENCE`) → 첫 기동은 항상 소스 0건. 두 시더에 `@Order(HIGHEST_PRECEDENCE)`
+- [x] ② **`article` 문자열 컬럼이 전부 `varchar(255)`** — 본문 255자 초과 기사 하나가 그 소스 전체를 실패시킴. `body`→`text`, url 2048, title 1024. *수정 후 실측 최대 본문 31,838자*
+- [x] ③ **`saveNew`가 입력 리스트 내 중복을 못 거름** — DB 기존분만 필터해 한 chunk 내 중복 시 UNIQUE 위반 → 소스 skip
+- [x] ④ **`entry.getDescription()` null 방어 없음** — description 없는 피드(한국경제)·`content:encoded`만 있는 피드(토스)에서 NPE → 소스 전체 실패
+- [x] ⑤ **skip이 조용했다** — `.faultTolerant().skip(Exception.class)`에 `SkipListener`가 없어 어떤 소스가 왜 빠졌는지 로그가 없었다(Job status는 `COMPLETED`). `CollectionSkipListener` 추가 후에야 ④가 드러남
+- [x] 부수: `docker-compose.yaml`이 `postgres:16`을 가리켜 Testcontainers(`16-alpine`)와 불일치 → 이미지 중복 다운로드 + 테스트/로컬 DB 상이. `16-alpine`으로 통일
+
+> **후속 이슈로 분리한 것** — ⓐ **AI타임스 50개 중 1건만 적재**: `?idxno=213188`처럼 쿼리로 기사를 구분하는데 `UriNormalizer`가 쿼리를 버려 전부 같은 url로 정규화된다. 한국 언론사 다수가 쓰는 패턴이라 영향이 크지만 **기사 동일성 판정 규칙 변경**이라 dedup(D-030·D-031)·선별까지 번짐 ⓑ **collectionJob 상시 트리거 부재** — `spring.batch.job.enabled: false`인데 트리거가 없어 `bootRun`으로 Job이 안 뜬다(이번엔 `--spring.batch.job.enabled=true` 일회 기동). **M1-6 e2e 게이트가 미해결로 남아 있던 실질적 원인** ⓒ Atom 피드 파싱 미검증(네이버 D2 등)
 
 ## Phase 1 이후 — [TASKS.md](./TASKS.md) M2~M4 참조
 - 이슈가 발행되면 해당 태스크를 이 파일에 구현 단계로 분해해 루프를 돈다 (§0.7 절차 4)

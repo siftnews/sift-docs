@@ -6,13 +6,15 @@
 ## 현재 Phase
 **Phase 1 (선별) 진행 중** — 골든패스 코드 경로는 M1-6에서 완주, M1-7 박제 태스크는 해체(D-029). M2-1·M2-2(+#21 후속) 병합 완료, 소스 시드(#23) 진행 중
 
-## 지금 (in progress) — #23 소스 RSS URL 확정 + source 시드
-- **이슈 #23 발행 (2026-07-26)** — 소스 9종(dev/ai/econ 각 3, 한국어 4·영어 5) 실 응답 검증 완료 후 발행. 브랜치 `feature/23-source-rss-seed`(base develop) 생성, BACKLOG 착수 분해 ✅. **M1-6 e2e 게이트를 이 이슈에서 해소**
+## 지금 (in progress) — #23 → PR #24 리뷰 대기
+- **이슈 #23 → PR #24 (2026-07-26)** — 소스 9종 시드 + `SourceSeeder` 구현·검증 완료(전체 93 tests 통과). **M1-6 e2e 게이트 해소 ✅** — 실 RSS → `article` **258건, 9개 소스 전부**(`read=9 write=9 skip=0`). CodeRabbit 감시 Monitor 가동
+- ⚠️ **e2e가 수집 결함 4건 + 관측 공백 1건을 잡아냈다** — 첫 실행은 9개 중 4개 소스만 수집. ① 시더가 배치보다 늦게 실행 ② `article` 컬럼이 전부 `varchar(255)`(본문 포함) ③ `saveNew`가 입력 내 중복 미필터 ④ description 없는 피드에서 NPE ⑤ `SkipListener` 부재로 skip 사유가 로그에 없었음(Job은 `COMPLETED`). **게이트를 실제로 열어보지 않았으면 전부 묻혔을 결함들** — e2e 게이트의 가치가 입증된 사례
 - ⚠️ **세션 역할 분담 개정 (2026-07-26)**: 07-25의 "루프 문서 쓰기 = 문서 세션 전담"은 **이 세션이 문서 쓰기까지 겸임**하는 것으로 사용자 확정. 단 쓰기 전 `sift-docs` **fetch 필수** — 07-26에 fetch 없이 로컬 사본만 보고 "문서 4일 뒤처짐·D-031 미등재"로 오진단해 중복 커밋 2개를 폐기한 사고 발생 (아래 "정정")
 
 ## 다음 액션 (next)
-- 🤖 **#23 구현** — BACKLOG 분해 순서대로: `Source.create` → `SourceSeedData` → `SourceSeeder` → MVP-DESIGN §1 갱신 → e2e
-- 🤖 **`[FEAT] collectionTrigger` 이슈 발행** — #23 착수 중 발견: `spring.batch.job.enabled: false`인데 collectionJob 트리거가 어느 이슈에도 없어 `bootRun`으로 Job이 기동되지 않는다(M1-6 e2e 게이트가 미해결로 남은 실질적 원인). TASKS M2에 항목 추가함
+- 👤 **PR #24 리뷰·병합** — CodeRabbit 리뷰는 감시 중(요약 코멘트 도착, 상세 리뷰 진행 중). 확인 부탁 2건: ① `article` 컬럼 길이 관행값(url 2048 / title 1024) ② description fallback으로 `content:encoded`를 쓰면 HTML이 통째로 들어옴(실측 31,838자) — 본문 정제는 선별 Normalize 몫으로 남김
+- 🤖 **#23 병합 후 후속 이슈 3건 발행** — ⓐ `[FIX] 쿼리로 기사를 구분하는 소스의 URL 정규화`(AI타임스 50→1건, **기사 동일성 규칙 변경이라 dedup·선별 전제에 영향 — 설계 결정 필요 👤**) ⓑ `[FEAT] collectionTrigger` ⓒ `[FEAT] Atom 피드 파싱 검증`. 셋 다 TASKS M2에 등록함
+- 🤖 **M2 잔여 선별 태스크** — 선별 2/3(Filter + Score) → 3/3(Rank & Select) → selectionJob 배치(M2-5, D-031·D-032 윈도우 불변식 준수 필수)
 - 👤 **CodeRabbit 리뷰 공백 확인** — PR #22는 `Review rate limited`로 **외부 리뷰 없이 병합**됐다(체크는 pass 표시). 병합 전 자체 리뷰 패스로 대체됐으나, rate limit이 재발하면 리뷰 게이트가 조용히 비는 구조 (아래 "정정" 참조)
 - 👤 **PR #22 확인 부탁 2건** — ① `updateClusters(Map)` 단일 인자 vs `updateClusters(assigned, cleared)` 2-인자 분리(null 값 계약이 부담이면 재검토) ② `[from, to)` 경계 검증은 fake 계층에서 pass-through에 그침 — 실 경계 검증은 M2-5 Testcontainers 몫
 - 👤 **M1-6 e2e 게이트 확인** — `bootRun`으로 실제 RSS → `article` 적재 + 측정 로그 확인. PR #15는 병합됐으나 이 실환경 게이트는 미확인 상태로 남아 있다 (BACKLOG C의 `[G]` 항목)

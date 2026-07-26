@@ -44,7 +44,9 @@
   - DoD: **fake 포트 서비스 단위 테스트 통과 ✅** (79건 전체 통과, CI pass) — 탈락 해제·신규 합류 시 clusterId 불변·동일 입력 동일 결과 3종 회귀
   - 파생 결정: 윈도우 기준 컬럼 = `article.created_at`, 윈도우 불변식 3종 명문화 (D-032)
 - [~] **#23 `[FEAT] 소스 RSS URL 확정 + source 시드`** — MVP-DESIGN §1 소스 시드 실제 RSS URL 확정(9종: dev/ai/econ 각 3, 한국어 4·영어 5 — 2026-07-26 실 응답 검증) + `SourceSeeder`. **M1-6 e2e 게이트(실 RSS → article 적재)를 여기서 해소** (D-029 잔여물 분리). 브랜치 `feature/23-source-rss-seed`
-- [ ] **`[FEAT] collectionTrigger — 수집 배치 상시 기동`** — `spring.batch.job.enabled: false`인데 collectionJob 트리거가 없어 `bootRun`으로 Job이 기동되지 않는다(#23 착수 중 발견). `@Scheduled` 주기 기동(MVP-DESIGN §3① "매시간" — 실제 주기는 이 이슈에서 확정) + 수동 기동 수단 검토
+- [ ] **`[FIX] 쿼리로 기사를 구분하는 소스의 URL 정규화`** — `UriNormalizer`가 쿼리스트링을 버려, `?idxno=213188`처럼 쿼리로 기사를 구분하는 사이트(AI타임스 등 한국 언론사 다수)의 기사가 **전부 같은 url로 정규화**된다 → `UNIQUE(normalized_url)`에 걸려 50개 중 1건만 적재(#23 e2e 실측). **기사 동일성 판정 규칙 변경**이라 dedup(D-030·D-031)·선별 전제에 영향 — 결정 필요
+- [ ] **`[FEAT] collectionTrigger — 수집 배치 상시 기동`** — `spring.batch.job.enabled: false`인데 collectionJob 트리거가 없어 `bootRun`으로 Job이 기동되지 않는다(#23 착수 중 발견 — M1-6 e2e 게이트가 미해결로 남아 있던 실질적 원인). `@Scheduled` 주기 기동(MVP-DESIGN §3① "매시간" — 실제 주기는 이 이슈에서 확정) + 수동 기동 수단 검토
+- [ ] **`[FEAT] Atom 피드 파싱 검증`** — `rome`은 Atom(`<feed>`/`<entry>`)도 파싱하지만 `RssFeedAdapter` 테스트가 RSS 픽스처만 다뤄 미검증. 네이버 D2 등 Atom 소스 추가와 함께 픽스처 테스트 (#23에서 분리)
 - [ ] **`[FEAT] 선별 2/3: Filter + Score`** — 토픽 필터, 가중합 스코어링, `article_score` + **breakdown JSON** (튜닝·eval 토대)
 - [ ] **`[FEAT] 선별 3/3: Rank & Select`** — threshold·랭킹·다양성(MMR 여부 결정), `issue` + `issue_item` 생성
 - [ ] **`[FEAT] selectionJob 배치 + selectionTrigger`** — Step 조립, 매일 발행 기준 시각 트리거(@Scheduled, 시각은 이 이슈에서 확정 — D-019)
