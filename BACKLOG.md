@@ -71,6 +71,17 @@
 > 미포함(M2-5로): Source named interface 실 어댑터, Testcontainers 통합 검증(`[from, to)` 실 경계 포함), 윈도우 크기 운영값 확정.
 > ⚠️ 이 PR은 **CodeRabbit 리뷰 없이 병합**됨(`Review rate limited` — 체크는 pass 표시). STATE 정정 참조.
 
+## Phase 1 — #23 소스 RSS URL 확정 + source 시드 [진행 중]
+> 브랜치 `feature/23-source-rss-seed` (base develop). 착수 전 분해 ✅ (§0.7 절차 3 — M1-4·M1-5 이탈 재발 방지)
+> 소스 9종은 2026-07-26 실 응답으로 검증(HTTP 200 + RSS 루트 태그 + 최근 갱신) — 목록·제외 사유는 [이슈 #23](https://github.com/siftnews/sift-api/issues/23) 본문이 원본.
+- [ ] (W) `Source.create` 팩토리 + 불변식 — 현재 `restore`만 존재해 시드가 도메인을 거칠 수 없다 (`Topic.create` 패턴) · **DoD**: 도메인 단위 테스트
+- [ ] (W) `SourceSeedData` — 소스 9종 정의 (dev 3 / ai 3 / econ 3, 한국어 4 · 영어 5)
+- [ ] (W) `SourceSeeder` — 기동 시 시드, `@Profile("!test")`, `url` 기준 멱등 · **DoD**: Testcontainers 통합 (9종 적재 · 재실행 멱등)
+- [ ] (W) `ApplicationModules.verify()` 유지
+- [ ] (W) `sift-api/docs/MVP-DESIGN.md` §1 소스 시드 표를 확정 URL로 갱신 (D-017 규칙 2 — 코드와 같은 diff)
+- [ ] [G] **e2e 확인 (👤)** — `./gradlew bootRun --args='--spring.batch.job.enabled=true'` → 실 RSS 수집 → `article` 적재 + `CollectionMetricsListener` 측정 로그. **M1-6 잔여 게이트(BACKLOG C `[G]`) 해소 지점**
+> ⚠️ 착수 중 발견: `spring.batch.job.enabled: false`인데 **collectionJob 상시 트리거가 어느 이슈에도 배정돼 있지 않다**(`selectionTrigger`는 M2-5에 있으나 collection 쪽은 없음). `bootRun`만으로 Job이 기동되지 않는 것이 M1-6 e2e 게이트가 계속 미해결로 남은 실질적 원인. 이번 이슈는 일회 기동으로 확인하고, 상시 트리거(`@Scheduled`, MVP-DESIGN §3① "매시간")는 **별도 후속 이슈로 분리** — TASKS M2에 추가 필요.
+
 ## Phase 1 이후 — [TASKS.md](./TASKS.md) M2~M4 참조
 - 이슈가 발행되면 해당 태스크를 이 파일에 구현 단계로 분해해 루프를 돈다 (§0.7 절차 4)
 - Sift용 `code-review` · `create-branch` 스킬 박제는 **M2로 이동** (D-029 — 2번째 유스케이스에서 공통 패턴 추출, D-012 시점 개정)

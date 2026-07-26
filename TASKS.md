@@ -43,7 +43,8 @@
 - [x] **#21 `[FEAT] 선별 normalizeDedup 재실행 멱등성`** — PR #22로 develop 병합 완료 (2026-07-25). 윈도우 로드 + 실행 단위 상태 교체 + `clusterId = "c-" + min(memberIds)` + 벌크 갱신 (D-031). 범위는 fake 포트까지 — 실 어댑터 배선은 M2-5 유지
   - DoD: **fake 포트 서비스 단위 테스트 통과 ✅** (79건 전체 통과, CI pass) — 탈락 해제·신규 합류 시 clusterId 불변·동일 입력 동일 결과 3종 회귀
   - 파생 결정: 윈도우 기준 컬럼 = `article.created_at`, 윈도우 불변식 3종 명문화 (D-032)
-- [ ] **`[FEAT] 소스 RSS URL 확정 + source 시드`** — MVP-DESIGN §1 소스 시드(한/영 토픽당 2~3개) 실제 RSS URL 확정 + source 행 시드. **M1-6 e2e 게이트(실 RSS → article 적재)를 여기서 해소** (D-029 잔여물 분리)
+- [~] **#23 `[FEAT] 소스 RSS URL 확정 + source 시드`** — MVP-DESIGN §1 소스 시드 실제 RSS URL 확정(9종: dev/ai/econ 각 3, 한국어 4·영어 5 — 2026-07-26 실 응답 검증) + `SourceSeeder`. **M1-6 e2e 게이트(실 RSS → article 적재)를 여기서 해소** (D-029 잔여물 분리). 브랜치 `feature/23-source-rss-seed`
+- [ ] **`[FEAT] collectionTrigger — 수집 배치 상시 기동`** — `spring.batch.job.enabled: false`인데 collectionJob 트리거가 없어 `bootRun`으로 Job이 기동되지 않는다(#23 착수 중 발견). `@Scheduled` 주기 기동(MVP-DESIGN §3① "매시간" — 실제 주기는 이 이슈에서 확정) + 수동 기동 수단 검토
 - [ ] **`[FEAT] 선별 2/3: Filter + Score`** — 토픽 필터, 가중합 스코어링, `article_score` + **breakdown JSON** (튜닝·eval 토대)
 - [ ] **`[FEAT] 선별 3/3: Rank & Select`** — threshold·랭킹·다양성(MMR 여부 결정), `issue` + `issue_item` 생성
 - [ ] **`[FEAT] selectionJob 배치 + selectionTrigger`** — Step 조립, 매일 발행 기준 시각 트리거(@Scheduled, 시각은 이 이슈에서 확정 — D-019)

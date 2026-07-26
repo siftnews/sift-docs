@@ -1,17 +1,18 @@
 # Sift — STATE (루프 나침반)
 
 > 매 사이클 **시작에 읽고, 종료에 갱신**한다. 현재 상황의 단일 진실원천.
-> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-07-25
+> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-07-26
 
 ## 현재 Phase
-**Phase 1 (선별) 진행 중** — 골든패스 코드 경로는 M1-6에서 완주, M1-7 박제 태스크는 해체(D-029). M2-1·M2-2(+#21 후속) 병합 완료, 선별 2/3이 다음
+**Phase 1 (선별) 진행 중** — 골든패스 코드 경로는 M1-6에서 완주, M1-7 박제 태스크는 해체(D-029). M2-1·M2-2(+#21 후속) 병합 완료, 소스 시드(#23) 진행 중
 
-## 지금 (in progress) — 열린 이슈 없음
-- M2-2 후속 #21이 PR #22로 병합되며 **열린 이슈가 0건**이다. 다음 태스크 이슈 발행이 루프 재개 지점
-- ⚠️ **세션 역할 분담 (2026-07-25)**: 루프 문서(STATE·BACKLOG·TASKS·DECISIONS) 쓰기 창구 = **문서 세션**, 구현 세션은 `sift-api` 코드만 담당 (D-016 쓰기 주인 단일화)
+## 지금 (in progress) — #23 소스 RSS URL 확정 + source 시드
+- **이슈 #23 발행 (2026-07-26)** — 소스 9종(dev/ai/econ 각 3, 한국어 4·영어 5) 실 응답 검증 완료 후 발행. 브랜치 `feature/23-source-rss-seed`(base develop) 생성, BACKLOG 착수 분해 ✅. **M1-6 e2e 게이트를 이 이슈에서 해소**
+- ⚠️ **세션 역할 분담 개정 (2026-07-26)**: 07-25의 "루프 문서 쓰기 = 문서 세션 전담"은 **이 세션이 문서 쓰기까지 겸임**하는 것으로 사용자 확정. 단 쓰기 전 `sift-docs` **fetch 필수** — 07-26에 fetch 없이 로컬 사본만 보고 "문서 4일 뒤처짐·D-031 미등재"로 오진단해 중복 커밋 2개를 폐기한 사고 발생 (아래 "정정")
 
 ## 다음 액션 (next)
-- 🤖 **`[FEAT] 소스 RSS URL 확정 + source 시드` 발행 → 구현** — TASKS M2 순서상 다음. **M1-6 e2e 게이트(👤)를 여기서 해소**
+- 🤖 **#23 구현** — BACKLOG 분해 순서대로: `Source.create` → `SourceSeedData` → `SourceSeeder` → MVP-DESIGN §1 갱신 → e2e
+- 🤖 **`[FEAT] collectionTrigger` 이슈 발행** — #23 착수 중 발견: `spring.batch.job.enabled: false`인데 collectionJob 트리거가 어느 이슈에도 없어 `bootRun`으로 Job이 기동되지 않는다(M1-6 e2e 게이트가 미해결로 남은 실질적 원인). TASKS M2에 항목 추가함
 - 👤 **CodeRabbit 리뷰 공백 확인** — PR #22는 `Review rate limited`로 **외부 리뷰 없이 병합**됐다(체크는 pass 표시). 병합 전 자체 리뷰 패스로 대체됐으나, rate limit이 재발하면 리뷰 게이트가 조용히 비는 구조 (아래 "정정" 참조)
 - 👤 **PR #22 확인 부탁 2건** — ① `updateClusters(Map)` 단일 인자 vs `updateClusters(assigned, cleared)` 2-인자 분리(null 값 계약이 부담이면 재검토) ② `[from, to)` 경계 검증은 fake 계층에서 pass-through에 그침 — 실 경계 검증은 M2-5 Testcontainers 몫
 - 👤 **M1-6 e2e 게이트 확인** — `bootRun`으로 실제 RSS → `article` 적재 + 측정 로그 확인. PR #15는 병합됐으나 이 실환경 게이트는 미확인 상태로 남아 있다 (BACKLOG C의 `[G]` 항목)
@@ -20,6 +21,7 @@
 - 👤 **PORTFOLIO.md 유실 처리 결정** — 복원(재작성) 또는 폐기 (아래 "정정" 참조)
 
 ## 정정 (사람 재검증·수정 흔적)
+- **(2026-07-26) 세션이 `sift-docs`를 fetch하지 않고 문서 상태를 오진단** — `sift-api`만 fetch한 채 로컬 `sift-docs` 사본을 읽고 "루프 문서가 4일 뒤처졌고 D-031이 DECISIONS에 없는 댕글링 참조"라고 사용자에게 보고했으나, **실제로는 원격이 최신이었고 로컬 클론이 낡은 것**이었다(원격에는 D-031·D-032 모두 존재). 그 오진단 위에서 D-031을 중복 작성해 커밋 2개(`d2d9cd7`·`8b929c9`)를 만들었고, push 단계에서 non-fast-forward로 발각돼 `git reset --keep origin/main`으로 폐기했다. 원인은 2대 머신(맥북↔Mac Studio) 공유 환경에서 **fetch 없이 로컬 파일을 진실로 취급**한 것 — 메모리에 재발 방지 기록(`fetch-before-reading-loop-docs`).
 - **(2026-07-25) `.coderabbit.yaml` path_filter가 헥사고날 `out` 패키지를 리뷰에서 제외하고 있었음** — `!**/out/**`(IntelliJ 빌드 산출물 의도)가 `application/port/out`·`adapter/out`까지 매칭시켜, **아웃바운드 포트·영속/피드 어댑터가 CodeRabbit 리뷰 사각지대**였다. PR #22에서 `!out/**`로 수정(`27d8f8b`). 소급 영향: M1-4 Source 영속 어댑터·M1-5 RssFeedAdapter·M2-2 포트 2종 등 `out` 경로 코드는 리뷰를 안 받았을 가능성이 높다 — 필요하면 사후 리뷰 요청은 👤 (comment는 사람 영역, D-026)
 - **(2026-07-25) PR #22는 CodeRabbit 리뷰 없이 병합됨** — 체크 결과가 `pass`로 표시되지만 실제 내용은 `Review rate limited`. **rate limit이 걸려도 체크는 통과로 뜨므로 리뷰 게이트가 조용히 비는 구조**다. #22는 구현 세션의 자체 리뷰 패스(회귀 테스트가 회귀를 못 잡던 결함·빈 맵 SQL 오류·from/to 무검증 발견)로 대체됐다. 👤 재발 시 대응 방침 결정 필요
 - **(2026-07-25) 로컬 feature 브랜치 "정리 완료" 기록은 부정확** — 아래 최근 완료 항목들의 "로컬 feature 브랜치 정리 완료" 표현과 달리, 실제 로컬에는 병합 끝난 `feature/4-source-domain`·`feature/8-crawl-sources-usecase`·`feature/10-source-persistence-adapter`·`feature/19-selection-normalize-dedup` 4개가 잔존(원격은 `feature/6-harness-docs`만 잔존). 로컬 위생 문제라 기능 영향은 없으나, 다음 세션이 브랜치 목록을 오해하지 않도록 기록 — 정리는 구현 세션에서 수행
