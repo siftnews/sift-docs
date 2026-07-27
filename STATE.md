@@ -1,19 +1,21 @@
 # Sift — STATE (루프 나침반)
 
 > 매 사이클 **시작에 읽고, 종료에 갱신**한다. 현재 상황의 단일 진실원천.
-> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-07-26
+> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-07-27
 
 ## 현재 Phase
 **Phase 1 (선별) 진행 중** — 골든패스 코드 경로는 M1-6에서 완주, M1-7 박제 태스크는 해체(D-029). M2-1·M2-2(+#21 후속) 병합 완료, 소스 시드(#23) 진행 중
 
 ## 지금 (in progress) — #23 → PR #24 리뷰 대기
-- **이슈 #23 → PR #24 (2026-07-26)** — 소스 9종 시드 + `SourceSeeder` 구현·검증 완료(전체 93 tests 통과). **M1-6 e2e 게이트 해소 ✅** — 실 RSS → `article` **258건, 9개 소스 전부**(`read=9 write=9 skip=0`). CodeRabbit 감시 Monitor 가동
+- **이슈 #23 → PR #24 (2026-07-26~27)** — 소스 9종 시드 + `SourceSeeder` 구현·검증 완료(전체 **94** tests 통과). **M1-6 e2e 게이트 해소 ✅** — 실 RSS → `article` **258건, 9개 소스 전부**(`read=9 write=9 skip=0`). CodeRabbit 감시 Monitor 가동
+- **CodeRabbit 리뷰 4건 전부 처리·resolve 완료 (2026-07-27, `e366fff`)** — ①skip 로그 식별자·④예외 cause는 `2c365a3`, **②시더 위치(헥사고날 위반)·③원자적 저장은 `e366fff`**로 반영. ②③은 뿌리가 같아 함께 고침: 시더를 `adapter.in.bootstrap`으로 옮겨 `SeedSourcesUseCase`→`SaveSourcePort` 경유로 바꾸고, 저장을 `INSERT … ON CONFLICT (url) DO NOTHING`(네이티브)으로 교체해 동시·재기동 멱등 확보. 신규 DB 2회 기동으로 실측 검증(**신규 9건 → 신규 0건, 예외 없음**). 스레드 4개 전부 resolved (D-033)
 - ⚠️ **e2e가 수집 결함 4건 + 관측 공백 1건을 잡아냈다** — 첫 실행은 9개 중 4개 소스만 수집. ① 시더가 배치보다 늦게 실행 ② `article` 컬럼이 전부 `varchar(255)`(본문 포함) ③ `saveNew`가 입력 내 중복 미필터 ④ description 없는 피드에서 NPE ⑤ `SkipListener` 부재로 skip 사유가 로그에 없었음(Job은 `COMPLETED`). **게이트를 실제로 열어보지 않았으면 전부 묻혔을 결함들** — e2e 게이트의 가치가 입증된 사례
 - ⚠️ **세션 역할 분담 개정 (2026-07-26)**: 07-25의 "루프 문서 쓰기 = 문서 세션 전담"은 **이 세션이 문서 쓰기까지 겸임**하는 것으로 사용자 확정. 단 쓰기 전 `sift-docs` **fetch 필수** — 07-26에 fetch 없이 로컬 사본만 보고 "문서 4일 뒤처짐·D-031 미등재"로 오진단해 중복 커밋 2개를 폐기한 사고 발생 (아래 "정정")
 
 ## 다음 액션 (next)
-- 👤 **PR #24 리뷰·병합** — CodeRabbit 리뷰는 감시 중(요약 코멘트 도착, 상세 리뷰 진행 중). 확인 부탁 2건: ① `article` 컬럼 길이 관행값(url 2048 / title 1024) ② description fallback으로 `content:encoded`를 쓰면 HTML이 통째로 들어옴(실측 31,838자) — 본문 정제는 선별 Normalize 몫으로 남김
-- 🤖 **#23 병합 후 후속 이슈 3건 발행** — ⓐ `[FIX] 쿼리로 기사를 구분하는 소스의 URL 정규화`(AI타임스 50→1건, **기사 동일성 규칙 변경이라 dedup·선별 전제에 영향 — 설계 결정 필요 👤**) ⓑ `[FEAT] collectionTrigger` ⓒ `[FEAT] Atom 피드 파싱 검증`. 셋 다 TASKS M2에 등록함
+- 👤 **PR #24 병합** — CodeRabbit 지적 4건 전부 반영·resolve 완료, 미해결 스레드 0. 에이전트 작업 종료 상태. 확인 부탁 2건: ① `article` 컬럼 길이 관행값(url 2048 / title 1024) ② description fallback으로 `content:encoded`를 쓰면 HTML이 통째로 들어옴(실측 31,838자) — 본문 정제는 선별 Normalize 몫으로 남김
+- ⚠️ **기존 로컬 DB는 `source.url` 유니크 제약이 없어 새 시더가 기동 실패한다** — `ddl-auto: update`는 이미 있는 테이블에 유니크 제약을 소급 생성하지 않는다(e2e 컨테이너 `sift` DB에서 확인). `ON CONFLICT (url)`은 제약이 없으면 예외다. 신규 DB·CI·Testcontainers는 테이블 생성 시점에 제약이 붙어 무관. 기존 로컬 DB를 계속 쓰려면 `ALTER TABLE source ADD CONSTRAINT … UNIQUE (url)` 1회 필요 — Liquibase 전환 시 정식 해소
+- 🤖 **#23 병합 후 후속 이슈 4건 발행** — ⓐ `[FIX] 쿼리로 기사를 구분하는 소스의 URL 정규화`(AI타임스 50→1건, **기사 동일성 규칙 변경이라 dedup·선별 전제에 영향 — 설계 결정 필요 👤**) ⓑ `[FEAT] collectionTrigger` ⓒ `[FEAT] Atom 피드 파싱 검증` ⓓ `[REFACTOR] TopicSeeder를 인바운드 어댑터로 이동`(#24에서 source만 정리, content는 범위 밖). 넷 다 TASKS M2에 등록함
 - 🤖 **M2 잔여 선별 태스크** — 선별 2/3(Filter + Score) → 3/3(Rank & Select) → selectionJob 배치(M2-5, D-031·D-032 윈도우 불변식 준수 필수)
 - 👤 **CodeRabbit 리뷰 공백 확인** — PR #22는 `Review rate limited`로 **외부 리뷰 없이 병합**됐다(체크는 pass 표시). 병합 전 자체 리뷰 패스로 대체됐으나, rate limit이 재발하면 리뷰 게이트가 조용히 비는 구조 (아래 "정정" 참조)
 - 👤 **PR #22 확인 부탁 2건** — ① `updateClusters(Map)` 단일 인자 vs `updateClusters(assigned, cleared)` 2-인자 분리(null 값 계약이 부담이면 재검토) ② `[from, to)` 경계 검증은 fake 계층에서 pass-through에 그침 — 실 경계 검증은 M2-5 Testcontainers 몫
@@ -53,6 +55,6 @@
 - ~~루트 `siftnews/` git 저장소화~~ — **취소 (D-015)**: 루트는 로컬 전용, git은 하위 sift-* 레포에만
 
 ## 비고
-- **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성** = 에이전트 (모든 기록은 사용자 명의·기존 스타일 — HARNESS §0.7 컨벤션을 스스로 준수, 검사 장치 없음 D-027). **병합·리뷰 승인·issue/pr close·comment·release·repo/인프라 쓰기** = 사람. issue/pr `edit`는 에이전트 허용이되 assignee·라벨 관리 용도만 (D-028).
+- **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성** = 에이전트 (모든 기록은 사용자 명의·기존 스타일 — HARNESS §0.7 컨벤션을 스스로 준수, 검사 장치 없음 D-027). **병합·리뷰 승인·issue/pr close·comment·release·repo/인프라 쓰기** = 사람. issue/pr `edit`는 에이전트 허용이되 assignee·라벨 관리 용도만 (D-028). **반영 완료한 리뷰 스레드의 resolve는 에이전트** — 답글은 여전히 사람 (D-033).
 - **구현 리듬 (D-026)**: 작은 작업 1개 → build/test 자가검증 → 에이전트 커밋(`{type}: {한국어 요약}` 한 줄, 트레일러 금지) → 다음 작업.
 - 게이트(settings.json deny): gh pr merge/review/ready, issue·pr close/comment/delete, release, repo, workflow run, secret, variable (edit는 D-028로 allow — assignee·라벨 용도만). 파괴 명령: git reset --hard / clean, docker compose down -v. main push 방어 = GitHub 브랜치 보호(D-027). `gh api`는 allow/deny 양쪽 제외(백스톱) — settings.local.json의 `gh api *` allow는 워크스페이스·하네스 시드 양쪽 제거 완료(👤 2026-07-22, 백스톱 복원).

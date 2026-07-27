@@ -3,6 +3,11 @@
 > 경량 ADR. 루프가 일관성을 유지하고 과거 결정을 되돌아보기 위한 기록. **새 결정은 맨 위에 추가.**
 > 개정·폐기된 결정은 **본문을 다시 쓰지 않고 제목에 `(… 개정 → D-xxx)`를 표기**한다 (D-023).
 
+## D-033 · 리뷰 스레드 resolve = 에이전트, 스레드 답글 = 사람 (2026-07-27 · D-026 보완, PR #24에서 파생)
+- **결정**: CodeRabbit 리뷰 지적을 **수용해 반영·push한 뒤에는 에이전트가 그 스레드를 resolve**한다(`gh api graphql` → `resolveReviewThread`). 그래야 PR 화면의 미해결 스레드 목록이 곧 "남은 지적"이 된다. **반박했거나 보류한 스레드는 resolve하지 않는다** — 사용자가 판단할 여지로 남긴다. **스레드 답글(`comment`)은 D-026대로 사람 영역**으로 불변.
+- **이유**: 사용자 요청(2026-07-27). resolve를 아무도 하지 않으면 사용자가 PR만 봐서는 무엇이 처리됐는지 알 수 없다 — 실제로 PR #24에서 CodeRabbit이 스스로 감지한 2건만 auto-resolve되고, 나머지 2건은 반영 후에도 미해결로 남아 진행 상황이 보이지 않았다. resolve는 대외 발화가 아니라 **상태 정리**라, "comment는 사람 영역"의 취지(기록·발언은 사용자 명의)와 충돌하지 않는다.
+- **비고**: `gh api`는 D-024대로 allow/deny 양쪽에서 제외된 프롬프트 백스톱이라 권한 게이트로는 막히지 않는다 — 이 구분은 **지침으로만 통제**된다(가드 훅 없음, D-027). CodeRabbit이 반영을 스스로 감지하면 auto-resolve하기도 하므로, resolve 전에 현재 미해결 목록을 조회해 중복 조작을 피할 것.
+
 ## D-032 · 선별 윈도우 기준 컬럼 = `article.created_at` + 윈도우 불변식 3종 (2026-07-25 · D-031 구현 중 파생, 이슈 #21 → PR #22)
 - **결정**: ① 후보 로드 윈도우 `[from, to)`의 기준 컬럼은 **`article.created_at`(수집 시각)**. `published_at`은 쓰지 않는다. ② M2-5 배선이 반드시 지켜야 할 **윈도우 불변식 3종**을 `LoadCandidateArticlesPort` javadoc과 [MVP-DESIGN §4 ③](https://github.com/siftnews/sift-api/blob/main/docs/MVP-DESIGN.md)에 명문화한다 — (1) `dedup_cluster_id`는 그 기사를 마지막으로 포함한 실행의 윈도우 기준 결과이므로 윈도우가 다른 값끼리는 비교·집계 불가, (2) scoreStep·selectStep의 대상 집합은 직전 `normalizeDedupStep` 윈도우의 **부분집합**이어야 한다, (3) 한 runDate의 모든 selectionJob 실행은 동일한 `[from, to)`를 공유해야 한다.
 - **이유**: `published_at`은 nullable이라(발행시각 없는 피드 — 의도된 설계) 윈도우 조회에서 null인 기사가 통째로 누락되고, 피드 백필·소스 장애 복구로 뒤늦게 수집된 과거 기사가 영영 클러스터링되지 않는다. `created_at`은 수집 시점이 곧 처리 대상 편입 시점이라 누락이 없다. 불변식을 문서화하는 이유는 `normalizeDedupStep`이 **토픽 독립 전역 단계인데 selectionJob은 토픽마다 기동**되기 때문 — 불변식이 깨지면 예외 없이 조용히 틀린 결과가 난다(윈도우 밖으로 밀려난 기사가 옛 clusterId를 유지 → trendScore 과소 계산 + MMR 다양성 페널티 미적용으로 같은 사건 기사가 한 이슈에 중복 게재).
