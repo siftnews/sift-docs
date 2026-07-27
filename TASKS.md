@@ -50,7 +50,7 @@
 - [ ] **`[REFACTOR] TopicSeeder를 인바운드 어댑터로 이동`** — #23에서 `SourceSeeder`만 `adapter.in.bootstrap`으로 옮기고 `SeedSourcesUseCase`→`SaveSourcePort` 경유로 정리했다(PR #24 리뷰 반영). `content`의 `TopicSeeder`는 여전히 `adapter.out.persistence`에서 JPA 리포지토리를 직접 호출한다 — 같은 헥사고날 위반이고 저장도 conflict-ignore가 아니다. 모듈이 달라 #24 범위 밖으로 분리
 - [ ] **`[FEAT] Atom 피드 파싱 검증`** — `rome`은 Atom(`<feed>`/`<entry>`)도 파싱하지만 `RssFeedAdapter` 테스트가 RSS 픽스처만 다뤄 미검증. 네이버 D2 등 Atom 소스 추가와 함께 픽스처 테스트 (#23에서 분리)
 - [~] **#25 `[FEAT] 선별 2/3: Filter + Score`** — PR #26 리뷰 대기 (2026-07-27). 토픽 필터 + 4항목 가중합 + `article_score`(breakdown JSON, `(article_id, topic_id)` upsert). 브랜치 `feature/25-selection-filter-score` — **#24 위 스택이라 병합 후 base를 develop으로 재지정 필요 👤**
-- [ ] **`[FEAT] 선별 3/3: Rank & Select`** — threshold·랭킹·다양성(MMR 여부 결정), `issue` + `issue_item` 생성
+- [~] **#27 `[FEAT] 선별 3/3: Rank & Select`** — PR #28 리뷰 대기 (2026-07-27). threshold 컷·랭킹·**소스 쏠림 감점(전면 MMR 대신)**·`issue`+`issue_item` 생성. 브랜치 `feature/27-selection-rank-select` — **#26 위 스택이라 base 재지정 필요 👤**
 - [ ] **`[FEAT] selectionJob 배치 + selectionTrigger`** — Step 조립, 매일 발행 기준 시각 트리거(@Scheduled, 시각은 이 이슈에서 확정 — D-019)
   - **여기서 Source named interface 실 어댑터 배선** — `LoadCandidateArticlesPort`(윈도우 조회)·`UpdateArticleClusterPort`(벌크 갱신)의 실 구현 + Testcontainers 통합 검증 (D-030·D-031)
   - M2 공통 DoD: build/test 통과 + 시드 토픽으로 이슈 1건 생성 확인
