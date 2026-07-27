@@ -97,6 +97,26 @@
 
 > **후속 이슈로 분리한 것** — ⓐ **AI타임스 50개 중 1건만 적재**: `?idxno=213188`처럼 쿼리로 기사를 구분하는데 `UriNormalizer`가 쿼리를 버려 전부 같은 url로 정규화된다. 한국 언론사 다수가 쓰는 패턴이라 영향이 크지만 **기사 동일성 판정 규칙 변경**이라 dedup(D-030·D-031)·선별까지 번짐 ⓑ **collectionJob 상시 트리거 부재** — `spring.batch.job.enabled: false`인데 트리거가 없어 `bootRun`으로 Job이 안 뜬다(이번엔 `--spring.batch.job.enabled=true` 일회 기동). **M1-6 e2e 게이트가 미해결로 남아 있던 실질적 원인** ⓒ Atom 피드 파싱 미검증(네이버 D2 등)
 
+## Phase 1 — #25 선별 2/3 Filter + Score [PR #26 리뷰 대기]
+> 브랜치 `feature/25-selection-filter-score` — **base가 `feature/23-source-rss-seed`인 스택 PR**. #24 병합 후 base를 `develop`으로 재지정해야 CodeRabbit이 리뷰한다 (👤).
+- [x] (W) `CandidateArticle`에 `sourceId`·`category`·`dedupClusterId` 추가 — 필터·소스점수·화제성이 셋 다 필요로 하는데 뷰에 없었다 · **DoD**: 기존 normalizeDedup 회귀 통과 ✅
+- [x] (W) `TopicFilter` — 언어 → 카테고리 → 제외어 → 포함어 순(싼 것부터) · **DoD**: 도메인 단위 11건 ✅
+- [x] (W) `ArticleScorer` + `ScoreBreakdown`·`ScoreWeights` — 4항목 가중합 · **DoD**: 도메인 단위 15건, 근거만으로 점수 재현 ✅
+- [x] (W) `article_score` 영속 — `(article_id, topic_id)` UNIQUE + `ON CONFLICT DO UPDATE` · **DoD**: Testcontainers 3건(JSON 왕복·재실행 시 행 안 늘어남) ✅
+- [x] (W) `ScoreArticlesUseCase`/`Service` · **DoD**: fake 포트 단위 7건 ✅
+- [x] (W) `ApplicationModules.verify()` 유지 ✅ · `docs/SELECTION.md` §2.4·`MVP-DESIGN.md` §4 갱신 ✅
+- [x] 전체 테스트 **132건 통과** ✅
+
+**설계에서 확정한 것**
+- **단계 순서**: 화제성 집계(필터 전, 토픽 무관) → 토픽 필터 → 클러스터당 대표 1건 → 스코어. 순서를 바꾸면 ① 화제성이 토픽마다 달라지거나 ② 대표가 필터에 걸릴 때 통과 가능했던 같은 클러스터 기사까지 잃는다
+- **D-032 불변식 (2)를 구조로 강제** — 클러스터 크기를 별도 집계 쿼리가 아니라 `loadCandidates`가 준 윈도우 안에서 센다(`ClusterWindow`). 대상이 윈도우를 벗어날 방법이 없어진다
+- **대표 선정 규칙 단일화** — `DedupClusterer`에 있던 규칙을 `RepresentativeRule`로 빼 스코어링과 공유. 갈라져도 예외가 안 나고 다른 기사가 실릴 뿐이라 발견이 늦다
+- **재실행 멱등성을 처음부터** — #21에서 뒤늦게 후속 이슈로 뺐던 전례를 반영
+
+**👤 확인 대기**
+- `sourceScore`를 **중립 상수 1.0**으로 뒀다 — `source.trust_score`는 M1-4에서 범위 제외되며 "M2 스코어링에서 재검토"로 남아 있던 항목(MVP-DESIGN §2·§6). 항목만 배선하고 값은 상수로 두는 편이 되돌리기 쉽다고 판단
+- 키워드 매칭이 **대소문자 무시 부분 문자열** — 한국어 조사 때문인데 영어 `Java`→`JavaScript` 과매칭을 수용. breakdown 로그로 오탐 빈도 본 뒤 재판단
+
 ## Phase 1 이후 — [TASKS.md](./TASKS.md) M2~M4 참조
 - 이슈가 발행되면 해당 태스크를 이 파일에 구현 단계로 분해해 루프를 돈다 (§0.7 절차 4)
 - Sift용 `code-review` · `create-branch` 스킬 박제는 **M2로 이동** (D-029 — 2번째 유스케이스에서 공통 패턴 추출, D-012 시점 개정)

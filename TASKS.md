@@ -49,7 +49,7 @@
 - [ ] **`[CHORE] Liquibase 마이그레이션 도입`** — 스키마가 `ddl-auto: update`에만 의존한다(운영 부적합, MVP-DESIGN §2에 "추후 전환 권장"으로만 적혀 있고 태스크로는 미등록이었음). 계기는 #23의 `ON CONFLICT (url)` — **유니크 제약이 없으면 예외인데 `update`는 기존 테이블에 제약을 소급 생성하지 않는다**(PR #24 CodeRabbit 지적 ⑥, e2e DB에서 실측 확인). 도입 시 두 시더(`SourceSeeder`·`TopicSeeder`)의 데이터 시드도 마이그레이션으로 흡수 검토
 - [ ] **`[REFACTOR] TopicSeeder를 인바운드 어댑터로 이동`** — #23에서 `SourceSeeder`만 `adapter.in.bootstrap`으로 옮기고 `SeedSourcesUseCase`→`SaveSourcePort` 경유로 정리했다(PR #24 리뷰 반영). `content`의 `TopicSeeder`는 여전히 `adapter.out.persistence`에서 JPA 리포지토리를 직접 호출한다 — 같은 헥사고날 위반이고 저장도 conflict-ignore가 아니다. 모듈이 달라 #24 범위 밖으로 분리
 - [ ] **`[FEAT] Atom 피드 파싱 검증`** — `rome`은 Atom(`<feed>`/`<entry>`)도 파싱하지만 `RssFeedAdapter` 테스트가 RSS 픽스처만 다뤄 미검증. 네이버 D2 등 Atom 소스 추가와 함께 픽스처 테스트 (#23에서 분리)
-- [ ] **`[FEAT] 선별 2/3: Filter + Score`** — 토픽 필터, 가중합 스코어링, `article_score` + **breakdown JSON** (튜닝·eval 토대)
+- [~] **#25 `[FEAT] 선별 2/3: Filter + Score`** — PR #26 리뷰 대기 (2026-07-27). 토픽 필터 + 4항목 가중합 + `article_score`(breakdown JSON, `(article_id, topic_id)` upsert). 브랜치 `feature/25-selection-filter-score` — **#24 위 스택이라 병합 후 base를 develop으로 재지정 필요 👤**
 - [ ] **`[FEAT] 선별 3/3: Rank & Select`** — threshold·랭킹·다양성(MMR 여부 결정), `issue` + `issue_item` 생성
 - [ ] **`[FEAT] selectionJob 배치 + selectionTrigger`** — Step 조립, 매일 발행 기준 시각 트리거(@Scheduled, 시각은 이 이슈에서 확정 — D-019)
   - **여기서 Source named interface 실 어댑터 배선** — `LoadCandidateArticlesPort`(윈도우 조회)·`UpdateArticleClusterPort`(벌크 갱신)의 실 구현 + Testcontainers 통합 검증 (D-030·D-031)

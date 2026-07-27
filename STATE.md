@@ -3,6 +3,10 @@
 > 매 사이클 **시작에 읽고, 종료에 갱신**한다. 현재 상황의 단일 진실원천.
 > 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-07-27
 
+## 진행 중 2 — #25 → PR #26 (선별 2/3 Filter + Score)
+- **이슈 #25 → PR #26 (2026-07-27)** — 토픽 필터 + 4항목 가중합 스코어링 + `article_score`(breakdown JSON) 구현 완료, **전체 132 tests 통과**. 브랜치 `feature/25-selection-filter-score`는 **#24 위 스택** — base가 `feature/23-source-rss-seed`라 **#24 병합 후 base를 develop으로 재지정해야 CodeRabbit이 리뷰한다 (👤)**. CodeRabbit 감시 Monitor 가동
+- 범위는 #19·#21과 동일하게 content 도메인·애플리케이션까지 — Source named interface 실 어댑터 배선은 M2-5 유지(`LoadCandidateArticlesPort`는 fake로만 검증)
+
 ## 현재 Phase
 **Phase 1 (선별) 진행 중** — 골든패스 코드 경로는 M1-6에서 완주, M1-7 박제 태스크는 해체(D-029). M2-1·M2-2(+#21 후속) 병합 완료, 소스 시드(#23) 진행 중
 
@@ -16,7 +20,8 @@
 - 👤 **PR #24 병합** — CodeRabbit 지적 4건 반영·resolve 완료. **증분 리뷰로 5번째 지적(Minor) 도착** — `source.url` 유니크 제약을 버전드 마이그레이션에 넣으라는 것으로, 아래 ⚠️와 같은 사안이다. Liquibase 도입은 별도 태스크로 등록하고 **스레드는 미해결로 남겼다**(보류는 resolve하지 않음 — D-033). 병합 판단은 사용자. 확인 부탁 2건: ① `article` 컬럼 길이 관행값(url 2048 / title 1024) ② description fallback으로 `content:encoded`를 쓰면 HTML이 통째로 들어옴(실측 31,838자) — 본문 정제는 선별 Normalize 몫으로 남김
 - ⚠️ **기존 로컬 DB는 `source.url` 유니크 제약이 없어 새 시더가 기동 실패한다** — `ddl-auto: update`는 이미 있는 테이블에 유니크 제약을 소급 생성하지 않는다(e2e 컨테이너 `sift` DB에서 확인). `ON CONFLICT (url)`은 제약이 없으면 예외다. 신규 DB·CI·Testcontainers는 테이블 생성 시점에 제약이 붙어 무관. 기존 로컬 DB를 계속 쓰려면 `ALTER TABLE source ADD CONSTRAINT … UNIQUE (url)` 1회 필요 — Liquibase 전환 시 정식 해소
 - 🤖 **#23 병합 후 후속 이슈 4건 발행** — ⓐ `[FIX] 쿼리로 기사를 구분하는 소스의 URL 정규화`(AI타임스 50→1건, **기사 동일성 규칙 변경이라 dedup·선별 전제에 영향 — 설계 결정 필요 👤**) ⓑ `[FEAT] collectionTrigger` ⓒ `[FEAT] Atom 피드 파싱 검증` ⓓ `[REFACTOR] TopicSeeder를 인바운드 어댑터로 이동`(#24에서 source만 정리, content는 범위 밖). 넷 다 TASKS M2에 등록함
-- 🤖 **M2 잔여 선별 태스크** — 선별 2/3(Filter + Score) → 3/3(Rank & Select) → selectionJob 배치(M2-5, D-031·D-032 윈도우 불변식 준수 필수)
+- 🤖 **M2 잔여 선별 태스크** — ~~선별 2/3~~(#25 → PR #26 리뷰 대기) → **3/3(Rank & Select)** → selectionJob 배치(M2-5, D-031·D-032 윈도우 불변식 준수 필수)
+- 👤 **#25 열린 결정 2건** — ① `sourceScore`를 중립 상수 1.0으로 둠(`source.trust_score` 재검토 시점이 지금) ② 키워드 매칭이 대소문자 무시 부분 문자열(영어 과매칭 수용). 둘 다 되돌리기 쉬운 쪽으로 잡았고 방향 지시가 있으면 후속에서 변경
 - 👤 **CodeRabbit 리뷰 공백 확인** — PR #22는 `Review rate limited`로 **외부 리뷰 없이 병합**됐다(체크는 pass 표시). 병합 전 자체 리뷰 패스로 대체됐으나, rate limit이 재발하면 리뷰 게이트가 조용히 비는 구조 (아래 "정정" 참조)
 - 👤 **PR #22 확인 부탁 2건** — ① `updateClusters(Map)` 단일 인자 vs `updateClusters(assigned, cleared)` 2-인자 분리(null 값 계약이 부담이면 재검토) ② `[from, to)` 경계 검증은 fake 계층에서 pass-through에 그침 — 실 경계 검증은 M2-5 Testcontainers 몫
 - 👤 **M1-6 e2e 게이트 확인** — `bootRun`으로 실제 RSS → `article` 적재 + 측정 로그 확인. PR #15는 병합됐으나 이 실환경 게이트는 미확인 상태로 남아 있다 (BACKLOG C의 `[G]` 항목)
