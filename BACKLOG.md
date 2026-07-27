@@ -89,6 +89,12 @@
 - [x] ⑤ **skip이 조용했다** — `.faultTolerant().skip(Exception.class)`에 `SkipListener`가 없어 어떤 소스가 왜 빠졌는지 로그가 없었다(Job status는 `COMPLETED`). `CollectionSkipListener` 추가 후에야 ④가 드러남
 - [x] 부수: `docker-compose.yaml`이 `postgres:16`을 가리켜 Testcontainers(`16-alpine`)와 불일치 → 이미지 중복 다운로드 + 테스트/로컬 DB 상이. `16-alpine`으로 통일
 
+**리뷰 반영 (CodeRabbit 4건 — 2026-07-26~27)**
+- [x] ① skip 로그에 `sourceId` 추가 · ④ url 파싱 예외 cause 보존 (`2c365a3`)
+- [x] ② **시더가 out 어댑터에서 JPA를 직접 호출**(헥사고날 위반) → `adapter.in.bootstrap`으로 이동, `SeedSourcesUseCase`→`SaveSourcePort` 경유 (`e366fff`)
+- [x] ③ **`existsByUrl`→`save`가 원자적이지 않음** → `INSERT … ON CONFLICT (url) DO NOTHING`. 신규 DB 2회 기동 실측(신규 9건 → 0건, 예외 없음) (`e366fff`)
+- [ ] ⑥ **`source.url` 유니크 제약이 버전드 마이그레이션에 없음** [보류 — 후속] : `ON CONFLICT (url)`은 제약이 없으면 예외인데 현재는 `ddl-auto: update` 의존이고, **update는 기존 테이블에 제약을 소급 생성하지 않는다**(e2e 컨테이너 `sift` DB에서 확인). 신규 DB·CI·Testcontainers는 생성 시점에 붙어 무관하고 배포 환경도 아직 없어, Liquibase 도입(TASKS)으로 정식 해소한다 — 스레드는 미해결로 남김(D-033)
+
 > **후속 이슈로 분리한 것** — ⓐ **AI타임스 50개 중 1건만 적재**: `?idxno=213188`처럼 쿼리로 기사를 구분하는데 `UriNormalizer`가 쿼리를 버려 전부 같은 url로 정규화된다. 한국 언론사 다수가 쓰는 패턴이라 영향이 크지만 **기사 동일성 판정 규칙 변경**이라 dedup(D-030·D-031)·선별까지 번짐 ⓑ **collectionJob 상시 트리거 부재** — `spring.batch.job.enabled: false`인데 트리거가 없어 `bootRun`으로 Job이 안 뜬다(이번엔 `--spring.batch.job.enabled=true` 일회 기동). **M1-6 e2e 게이트가 미해결로 남아 있던 실질적 원인** ⓒ Atom 피드 파싱 미검증(네이버 D2 등)
 
 ## Phase 1 이후 — [TASKS.md](./TASKS.md) M2~M4 참조

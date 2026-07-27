@@ -13,7 +13,7 @@
 - ⚠️ **세션 역할 분담 개정 (2026-07-26)**: 07-25의 "루프 문서 쓰기 = 문서 세션 전담"은 **이 세션이 문서 쓰기까지 겸임**하는 것으로 사용자 확정. 단 쓰기 전 `sift-docs` **fetch 필수** — 07-26에 fetch 없이 로컬 사본만 보고 "문서 4일 뒤처짐·D-031 미등재"로 오진단해 중복 커밋 2개를 폐기한 사고 발생 (아래 "정정")
 
 ## 다음 액션 (next)
-- 👤 **PR #24 병합** — CodeRabbit 지적 4건 전부 반영·resolve 완료, 미해결 스레드 0. 에이전트 작업 종료 상태. 확인 부탁 2건: ① `article` 컬럼 길이 관행값(url 2048 / title 1024) ② description fallback으로 `content:encoded`를 쓰면 HTML이 통째로 들어옴(실측 31,838자) — 본문 정제는 선별 Normalize 몫으로 남김
+- 👤 **PR #24 병합** — CodeRabbit 지적 4건 반영·resolve 완료. **증분 리뷰로 5번째 지적(Minor) 도착** — `source.url` 유니크 제약을 버전드 마이그레이션에 넣으라는 것으로, 아래 ⚠️와 같은 사안이다. Liquibase 도입은 별도 태스크로 등록하고 **스레드는 미해결로 남겼다**(보류는 resolve하지 않음 — D-033). 병합 판단은 사용자. 확인 부탁 2건: ① `article` 컬럼 길이 관행값(url 2048 / title 1024) ② description fallback으로 `content:encoded`를 쓰면 HTML이 통째로 들어옴(실측 31,838자) — 본문 정제는 선별 Normalize 몫으로 남김
 - ⚠️ **기존 로컬 DB는 `source.url` 유니크 제약이 없어 새 시더가 기동 실패한다** — `ddl-auto: update`는 이미 있는 테이블에 유니크 제약을 소급 생성하지 않는다(e2e 컨테이너 `sift` DB에서 확인). `ON CONFLICT (url)`은 제약이 없으면 예외다. 신규 DB·CI·Testcontainers는 테이블 생성 시점에 제약이 붙어 무관. 기존 로컬 DB를 계속 쓰려면 `ALTER TABLE source ADD CONSTRAINT … UNIQUE (url)` 1회 필요 — Liquibase 전환 시 정식 해소
 - 🤖 **#23 병합 후 후속 이슈 4건 발행** — ⓐ `[FIX] 쿼리로 기사를 구분하는 소스의 URL 정규화`(AI타임스 50→1건, **기사 동일성 규칙 변경이라 dedup·선별 전제에 영향 — 설계 결정 필요 👤**) ⓑ `[FEAT] collectionTrigger` ⓒ `[FEAT] Atom 피드 파싱 검증` ⓓ `[REFACTOR] TopicSeeder를 인바운드 어댑터로 이동`(#24에서 source만 정리, content는 범위 밖). 넷 다 TASKS M2에 등록함
 - 🤖 **M2 잔여 선별 태스크** — 선별 2/3(Filter + Score) → 3/3(Rank & Select) → selectionJob 배치(M2-5, D-031·D-032 윈도우 불변식 준수 필수)
