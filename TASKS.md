@@ -52,9 +52,9 @@
 - [~] **#25 `[FEAT] 선별 2/3: Filter + Score`** — PR #26 리뷰 대기 (2026-07-27). 토픽 필터 + 4항목 가중합 + `article_score`(breakdown JSON, `(article_id, topic_id)` upsert). 브랜치 `feature/25-selection-filter-score` — **#24 위 스택이라 병합 후 base를 develop으로 재지정 필요 👤**
 - [~] **#27 `[FEAT] 선별 3/3: Rank & Select`** — PR #28 리뷰 대기 (2026-07-27). threshold 컷·랭킹·**소스 쏠림 감점(전면 MMR 대신)**·`issue`+`issue_item` 생성. 브랜치 `feature/27-selection-rank-select` — **#26 위 스택이라 base 재지정 필요 👤**
 - [~] **#29 `[FEAT] Source named interface + 선별 후보 조회·클러스터 갱신 실 배선`** — PR #30 리뷰 대기 (2026-07-29). `@NamedInterface("article-catalog")` 노출 + content `allowedDependencies` 확장 + 두 포트 실 어댑터 + **`article.dedup_cluster_id` 컬럼 신설**(ERD엔 있었으나 실제로 만들어진 적 없었음). **`[from, to)` 경계를 Testcontainers로 실검증** — PR #22 확인 항목 ② 해소. 브랜치 `feature/29-source-named-interface` (#28 위 스택)
-- [ ] **`[FEAT] selectionJob 배치 + selectionTrigger`** — Step 조립(normalizeDedupStep → scoreStep → selectStep), 매일 발행 기준 시각 트리거(@Scheduled, 시각은 이 이슈에서 확정 — D-019), **배치 계측**(`CollectionMetricsListener` 방식 — PR #26 리뷰 ②에서 "계측은 배치 어댑터 몫"으로 정리)
-  - M2 공통 DoD: build/test 통과 + 시드 토픽으로 이슈 1건 생성 확인
+- [~] **#31 `[FEAT] selectionJob 배치 + selectionTrigger`** — PR #32 리뷰 대기 (2026-07-29). Step 3종(tasklet) 조립 + 일일 트리거 + `SelectionMetricsListener`. **윈도우 24h·트리거 06:00(Asia/Seoul) 확정** — D-031·D-032가 "M2-5에서 정하라"고 남긴 항목. **M2 공통 DoD "시드 토픽으로 이슈 1건 생성" 실 DB로 충족 ✅**. 브랜치 `feature/31-selection-job` (#30 위 스택)
   - ※ 원래 M2-5 한 덩어리였으나 **Modulith 경계 개방(#29)과 배치 조립은 성격이 달라** 리뷰 단위를 둘로 나눔 (2026-07-29)
+  - 파생 정정: `scoreStep (chunk)` → **tasklet** (윈도우 전체 재계산이 멱등성 전제라 아이템 단위로 못 쪼갬, D-031) · `@EnableScheduling` 부재 발견(없으면 배치가 영영 안 돎)
 
 ## M3 — 구독·발송 (Phase 1)
 
