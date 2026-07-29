@@ -12,10 +12,11 @@
 - **전면 MMR을 넣지 않았다** — SELECTION §2.5의 다양성 요구 중 *같은 클러스터 쏠림*은 #25가 이미 클러스터당 대표 1건으로 줄여 이 단계에 도달하지 않는다. 남은 *소스 쏠림*만 곱셈 감점(×0.7)으로 처리. §6 열린 질문은 유지
 - ⚠️ **ERD 변경 2건 (👤 확인 필요)** — ① `issue.run_date` + `UNIQUE(topic_id, run_date)` 추가: 기존 스키마엔 "몇 일자 호인가"가 없어 재실행 시 같은 날 호가 두 개 생길 수 있었다 ② `article_score.source_id` 비정규화: 소스 쏠림 완화에 필요한데 article은 Source 소유(D-018)라 조인 불가
 
-## 진행 중 4 — #29 → PR #30 (Source named interface 실 배선)
-- **이슈 #29 → PR #30 (2026-07-29)** — `com.siftnews.source.api`에 `@NamedInterface("article-catalog")` 노출(`ArticleCatalog`+`ArticleCandidate`), content `allowedDependencies`에 `source :: article-catalog` 추가, `LoadCandidateArticlesPort`·`UpdateArticleClusterPort` 실 어댑터. **전체 170 tests 통과**. `feature/29-...`는 **#28 위 스택**
+## 진행 중 4 — ~~#29 → PR #30~~ **병합 완료 ✅ (2026-07-29, develop `8bc6c67`)**
+- **병합됨** — `com.siftnews.source.api`에 `@NamedInterface("article-catalog")` 노출(`ArticleCatalog`+`ArticleCandidate`), content `allowedDependencies`에 `source :: article-catalog` 추가, `LoadCandidateArticlesPort`·`UpdateArticleClusterPort` 실 어댑터. **전체 170 tests 통과**. CodeRabbit 지적 1건은 **반박**(아래) — 스레드는 미해결로 남김(D-033)
 - ⚠️ **`article.dedup_cluster_id` 컬럼이 애초에 없었다** — MVP-DESIGN §2 ERD엔 처음부터 있었지만 엔티티에 만들어진 적이 없다. 포트가 전부 fake라 아무도 쓰지 않아 드러나지 않았던 것. #19부터 미뤄 온 fake를 걷어내며 발견
 - ✅ **PR #22 확인 항목 ② 해소** — `[from, to)` 경계를 Testcontainers로 실검증(from 포함·to 미포함). `created_at`은 JPA Auditing이 채우므로 저장 후 네이티브 UPDATE로 경계 시각을 만들어 확인
+- ❌ **반박한 지적 (PR #30, Major)**: "`dedup_cluster_id` 마이그레이션을 함께 배포하라". **실측으로 반박** — 기존 `sift` DB(258건, 컬럼 없음)에 `ddl-auto: update`로 기동하니 `dedup_cluster_id varchar(64)`가 **자동 생성**됐다. 다만 같은 기동이 `ON CONFLICT (url)`에서 실패해(유니크 제약 미소급) **마이그레이션이 실제로 필요한 대상은 제약·인덱스·백필이지 단순 컬럼 추가가 아님**이 함께 확인됐다 → Liquibase 태스크 범위에 반영
 - **설계 판단**: 경계를 건너는 타입은 애그리거트가 아니라 `ArticleCandidate` record(계약) · `dedup_cluster_id`는 **도메인 `Article`에 넣지 않음**(애그리거트가 이 값으로 아무 결정도 안 해 빈 필드가 됨, 이슈 TODO에서 변경) · named interface는 **서비스가 구현**(어댑터가 port.in을 구현하면 의존 방향이 뒤집힘 — PR #24 시더와 같은 이유)
 
 ## 진행 중 5 — #31 → PR #32 (selectionJob 배치 + 트리거)
