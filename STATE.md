@@ -12,6 +12,12 @@
 - **전면 MMR을 넣지 않았다** — SELECTION §2.5의 다양성 요구 중 *같은 클러스터 쏠림*은 #25가 이미 클러스터당 대표 1건으로 줄여 이 단계에 도달하지 않는다. 남은 *소스 쏠림*만 곱셈 감점(×0.7)으로 처리. §6 열린 질문은 유지
 - ⚠️ **ERD 변경 2건 (👤 확인 필요)** — ① `issue.run_date` + `UNIQUE(topic_id, run_date)` 추가: 기존 스키마엔 "몇 일자 호인가"가 없어 재실행 시 같은 날 호가 두 개 생길 수 있었다 ② `article_score.source_id` 비정규화: 소스 쏠림 완화에 필요한데 article은 Source 소유(D-018)라 조인 불가
 
+## 진행 중 4 — #29 → PR #30 (Source named interface 실 배선)
+- **이슈 #29 → PR #30 (2026-07-29)** — `com.siftnews.source.api`에 `@NamedInterface("article-catalog")` 노출(`ArticleCatalog`+`ArticleCandidate`), content `allowedDependencies`에 `source :: article-catalog` 추가, `LoadCandidateArticlesPort`·`UpdateArticleClusterPort` 실 어댑터. **전체 170 tests 통과**. `feature/29-...`는 **#28 위 스택**
+- ⚠️ **`article.dedup_cluster_id` 컬럼이 애초에 없었다** — MVP-DESIGN §2 ERD엔 처음부터 있었지만 엔티티에 만들어진 적이 없다. 포트가 전부 fake라 아무도 쓰지 않아 드러나지 않았던 것. #19부터 미뤄 온 fake를 걷어내며 발견
+- ✅ **PR #22 확인 항목 ② 해소** — `[from, to)` 경계를 Testcontainers로 실검증(from 포함·to 미포함). `created_at`은 JPA Auditing이 채우므로 저장 후 네이티브 UPDATE로 경계 시각을 만들어 확인
+- **설계 판단**: 경계를 건너는 타입은 애그리거트가 아니라 `ArticleCandidate` record(계약) · `dedup_cluster_id`는 **도메인 `Article`에 넣지 않음**(애그리거트가 이 값으로 아무 결정도 안 해 빈 필드가 됨, 이슈 TODO에서 변경) · named interface는 **서비스가 구현**(어댑터가 port.in을 구현하면 의존 방향이 뒤집힘 — PR #24 시더와 같은 이유)
+
 ## 현재 Phase
 **Phase 1 (선별) 진행 중** — 골든패스 코드 경로는 M1-6에서 완주, M1-7 박제 태스크는 해체(D-029). M2-1·M2-2(+#21 후속) 병합 완료, 소스 시드(#23) 진행 중
 
@@ -25,7 +31,7 @@
 - 👤 **PR #24 병합** — CodeRabbit 지적 4건 반영·resolve 완료. **증분 리뷰로 5번째 지적(Minor) 도착** — `source.url` 유니크 제약을 버전드 마이그레이션에 넣으라는 것으로, 아래 ⚠️와 같은 사안이다. Liquibase 도입은 별도 태스크로 등록하고 **스레드는 미해결로 남겼다**(보류는 resolve하지 않음 — D-033). 병합 판단은 사용자. 확인 부탁 2건: ① `article` 컬럼 길이 관행값(url 2048 / title 1024) ② description fallback으로 `content:encoded`를 쓰면 HTML이 통째로 들어옴(실측 31,838자) — 본문 정제는 선별 Normalize 몫으로 남김
 - ⚠️ **기존 로컬 DB는 `source.url` 유니크 제약이 없어 새 시더가 기동 실패한다** — `ddl-auto: update`는 이미 있는 테이블에 유니크 제약을 소급 생성하지 않는다(e2e 컨테이너 `sift` DB에서 확인). `ON CONFLICT (url)`은 제약이 없으면 예외다. 신규 DB·CI·Testcontainers는 테이블 생성 시점에 제약이 붙어 무관. 기존 로컬 DB를 계속 쓰려면 `ALTER TABLE source ADD CONSTRAINT … UNIQUE (url)` 1회 필요 — Liquibase 전환 시 정식 해소
 - 🤖 **#23 병합 후 후속 이슈 4건 발행** — ⓐ `[FIX] 쿼리로 기사를 구분하는 소스의 URL 정규화`(AI타임스 50→1건, **기사 동일성 규칙 변경이라 dedup·선별 전제에 영향 — 설계 결정 필요 👤**) ⓑ `[FEAT] collectionTrigger` ⓒ `[FEAT] Atom 피드 파싱 검증` ⓓ `[REFACTOR] TopicSeeder를 인바운드 어댑터로 이동`(#24에서 source만 정리, content는 범위 밖). 넷 다 TASKS M2에 등록함
-- 🤖 **M2 잔여 선별 태스크** — ~~선별 2/3~~(#25 → PR #26 리뷰 대기) → ~~3/3(Rank & Select)~~(#27 → PR #28) → **selectionJob 배치(M2-5**, D-031·D-032 윈도우 불변식 준수 필수)
+- 🤖 **M2 잔여 선별 태스크** — ~~선별 2/3~~(#25 → PR #26 리뷰 대기) → ~~3/3(Rank & Select)~~(#27 → PR #28) → ~~named interface 실 배선~~(#29 → PR #30) → **selectionJob 배치 + selectionTrigger**(M2-5 후반, D-031·D-032 윈도우 불변식 준수 필수)
 - 👤 **#25 열린 결정 2건** — ① `sourceScore`를 중립 상수 1.0으로 둠(`source.trust_score` 재검토 시점이 지금) ② 키워드 매칭이 대소문자 무시 부분 문자열(영어 과매칭 수용). 둘 다 되돌리기 쉬운 쪽으로 잡았고 방향 지시가 있으면 후속에서 변경
 - 👤 **CodeRabbit 리뷰 공백 확인** — PR #22는 `Review rate limited`로 **외부 리뷰 없이 병합**됐다(체크는 pass 표시). 병합 전 자체 리뷰 패스로 대체됐으나, rate limit이 재발하면 리뷰 게이트가 조용히 비는 구조 (아래 "정정" 참조)
 - 👤 **PR #22 확인 부탁 2건** — ① `updateClusters(Map)` 단일 인자 vs `updateClusters(assigned, cleared)` 2-인자 분리(null 값 계약이 부담이면 재검토) ② `[from, to)` 경계 검증은 fake 계층에서 pass-through에 그침 — 실 경계 검증은 M2-5 Testcontainers 몫
