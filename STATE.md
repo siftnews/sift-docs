@@ -1,33 +1,26 @@
 # Sift — STATE (루프 나침반)
 
 > 매 사이클 **시작에 읽고, 종료에 갱신**한다. 현재 상황의 단일 진실원천.
-> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-07-31
+> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-08-01
 
 ## 현재 Phase
-**Phase 1 (선별) — M2 선별 코드 경로 완주.** #17·#19·#21·#23·#25·#27·#29·#31 전부 develop 병합(`bee0b18`). 남은 M2는 수집 품질·인프라 계열(collectionTrigger #33 진행 중 · URL 정규화 · Liquibase · TopicSeeder 이동 · Atom 검증) + 아래 🚨 시간대 결함.
+**Phase 1 (선별) — M2 선별 코드 경로 완주 + 무인 가동.** #17·#19·#21·#23·#25·#27·#29·#31·#33 전부 develop 병합(`783529a`) — 수집·선별 양쪽에 트리거가 붙어 파이프라인이 무인으로 돈다. 남은 M2는 수집 품질·인프라 계열(URL 정규화 · Liquibase · TopicSeeder 이동 · Atom 검증 · 배치 테스트 Clock 고정).
 
-## 지금 (in progress) — #33 → PR #34 (collectionTrigger)
-- **이슈 #33 → PR #34 (2026-07-31)** — `collectionJob` 주기 기동(`@Scheduled`) + `launchedAt` 식별 파라미터 + 스케줄러 풀 확보. **전체 178 tests 통과**(`TZ=UTC` 기준 — 아래 🚨). 브랜치 `feature/33-collection-trigger`, base=develop. CodeRabbit 감시 Monitor 가동
-- **확정한 운영값** — 수집 주기 **매시 10분**(`sift.collection.cron`). 정각은 수집기가 몰리는 시각이라 비켜 뒀다. MVP-DESIGN §3①이 "매시간 등"으로만 남겨 둔 항목
-- ⚠️ **`collectionJob`은 JobParameters가 없어 두 번째 주기부터 거부된다** — 파라미터가 비면 매 기동이 같은 JobInstance가 되고 `JobInstanceAlreadyCompleteException`이 난다. 트리거가 없어 드러나지 않던 결함이고, 주기 기동을 붙이는 순간 첫 재실행에서 터진다. `launchedAt`으로 해소(수집은 중복 무시 저장이라 재실행 멱등). 회귀 방어는 실 JobRepository 통합 테스트
-- ⚠️ **스케줄러 스레드 풀이 기본 1개였다** — `jobLauncher.run`은 동기라 Job이 끝날 때까지 스레드를 점유한다. 수집(매시간)·선별(06:00)이 한 스레드를 두고 줄을 서, 06:00에 수집이 물리면 그날 발행이 그만큼 밀린다 → `spring.task.scheduling.pool.size: 2`
-- **범위에서 뺀 것** — 수동 기동 REST 엔드포인트(인증 없는 Job 기동 API가 되어 보안 표면이 생기고, 주기를 설정으로 짧게 바꾸면 확인 목적은 충족된다). 운영 단계에서 인증과 함께 재검토
-
-## 🚨 발견 — 06:00 트리거는 항상 빈 이슈를 만든다 (develop 기존 결함, #33 범위 밖)
-- `BuildIssueService`가 `article_score` 조회 하한을 `runDate.atStartOfDay(ZoneOffset.UTC)`로 잡는데 **`runDate`는 시스템 존(KST) 날짜**다. KST 날짜 D의 UTC 자정은 KST D 09:00이라, **KST 00:00~09:00에 계산된 점수는 항상 하한 미만**이 된다
-- 확정된 운영 트리거 시각 **06:00 Asia/Seoul**(#31)이 이 구간에 정확히 들어간다 → 그대로 두면 **운영에서 매일 빈 이슈가 발행된다**
-- 재현 조건: `TZ=Asia/Seoul`이면 `SelectionJobIntegrationTest` 2건 실패, `TZ=UTC`면 통과. **CI가 UTC라 계속 녹색이었다.** `feature/33`을 stash하고 develop(`bee0b18`)에서 그대로 재현해 이 PR과 무관함을 확인
-- 증거: `스코어링 완료: loaded=3, filtered=2, scored=2`(저장 2건) → `이슈 생성 완료: 점수=0건 → 게재=0건`(조회 0건)
-- 수정 방향: 하한을 `runDate`와 같은 존의 자정으로 잡거나, 트리거가 계산한 윈도우 `from`을 그대로 넘긴다 — **`runDate`의 존과 하한의 존을 일치**시키는 것이 핵심. TASKS M2에 등록함
-- **M2 공통 DoD가 UTC에서만 성립했다** — #31이 "실 DB로 이슈 1건 + 항목 2건 생성"을 확인했지만, 그 통합 테스트도 CI/UTC 기준이었다. 시간대를 바꾸면 같은 경로가 빈 이슈를 낸다
+## 지금 (in progress) — #35 → PR #36 (발행 이슈가 비는 시간대 결함)
+- **이슈 #35 → PR #36 (2026-07-31)** — `BuildIssueService`의 점수 조회 하한을 **트리거가 계산한 윈도우 `from`으로 일치**시켰다. 브랜치 `feature/35-issue-lower-bound-zone`, base=develop. **180 tests 통과**. CodeRabbit 감시 Monitor 가동
+- **결함** — 하한이 `runDate.atStartOfDay(ZoneOffset.UTC)`였는데 `runDate`는 시스템 존(KST) 날짜다. KST 날짜 D의 UTC 자정은 KST D 09:00이라 **KST 00:00~09:00에 계산된 점수는 전부 하한 미만**이 되고, 확정 발행 시각 **06:00 Asia/Seoul(#31)이 이 구간 한가운데**다 → 그대로 뒀으면 운영에서 **매일 빈 호**가 나갔다
+- **수정** — `selectTasklet`이 `WINDOW_FROM`을 주입받아 `buildIssueForTopic(topicId, runDate, scoredFrom)`으로 넘긴다. **날짜에서 시각을 유도하는 것 자체를 없앤 것**이 핵심 — 트리거는 이미 윈도우를 전 토픽에 넘기고 있었고 `selectTasklet`만 그걸 안 받고 있었다. `runDate`는 호의 식별자·제목 용도로만 남는다
+- ⚠️ **테스트 존 고정만으로는 못 잡는다 — 시각에도 좌우된다.** `build.gradle`에 `user.timezone=Asia/Seoul`을 박았지만, 이 결함은 **실행 시각**이 재현 구간(KST 00:00~09:00)에 들어와야 드러난다. 실제로 이번 작업 중 **KST 23:54에 돌린 전체 테스트는 결함이 있는 상태에서도 통과**했다. 그래서 `runDate`를 UTC 기준 내일로 주어 **시각 의존을 데이터로 제거한** 통합 테스트(`buildsIssueWhenRunDateIsAheadOfUtcDate`)를 함께 넣었다
+- ✅ **회귀 방어를 실증했다** — 옛 구현을 일시 주입해 돌리니 **새 테스트 2건만 실패하고 나머지 178건은 통과.** 새 테스트가 결함을 잡는다는 확인이자, 기존 테스트로는 이 결함을 잡을 수 없었다는 증거다
+- **남긴 것** — `SelectionJobIntegrationTest` 나머지 케이스는 여전히 `Instant.now()` 기반이다. 배치 전반을 벽시계와 무관하게 검증하려면 test 프로파일에서 `Clock`을 고정해야 한다 → TASKS에 별도 태스크로 등록
 
 ## 다음 액션 (next)
-- 👤 **PR #34 리뷰·병합** — CodeRabbit 리뷰가 달리면 Monitor가 세션을 깨운다
-- 🚨 **시간대 결함 이슈 발행 여부 결정** — 위 발견. 운영 발행이 매일 비는 사안이라 남은 M2 태스크 중 우선순위가 가장 높다
+- 👤 **PR #36 리뷰·병합** — CodeRabbit 리뷰가 달리면 Monitor가 세션을 깨운다
+- 🤖 **M2 잔여 태스크 착수** — URL 정규화(👤 결정 필요) · Liquibase · TopicSeeder 이동 · Atom 검증 · 배치 테스트 Clock 고정
 - 👤 **#25 열린 결정 2건** — ① `sourceScore`를 중립 상수 1.0으로 둠(`source.trust_score` 재검토 시점이 지금) ② 키워드 매칭이 대소문자 무시 부분 문자열(영어 과매칭 수용). 둘 다 되돌리기 쉬운 쪽으로 잡았고 방향 지시가 있으면 후속에서 변경
 - 👤 **#27 ERD 변경 2건 확인** — ① `issue.run_date` + `UNIQUE(topic_id, run_date)`: 기존 스키마엔 "몇 일자 호인가"가 없어 재실행 시 같은 날 호가 두 개 생길 수 있었다 ② `article_score.source_id` 비정규화: 소스 쏠림 완화에 필요한데 article은 Source 소유(D-018)라 조인 불가
 - 👤 **CodeRabbit 리뷰 공백 — 재발 방침 결정** — PR #22에 이어 **PR #28도 `Review limit reached` 상태로 병합**됐다(인라인 0건, 체크는 pass 표시). rate limit이 걸려도 체크가 통과로 뜨므로 리뷰 게이트가 조용히 빈다
-- 👤 **`.coderabbit.yaml`의 `!**/*.md`가 설계 문서를 리뷰에서 가린다** — PR #30에서 `MVP-DESIGN.md`·`SELECTION.md`를 실제로 갱신했는데 CodeRabbit은 "문서 갱신 여부 확인 불가"로 판정했다. PR #22의 `!out/**` 수정과 같은 성격의 필터 결함 — "구조 변경 PR에서 설계 문서를 코드와 함께 갱신"(CLAUDE.md) 규칙이 앞으로도 검증 불가로 남는다
+- 👤 **`.coderabbit.yaml`의 `!**/*.md`가 설계 문서를 리뷰에서 가린다** — PR #30에서 `MVP-DESIGN.md`·`SELECTION.md`를 실제로 갱신했는데 CodeRabbit은 "문서 갱신 여부 확인 불가"로 판정했다. PR #22의 `!out/**` 수정과 같은 성격의 필터 결함 — "구조 변경 PR에서 설계 문서를 코드와 함께 갱신"(CLAUDE.md) 규칙이 앞으로도 검증 불가로 남는다. **PR #36에서 재발**(`docs/SELECTION.md is excluded by !**/*.md`로 명시 출력) — 이제 CodeRabbit이 제외 사실을 코멘트에 찍어 주므로 재발 여부는 눈으로 확인된다
 - 👤 **PR #22 확인 부탁 (잔여 1건)** — `updateClusters(Map)` 단일 인자 vs `updateClusters(assigned, cleared)` 2-인자 분리(null 값 계약이 부담이면 재검토). ②`[from, to)` 실경계 검증은 #29에서 해소됨
 - 👤 **markCrawled 배치 반영 결정** — 기본 제외 확정 vs 후속 이슈 (M1부터 계류 — D-029 잔여물 ②)
 - 🤖 **SELECTION.md §3 중복 스키마 → MVP-DESIGN 링크 치환** — sift-api 이슈→PR (D-029 잔여물 ③)
@@ -48,12 +41,12 @@
 - 이슈 #1 커밋은 4개가 아니라 **3개** (common / 모듈경계+검증테스트 / 테스트인프라).
 
 ## 최근 완료 (최근 4~5건만 유지 — 이전 이력은 git 히스토리, D-023)
+- **`[FEAT] collectionTrigger — 수집 배치 상시 기동` 병합 ✅ (이슈 #33 → PR #34 → develop `783529a`, 2026-07-31)** — `collectionJob` 주기 기동(`@Scheduled`) + `launchedAt` 식별 파라미터 + 스케줄러 풀 2. **178 tests**. CodeRabbit `No actionable comments`. 확정값: 수집 주기 **매시 10분**(정각은 수집기가 몰려 비켜 뒀다 — MVP-DESIGN §3①이 "매시간 등"으로만 남긴 항목). ⚠️ **`collectionJob`은 JobParameters가 없어 두 번째 주기부터 `JobInstanceAlreadyCompleteException`**이 날 상태였다 — 트리거가 없어 안 드러나던 결함이라, 주기 기동을 붙이는 순간 첫 재실행에서 터진다. ⚠️ **스케줄러 풀이 기본 1개**라 06:00에 수집이 물리면 그날 발행이 밀린다. 범위 제외: 수동 기동 REST 엔드포인트(인증 없는 Job 기동 API가 되어 보안 표면이 생긴다)
 - **M2-5 `[FEAT] selectionJob 배치 + selectionTrigger` 병합 ✅ (이슈 #31 → PR #32 → develop `bee0b18`, 2026-07-30)** — Step 3종(tasklet) 조립 + `@Scheduled` 일일 트리거 + `SelectionMetricsListener`. **174 tests 통과**. 🎯 **M2 공통 DoD 충족** — fake 없이 실 DB로 이슈 1건 + 항목 2건 생성 확인(단, UTC 기준이었다 — 위 🚨). 확정값: 윈도우 **24h**, 트리거 **06:00 Asia/Seoul**(D-031·D-032가 "M2-5에서 확정"으로 남긴 항목). **D-032 불변식 (3)을 트리거가 구조로 보장** — 윈도우를 한 번만 계산해 전 토픽 잡에 주입하므로 토픽 간 어긋남이 불가능. ⚠️ `@EnableScheduling`이 없어 배치가 영영 안 돌 뻔했다. 정정: `scoreStep (chunk)` → **tasklet**(윈도우 전체 재계산이 멱등성 전제라 아이템 단위로 못 쪼갬)
 - **M2-5 `[FEAT] Source named interface + 선별 후보 조회·클러스터 갱신 실 배선` 병합 ✅ (이슈 #29 → PR #30 → develop `8bc6c67`, 2026-07-29)** — `@NamedInterface("article-catalog")` 노출 + content `allowedDependencies` 확장 + 두 포트 실 어댑터. **170 tests**. ⚠️ `article.dedup_cluster_id` 컬럼이 ERD엔 처음부터 있었으나 **실제로 만들어진 적이 없었다**(포트가 전부 fake라 아무도 안 써서 안 드러남). PR #22 확인 항목 ② 해소(`[from, to)` 경계 Testcontainers 실검증). ❌ CodeRabbit Major "마이그레이션 함께 배포"는 **실측 반박** — `ddl-auto: update`는 **nullable 컬럼 추가를 자동 반영**한다(유니크 제약만 미소급) → Liquibase 태스크 범위가 제약·인덱스·백필로 좁혀짐. 스레드 미해결 유지(D-033)
 - **M2-4 `[FEAT] 선별 3/3: Rank & Select` 병합 ✅ (이슈 #27 → PR #28 → develop `cd8de49`, 2026-07-29)** — threshold 컷 → 점수 내림차순 → 소스 쏠림 감점(×0.7) → 상위 `maxItems` → `issue`(DRAFT)+`issue_item`. **158 tests**. 전면 MMR은 넣지 않았다 — 같은 클러스터 쏠림은 #25가 대표 1건으로 이미 줄여 이 단계에 도달하지 않으므로 남은 소스 쏠림만 곱셈 감점으로 처리(SELECTION §6 열린 질문은 유지). ERD 2건 추가(`issue.run_date` UNIQUE · `article_score.source_id`). ⚠️ **CodeRabbit 리뷰 없이 병합**(`Review limit reached`, 인라인 0건)
 - **M2-3 `[FEAT] 선별 2/3: Filter + Score` 병합 ✅ (이슈 #25 → PR #26 → develop `ea5626b`, 2026-07-28)** — 토픽 필터 + 4항목 가중합 + `article_score`(breakdown JSON, `(article_id, topic_id)` upsert). **132 tests**. 리뷰 반영 `3ccfd22`(윈도우 검증을 도메인 예외로 통일, 점수 근거 불변식 강제)
-- **`[FEAT] 소스 RSS URL 확정 + source 시드` 병합 ✅ (이슈 #23 → PR #24 → develop `4366f7b`, 2026-07-28)** — 소스 9종 시드 + `SourceSeeder`. **M1-6 e2e 게이트 해소 ✅** — 실 RSS → `article` **258건, 9개 소스 전부**(`read=9 write=9 skip=0`). CodeRabbit 4건 반영·resolve(시더를 `adapter.in.bootstrap`으로 옮겨 `SeedSourcesUseCase`→`SaveSourcePort` 경유 + `ON CONFLICT (url) DO NOTHING`). ⚠️ **e2e가 수집 결함 4건 + 관측 공백 1건을 잡아냈다**(시더 실행 순서·`varchar(255)`·입력 내 중복 미필터·description NPE·SkipListener 부재) — **게이트를 실제로 열어보지 않았으면 전부 묻혔을 결함들**
-- (이전 완료 이력은 이 레포 git 히스토리로 조회 — D-023: STATE는 최근 4~5건만 유지. 하네스 개편 D-025·D-026, 가드 훅 폐지 D-027, edit 허용 D-028, M1-4·M1-5·M1-6·M2-1·M2-2 병합은 여기서 밀려남)
+- (이전 완료 이력은 이 레포 git 히스토리로 조회 — D-023: STATE는 최근 4~5건만 유지. 하네스 개편 D-025·D-026, 가드 훅 폐지 D-027, edit 허용 D-028, M1-4·M1-5·M1-6·M2-1·M2-2·#23 병합은 여기서 밀려남)
 
 ## 대기 / 블록 (게이트)
 - ~~develop 처리 결정~~ — **해소 (2026-07-17, D-025)**: develop = 통합 브랜치, main = 배포 브랜치로 공식화. develop이 앞서 있는 것은 정상(배포 전 통합분), 승격은 마일스톤 단위로 사람이 결정
