@@ -6,7 +6,15 @@
 ## 현재 Phase
 **Phase 1 (선별) — M2 선별 코드 경로 완주 + 무인 가동.** #17·#19·#21·#23·#25·#27·#29·#31·#33 전부 develop 병합(`783529a`) — 수집·선별 양쪽에 트리거가 붙어 파이프라인이 무인으로 돈다. 남은 M2는 수집 품질·인프라 계열(URL 정규화 · Liquibase · TopicSeeder 이동 · Atom 검증 · 배치 테스트 Clock 고정).
 
-## 지금 (in progress) — #37 → PR #38 (쿼리로 기사를 구분하는 소스의 URL 정규화)
+## 지금 (in progress) — #39 → PR #40 (TopicSeeder 인바운드 어댑터 이동)
+- **이슈 #39 → PR #40 (2026-08-01)** — `TopicSeeder`가 `content/adapter/out/persistence`에 놓인 채 JPA 리포지토리를 직접 부르던 헥사고날 위반을 정리했다. 브랜치 `feature/39-topic-seeder-inbound`, base=develop. **182 tests 통과**. CodeRabbit 감시 Monitor 가동
+- **어긋나 있던 것 3가지** — ① 위치가 반대(인바운드인데 out 패키지, 카탈로그 `TopicSeedData`도 함께) ② 유스케이스·포트 우회(`TopicJpaRepository` 직접 호출 + 엔티티 매핑을 시더가 보유, `TopicMapper`가 있는데 미사용) ③ **저장이 conflict-ignore가 아니었다** — "있는지 조회 → 없으면 save"라 두 인스턴스 동시 기동 시 둘 다 없다고 판정한다. slug UNIQUE가 있어 중복은 안 들어가지만 **한쪽 기동이 예외로 죽는다**
+- **변경** — `SeedTopicsUseCase`(in) + `SaveTopicPort`(out) + `SeedTopicsService` 신설(Source와 같은 계약), `TopicPersistenceAdapter`가 `ON CONFLICT (slug) DO NOTHING`으로 구현, 시더 2파일을 `adapter/in/bootstrap`으로 `git mv`(이력 보존)
+- ⚠️ **JSON 컬럼 한 겹이 더 든다** — `Topic`은 `include_keywords`·`exclude_keywords`·`keyword_weights`·`source_categories` 넷이 `@JdbcTypeCode(SqlTypes.JSON)`인데 **네이티브 insert는 이 매핑을 타지 않는다**. 어댑터가 직렬화한 문자열을 넘기고 리포지토리가 `jsonb`로 캐스팅한다. 직렬화를 손으로 하는 경로라 조용히 깨지면 선별이 빈 키워드로 돌아 후보를 못 고른다 → `seedRoundTripsJsonColumns`로 실 DB 왕복 검증
+- **자체 리뷰로 죽은 코드 발견** — 시더가 포트를 타게 되면서 `existsBySlug`의 사용처가 0이 됐다. 리팩터링 PR에 죽은 코드를 남길 이유가 없어 제거(`9301b08`). ⚠️ **PR #40 본문의 "남긴 것" 문단이 이 커밋으로 부정확해졌다** — 본문 edit는 사람 영역(D-028)이라 교체 문구를 사용자에게 전달
+- 시더는 `SourceSeeder`와 마찬가지로 **Liquibase 도입 시 마이그레이션으로 흡수될 코드**다
+
+## 병합 대기 — #37 → PR #38 (쿼리로 기사를 구분하는 소스의 URL 정규화)
 - **이슈 #37 → PR #38 (2026-08-01)** — `UriNormalizer`가 쿼리를 통째로 버려 기사가 뭉개지던 문제를 **추적 파라미터만 제거**하는 규칙으로 고쳤다. 브랜치 `feature/37-url-normalize-query`, base=develop. **187 tests 통과**. CodeRabbit 감시 Monitor 가동
 - **실측으로 피해 범위를 확정했다** (시드 9종 실 피드 조회) — 피해 소스는 **AI타임스 하나**(50건 → 고유 1건, 손실 49). BBC는 쿼리가 `at_medium`·`at_campaign` 추적 파라미터 고정이라 손실 0이고(원본 피드에 같은 URL이 2번 실려 생긴 3건은 쿼리와 무관), 매일경제·한국경제 포함 나머지 7종은 전부 path로 기사를 구분한다. **"한국 언론사 다수"로 적어 뒀던 종전 추정보다 범위가 훨씬 좁다**
 - ⚠️ **적재만의 문제가 아니었다** — `DedupClusterer`의 병합 기준 ①이 `normalizedUrl` 완전 일치라, 정규화가 뭉개지면 **제목이 전혀 다른 기사들이 한 클러스터로 병합**된다. 선별은 클러스터 대표 1건만 스코어링하므로 그대로 발행 누락이 된다 — 적재가 `UNIQUE(normalized_url)`에서 먼저 막혀 가려져 있던 두 번째 피해다
@@ -35,8 +43,9 @@
 - ⚠️ **rate limit 3번째 재발** — 반영 커밋(`b7e403e`) 이후 CodeRabbit 체크가 다시 `pass` 표시에 실제 내용은 `Review rate limited`. PR #22·#28에 이어 세 번째다. 이번엔 첫 라운드가 정상 리뷰돼 영향이 작지만(후속 커밋만 미리뷰), **체크가 통과로 뜨는 구조는 그대로**다
 
 ## 다음 액션 (next)
-- 👤 **PR #36·#38 리뷰·병합** — CodeRabbit 리뷰가 달리면 Monitor가 세션을 깨운다. 두 PR은 파일이 겹치지 않아 병합 순서 제약이 없다
-- 🤖 **M2 잔여 태스크 착수** — Liquibase · TopicSeeder 이동 · Atom 검증 · 배치 테스트 Clock 고정(`SelectionJobIntegrationTest`를 건드리므로 **PR #36 병합 후**가 안전)
+- 👤 **PR #36·#38·#40 리뷰·병합** — CodeRabbit 리뷰가 달리면 Monitor가 세션을 깨운다. 세 PR은 서로 파일이 겹치지 않아 병합 순서 제약이 없다. 단 **#38과 #40은 `MVP-DESIGN.md` §4의 인접 구역(Source 포트 / Content 포트)을 각각 고쳐** 나중 병합 쪽에 충돌이 날 수 있다
+- 👤 **PR #40 본문 "남긴 것" 문단 교체** — `existsBySlug`를 제거해 서술이 어긋났다(아래 교체 문구는 세션이 전달)
+- 🤖 **M2 잔여 태스크 착수** — Liquibase · Atom 검증 · 배치 테스트 Clock 고정(`SelectionJobIntegrationTest`를 건드리므로 **PR #36 병합 후**가 안전)
 - 👤 **#25 열린 결정 2건** — ① `sourceScore`를 중립 상수 1.0으로 둠(`source.trust_score` 재검토 시점이 지금) ② 키워드 매칭이 대소문자 무시 부분 문자열(영어 과매칭 수용). 둘 다 되돌리기 쉬운 쪽으로 잡았고 방향 지시가 있으면 후속에서 변경
 - 👤 **#27 ERD 변경 2건 확인** — ① `issue.run_date` + `UNIQUE(topic_id, run_date)`: 기존 스키마엔 "몇 일자 호인가"가 없어 재실행 시 같은 날 호가 두 개 생길 수 있었다 ② `article_score.source_id` 비정규화: 소스 쏠림 완화에 필요한데 article은 Source 소유(D-018)라 조인 불가
 - 👤 **CodeRabbit 리뷰 공백 — 재발 방침 결정** — PR #22에 이어 **PR #28도 `Review limit reached` 상태로 병합**됐다(인라인 0건, 체크는 pass 표시). rate limit이 걸려도 체크가 통과로 뜨므로 리뷰 게이트가 조용히 빈다

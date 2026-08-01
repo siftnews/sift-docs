@@ -64,7 +64,11 @@
   - 남김: `SelectionJobIntegrationTest` 나머지 케이스는 여전히 `Instant.now()` 기반 — 배치 전반을 시각 무관하게 검증하려면 테스트에서 `Clock` 고정이 필요(범위가 커 분리)
 - [ ] **`[CHORE] Liquibase 마이그레이션 도입`** — 스키마가 `ddl-auto: update`에만 의존한다(운영 부적합, MVP-DESIGN §2에 "추후 전환 권장"으로만 적혀 있고 태스크로는 미등록이었음). 계기는 #23의 `ON CONFLICT (url)` — **유니크 제약이 없으면 예외인데 `update`는 기존 테이블에 제약을 소급 생성하지 않는다**(PR #24 CodeRabbit 지적 ⑥, e2e DB에서 실측 확인). 도입 시 두 시더(`SourceSeeder`·`TopicSeeder`)의 데이터 시드도 마이그레이션으로 흡수 검토
   - **2026-07-29 실측으로 범위가 좁혀짐 (PR #30 리뷰 계기)**: 기존 DB에 `ddl-auto: update`로 기동해 보니 **nullable 컬럼 추가는 자동 반영된다**(`dedup_cluster_id varchar(64)` 생성 확인). 반면 **유니크 제약은 소급 생성되지 않아** 같은 기동이 `ON CONFLICT (url)`에서 실패했다. 즉 마이그레이션이 실제로 필요한 대상은 **제약·인덱스·데이터 백필**이지 단순 컬럼 추가가 아니다
-- [ ] **`[REFACTOR] TopicSeeder를 인바운드 어댑터로 이동`** — #23에서 `SourceSeeder`만 `adapter.in.bootstrap`으로 옮기고 `SeedSourcesUseCase`→`SaveSourcePort` 경유로 정리했다(PR #24 리뷰 반영). `content`의 `TopicSeeder`는 여전히 `adapter.out.persistence`에서 JPA 리포지토리를 직접 호출한다 — 같은 헥사고날 위반이고 저장도 conflict-ignore가 아니다. 모듈이 달라 #24 범위 밖으로 분리
+- [~] **#39 `[REFACTOR] TopicSeeder를 인바운드 어댑터로 이동`** — PR #40 리뷰 대기 (2026-08-01). #23에서 `SourceSeeder`만 정리하고(PR #24) 모듈이 달라 남아 있던 쪽. 브랜치 `feature/39-topic-seeder-inbound`, base=develop. **182 tests 통과**
+  - 어긋나 있던 것 3가지: ① 위치가 반대(인바운드인데 out 패키지) ② 유스케이스·포트 우회(`TopicJpaRepository` 직접 호출 + 엔티티 매핑 보유, `TopicMapper` 미사용) ③ **저장이 conflict-ignore가 아니었다** — 동시 기동 시 slug UNIQUE에 걸려 한쪽이 죽는 창
+  - 변경: `SeedTopicsUseCase` + `SaveTopicPort` + `SeedTopicsService` 신설, `ON CONFLICT (slug) DO NOTHING`, 시더 2파일 `git mv`
+  - ⚠️ **JSON 컬럼 4종은 네이티브 insert가 `@JdbcTypeCode(SqlTypes.JSON)` 매핑을 타지 않는다** — 어댑터가 직렬화해 넘기고 리포지토리가 `jsonb` 캐스팅. 조용히 깨지면 선별이 빈 키워드로 도므로 `seedRoundTripsJsonColumns`로 실 DB 왕복 검증
+  - 자체 리뷰: 시더가 포트를 타면서 `existsBySlug` 사용처가 0이 돼 제거(`9301b08`)
 - [ ] **`[TEST] 배치 통합 테스트의 시각 의존 제거 (Clock 고정)`** — `SelectionJobIntegrationTest`·`CollectionJobIntegrationTest`가 `Instant.now()`로 윈도우를 잡아 **언제 돌리느냐에 따라 검증 강도가 달라진다**. #35가 그 대가를 실증했다 — 시간대 결함이 하루 15시간은 통과했고 CI(UTC)에서는 영영 안 걸렸다. `Clock` 빈을 test 프로파일에서 고정해 배치 전반을 벽시계와 무관하게 검증한다 (#35에서 분리)
 - [ ] **`[FEAT] Atom 피드 파싱 검증`** — `rome`은 Atom(`<feed>`/`<entry>`)도 파싱하지만 `RssFeedAdapter` 테스트가 RSS 픽스처만 다뤄 미검증. 네이버 D2 등 Atom 소스 추가와 함께 픽스처 테스트 (#23에서 분리)
 - [~] **#25 `[FEAT] 선별 2/3: Filter + Score`** — PR #26 리뷰 대기 (2026-07-27). 토픽 필터 + 4항목 가중합 + `article_score`(breakdown JSON, `(article_id, topic_id)` upsert). 브랜치 `feature/25-selection-filter-score` — **#24 위 스택이라 병합 후 base를 develop으로 재지정 필요 👤**
