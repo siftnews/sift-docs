@@ -15,6 +15,12 @@
 - **백필 불필요** — BBC는 추적 파라미터를 걷어내면 쿼리가 비어 기존 정규화 결과와 값이 같다. 실제로 값이 바뀌는 건 AI타임스뿐이고, 그 소스는 기존 DB에 옛 키로 1건만 적재돼 있어 신규와 충돌하지 않는다(고아 1건으로 남는다)
 - ✅ **회귀 방어를 실증했다** — 옛 동작(쿼리 전량 제거)을 일시 주입해 돌리니 **새 테스트 8건만 실패하고 기존 19건은 통과**. `DedupClustererTest#articlesDistinguishedOnlyByQueryStayInSeparateClusters` 실패가 위 dedup 오병합의 실재를 증명한다
 - 부수 확인: 실측 중 매일경제가 403을 냈으나 조회 UA 문제였고, `RssFeedAdapter`가 실제로 쓰는 경로(Java 기본 UA)로는 200 — 결함 아니다
+- **CodeRabbit 리뷰 반영 완료 (`67d4348`)** — 인라인 1건(🟠 Major) 수용: **정규화 규칙이 바뀌면 기존 `normalized_url` 키가 무효해져, 같은 기사를 재수집할 때 `UNIQUE`가 옛 키의 행을 못 찾아 중복 행이 된다**는 지적. 원리가 타당해 `RenormalizeArticleUrlsUseCase` + `ArticleUrlPort` + 기동 러너 `ArticleUrlRenormalizer`로 백필을 구현했다. **198 tests**. 스레드 resolve(D-033)
+  - 규모 재확인: 새 규칙으로 **키가 바뀌는 기사는 AI타임스 50/50, 나머지 8종은 0**(2026-08-01 재실측). 그런데 AI타임스는 결함 때문에 DB에 1행만 적재돼 있으므로 **실제 백필 대상은 1건**이다. 세션은 «영향 1건 + Liquibase 미도입»을 근거로 Liquibase 백필 대상 등록을 권했으나, **👤 이 PR에서 처리로 결정**
+  - 설계: id 커서 페이징(500) + 건별 트랜잭션 — 한 건의 충돌이 앞서 옮긴 행을 되돌리지 않는다. 키 점유는 `UNIQUE` 위반 예외가 아니라 **사전 조회로 판정**한다(예외로 잡으면 트랜잭션이 rollback-only가 돼 false 반환으로 수습이 안 된다). 본문(text)을 싣지 않으려 프로젝션 조회. 멱등이라 매 기동 반복 무해
+  - **기동 러너 순서가 중요하다** — `SourceSeeder` → `ArticleUrlRenormalizer` → Batch `JobLauncherApplicationRunner`(order 0). 재정규화가 수집 뒤로 밀리면 배치가 먼저 새 키로 적재해 같은 기사가 두 행으로 남는다
+  - ⚠️ **이 러너는 Liquibase 도입 시 마이그레이션으로 흡수하고 지울 대상**이다 — 매 기동마다 전 행을 훑을 이유가 없다. 지금 러너인 것은 마이그레이션 인프라가 없어서다
+  - 부수 발견: `SourceSeeder` javadoc의 "Liquibase 마이그레이션 전환은 후속(**MVP-DESIGN §2**)" 참조가 **댕글링**이다 — 현재 §2는 ERD이고 Liquibase 서술이 없다(문서 개정 중 소실 추정). 이번 PR에서는 내 문서만 참조를 정리했고 기존 주석은 손대지 않았다
 
 ## 병합 대기 — #35 → PR #36 (발행 이슈가 비는 시간대 결함)
 - **이슈 #35 → PR #36 (2026-07-31)** — `BuildIssueService`의 점수 조회 하한을 **트리거가 계산한 윈도우 `from`으로 일치**시켰다. 브랜치 `feature/35-issue-lower-bound-zone`, base=develop. **180 tests 통과**. CodeRabbit 감시 Monitor 가동

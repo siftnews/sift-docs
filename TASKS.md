@@ -51,6 +51,9 @@
   - 결정: **추적 파라미터 블랙리스트만 제거 + 나머지 쿼리 키 정렬 보존**(`utm_*`·`at_*` 접두어 + `fbclid`·`gclid`·`igshid`·`mc_cid`·`mc_eid`·`ref`). 후보였던 «쿼리 전량 유지»는 추적 파라미터가 달라진 같은 기사가 중복 적재되고, «소스별 화이트리스트»는 피해 소스 1종인 지금 과설계
   - **백필 불필요** — BBC는 추적 파라미터를 걷어내면 쿼리가 비어 기존 정규화 결과와 값이 같다. 실제로 값이 바뀌는 건 AI타임스뿐이고 그 소스는 옛 키로 1건만 적재돼 있어 신규와 충돌하지 않는다(고아 1건으로 남음)
   - ✅ **회귀 방어 실증** — 옛 동작을 일시 주입하니 **새 테스트 8건만 실패, 기존 19건 통과**. `DedupClustererTest#articlesDistinguishedOnlyByQueryStayInSeparateClusters` 실패가 dedup 오병합의 실재를 증명
+  - **CodeRabbit 🟠 Major 수용 → 기존 키 백필 포함** (`67d4348`, **198 tests**) — 규칙이 바뀌면 옛 `normalized_url` 키가 무효해져 재수집 시 중복 행이 된다. `RenormalizeArticleUrlsUseCase` + `ArticleUrlPort` + 기동 러너 `ArticleUrlRenormalizer`. 실제 백필 대상은 **1건**(키가 바뀌는 건 AI타임스뿐인데 그 소스는 결함 때문에 1행만 적재돼 있다) — 세션은 Liquibase 백필 등록을 권했으나 👤 이 PR 처리로 결정
+  - 설계 근거: id 커서 페이징 + 건별 트랜잭션(한 건 충돌이 앞 행을 안 되돌린다) · 키 점유는 예외가 아닌 **사전 조회로 판정**(예외로 잡으면 트랜잭션이 rollback-only가 된다) · 러너 순서는 `SourceSeeder` → 재정규화 → Batch(order 0)여야 한다(뒤집히면 배치가 먼저 새 키로 적재해 두 행이 남는다)
+  - ⚠️ **Liquibase 도입 시 이 러너를 마이그레이션으로 흡수하고 지울 것** — 아래 Liquibase 태스크의 백필 범위에 포함
 - [x] **#33 `[FEAT] collectionTrigger — 수집 배치 상시 기동`** — PR #34로 develop 병합 완료 (`783529a`, 2026-07-31). CodeRabbit `No actionable comments`. `@Scheduled` 주기 기동 + `launchedAt` 식별 파라미터 + 스케줄러 풀 확보. **수집 주기 매시 10분 확정**(정각은 수집기가 몰린다). 브랜치 `feature/33-collection-trigger`, base=develop
   - 착수 중 발견 2건: ① `collectionJob`은 JobParameters가 없어 **두 번째 주기부터 `JobInstanceAlreadyCompleteException`** ② 스케줄러 풀이 기본 1개라 06:00에 수집이 물리면 그날 발행이 밀린다
   - 범위 제외: 수동 기동 REST 엔드포인트 — 인증 없는 Job 기동 API가 되어 보안 표면이 생긴다. 주기를 설정으로 짧게 바꾸면 확인 목적은 충족
