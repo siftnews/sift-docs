@@ -13,6 +13,7 @@
 - ⚠️ **JSON 컬럼 한 겹이 더 든다** — `Topic`은 `include_keywords`·`exclude_keywords`·`keyword_weights`·`source_categories` 넷이 `@JdbcTypeCode(SqlTypes.JSON)`인데 **네이티브 insert는 이 매핑을 타지 않는다**. 어댑터가 직렬화한 문자열을 넘기고 리포지토리가 `jsonb`로 캐스팅한다. 직렬화를 손으로 하는 경로라 조용히 깨지면 선별이 빈 키워드로 돌아 후보를 못 고른다 → `seedRoundTripsJsonColumns`로 실 DB 왕복 검증
 - **자체 리뷰로 죽은 코드 발견** — 시더가 포트를 타게 되면서 `existsBySlug`의 사용처가 0이 됐다. 리팩터링 PR에 죽은 코드를 남길 이유가 없어 제거(`9301b08`). ⚠️ **PR #40 본문의 "남긴 것" 문단이 이 커밋으로 부정확해졌다** — 본문 edit는 사람 영역(D-028)이라 교체 문구를 사용자에게 전달
 - 시더는 `SourceSeeder`와 마찬가지로 **Liquibase 도입 시 마이그레이션으로 흡수될 코드**다
+- 🚨 **rate limit 4번째 재발 — 이번엔 첫 라운드부터 리뷰 0건** — PR #22·#28·#38에 이어 네 번째다. `Review limit reached`로 리뷰가 **시작조차 안 됐는데 체크는 `CodeRabbit: SUCCESS`**로 뜬다(gh로 확인). 앞선 세 번과 달리 이번엔 정상 리뷰된 라운드가 아예 없어 **PR #40은 현재 리뷰 공백 상태로 병합 가능**하다. 코멘트에 "Next review available in 32 minutes"가 찍혔고, 재시도 방법은 ① `@coderabbitai review` 코멘트(**사람 영역 — D-026**) ② 새 커밋 push(자동 재시도)
 
 ## 병합 대기 — #37 → PR #38 (쿼리로 기사를 구분하는 소스의 URL 정규화)
 - **이슈 #37 → PR #38 (2026-08-01)** — `UriNormalizer`가 쿼리를 통째로 버려 기사가 뭉개지던 문제를 **추적 파라미터만 제거**하는 규칙으로 고쳤다. 브랜치 `feature/37-url-normalize-query`, base=develop. **187 tests 통과**. CodeRabbit 감시 Monitor 가동
@@ -48,7 +49,7 @@
 - 🤖 **M2 잔여 태스크 착수** — Liquibase · Atom 검증 · 배치 테스트 Clock 고정(`SelectionJobIntegrationTest`를 건드리므로 **PR #36 병합 후**가 안전)
 - 👤 **#25 열린 결정 2건** — ① `sourceScore`를 중립 상수 1.0으로 둠(`source.trust_score` 재검토 시점이 지금) ② 키워드 매칭이 대소문자 무시 부분 문자열(영어 과매칭 수용). 둘 다 되돌리기 쉬운 쪽으로 잡았고 방향 지시가 있으면 후속에서 변경
 - 👤 **#27 ERD 변경 2건 확인** — ① `issue.run_date` + `UNIQUE(topic_id, run_date)`: 기존 스키마엔 "몇 일자 호인가"가 없어 재실행 시 같은 날 호가 두 개 생길 수 있었다 ② `article_score.source_id` 비정규화: 소스 쏠림 완화에 필요한데 article은 Source 소유(D-018)라 조인 불가
-- 👤 **CodeRabbit 리뷰 공백 — 재발 방침 결정** — PR #22에 이어 **PR #28도 `Review limit reached` 상태로 병합**됐다(인라인 0건, 체크는 pass 표시). rate limit이 걸려도 체크가 통과로 뜨므로 리뷰 게이트가 조용히 빈다
+- 👤 **CodeRabbit 리뷰 공백 — 재발 방침 결정 (4회째, 우선순위 상향)** — PR #22·#28에 이어 #38(후속 커밋)·**#40(첫 라운드부터 리뷰 0건)**까지 왔다. rate limit이 걸려도 체크가 `SUCCESS`로 뜨므로 리뷰 게이트가 조용히 빈다. 선택지: ① usage-based reviews 과금 활성화 ② 리뷰 볼륨 축소(라벨 opt-in·증분 자동리뷰 중단) ③ 병합 전 `@coderabbitai review` 수동 트리거를 절차로 굳히기(사람 작업) ④ 현 상태 수용하고 구현 세션 자체 리뷰로 대체
 - 👤 **`.coderabbit.yaml`의 `!**/*.md`가 설계 문서를 리뷰에서 가린다** — PR #30에서 `MVP-DESIGN.md`·`SELECTION.md`를 실제로 갱신했는데 CodeRabbit은 "문서 갱신 여부 확인 불가"로 판정했다. PR #22의 `!out/**` 수정과 같은 성격의 필터 결함 — "구조 변경 PR에서 설계 문서를 코드와 함께 갱신"(CLAUDE.md) 규칙이 앞으로도 검증 불가로 남는다. **PR #36에서 재발**(`docs/SELECTION.md is excluded by !**/*.md`로 명시 출력) — 이제 CodeRabbit이 제외 사실을 코멘트에 찍어 주므로 재발 여부는 눈으로 확인된다
 - 👤 **PR #22 확인 부탁 (잔여 1건)** — `updateClusters(Map)` 단일 인자 vs `updateClusters(assigned, cleared)` 2-인자 분리(null 값 계약이 부담이면 재검토). ②`[from, to)` 실경계 검증은 #29에서 해소됨
 - 👤 **markCrawled 배치 반영 결정** — 기본 제외 확정 vs 후속 이슈 (M1부터 계류 — D-029 잔여물 ②)
