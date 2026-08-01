@@ -44,9 +44,9 @@
 - ⚠️ **rate limit 3번째 재발** — 반영 커밋(`b7e403e`) 이후 CodeRabbit 체크가 다시 `pass` 표시에 실제 내용은 `Review rate limited`. PR #22·#28에 이어 세 번째다. 이번엔 첫 라운드가 정상 리뷰돼 영향이 작지만(후속 커밋만 미리뷰), **체크가 통과로 뜨는 구조는 그대로**다
 
 ## 다음 액션 (next)
-- 👤 **PR #36·#38·#40 리뷰·병합** — CodeRabbit 리뷰가 달리면 Monitor가 세션을 깨운다. 세 PR은 서로 파일이 겹치지 않아 병합 순서 제약이 없다. 단 **#38과 #40은 `MVP-DESIGN.md` §4의 인접 구역(Source 포트 / Content 포트)을 각각 고쳐** 나중 병합 쪽에 충돌이 날 수 있다
+- 👤 **PR #38·#40 병합** — **#36은 병합 완료**(`83781dd`). 두 PR 모두 develop 최신을 머지해 두었다(#38 `cc6c249` **200 tests** · #40 **184 tests**, 둘 다 충돌 없음). 먼저 병합하는 쪽이 끝나면 나머지 하나는 다시 최신화가 필요하다 — **`MVP-DESIGN.md` §4의 인접 구역(Source 포트 / Content 포트)을 각각 고쳐** 그때 충돌이 날 수 있다
 - 👤 **PR #40 본문 "남긴 것" 문단 교체** — `existsBySlug`를 제거해 서술이 어긋났다(아래 교체 문구는 세션이 전달)
-- 🤖 **M2 잔여 태스크 착수** — Liquibase · Atom 검증 · 배치 테스트 Clock 고정(`SelectionJobIntegrationTest`를 건드리므로 **PR #36 병합 후**가 안전)
+- 🤖 **M2 잔여 태스크 착수** — Liquibase · Atom 검증 · **배치 테스트 Clock 고정(#36 병합으로 이제 착수 가능 — `SelectionJobIntegrationTest` 충돌 위험 해소)**
 - 👤 **#25 열린 결정 2건** — ① `sourceScore`를 중립 상수 1.0으로 둠(`source.trust_score` 재검토 시점이 지금) ② 키워드 매칭이 대소문자 무시 부분 문자열(영어 과매칭 수용). 둘 다 되돌리기 쉬운 쪽으로 잡았고 방향 지시가 있으면 후속에서 변경
 - 👤 **#27 ERD 변경 2건 확인** — ① `issue.run_date` + `UNIQUE(topic_id, run_date)`: 기존 스키마엔 "몇 일자 호인가"가 없어 재실행 시 같은 날 호가 두 개 생길 수 있었다 ② `article_score.source_id` 비정규화: 소스 쏠림 완화에 필요한데 article은 Source 소유(D-018)라 조인 불가
 - 👤 **CodeRabbit 리뷰 공백 — 재발 방침 결정 (4회째, 우선순위 상향)** — PR #22·#28에 이어 #38(후속 커밋)·**#40(첫 라운드부터 리뷰 0건)**까지 왔다. rate limit이 걸려도 체크가 `SUCCESS`로 뜨므로 리뷰 게이트가 조용히 빈다. 선택지: ① usage-based reviews 과금 활성화 ② 리뷰 볼륨 축소(라벨 opt-in·증분 자동리뷰 중단) ③ 병합 전 `@coderabbitai review` 수동 트리거를 절차로 굳히기(사람 작업) ④ 현 상태 수용하고 구현 세션 자체 리뷰로 대체
@@ -92,5 +92,5 @@
 - **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성** = 에이전트 (모든 기록은 사용자 명의·기존 스타일 — HARNESS §0.7 컨벤션을 스스로 준수, 검사 장치 없음 D-027). **병합·리뷰 승인·issue/pr close·comment·release·repo/인프라 쓰기** = 사람. issue/pr `edit`는 에이전트 허용이되 assignee·라벨 관리 용도만 (D-028). **반영 완료한 리뷰 스레드의 resolve는 에이전트** — 답글은 여전히 사람 (D-033).
 - **세션 역할 (2026-07-26 개정)**: 07-25의 "루프 문서 쓰기 = 문서 세션 전담"은 **구현 세션이 문서 쓰기까지 겸임**하는 것으로 사용자 확정. 단 쓰기 전 `sift-docs` **fetch 필수** (위 "정정" 07-26 사고 참조).
 - **구현 리듬 (D-026)**: 작은 작업 1개 → build/test 자가검증 → 에이전트 커밋(`{type}: {한국어 요약}` 한 줄, 트레일러 금지) → 다음 작업.
-- **로컬 테스트는 `TZ=UTC`로 돌려야 CI와 같은 결과가 나온다** — 시간대 의존 결함(위 🚨)이 해소되기 전까지. 로컬 기본 KST로 돌리면 `SelectionJobIntegrationTest` 2건이 실패한다.
+- ~~로컬 테스트는 `TZ=UTC`로 돌려야 한다~~ — **해소 (2026-08-01, PR #36 병합)**: 결함 자체가 고쳐졌고 `build.gradle`이 `systemProperty 'user.timezone', 'Asia/Seoul'`로 존을 못 박아 어디서 돌리든 같은 결과가 나온다. 단 **존 고정만으로는 이 계열 결함을 못 잡는다** — 재현이 실행 *시각*에도 좌우되기 때문이다(#35 기록 참조). 남은 방어는 test 프로파일 `Clock` 고정 태스크.
 - 게이트(settings.json deny): gh pr merge/review/ready, issue·pr close/comment/delete, release, repo, workflow run, secret, variable (edit는 D-028로 allow — assignee·라벨 용도만). 파괴 명령: git reset --hard / clean, docker compose down -v. main push 방어 = GitHub 브랜치 보호(D-027). `gh api`는 allow/deny 양쪽 제외(백스톱) — settings.local.json의 `gh api *` allow는 워크스페이스·하네스 시드 양쪽 제거 완료(👤 2026-07-22, 백스톱 복원).
