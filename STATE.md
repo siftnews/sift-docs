@@ -6,7 +6,17 @@
 ## 현재 Phase
 **Phase 1 (선별) — M2 선별 코드 경로 완주 + 무인 가동.** #17·#19·#21·#23·#25·#27·#29·#31·#33 전부 develop 병합(`783529a`) — 수집·선별 양쪽에 트리거가 붙어 파이프라인이 무인으로 돈다. 남은 M2는 수집 품질·인프라 계열(URL 정규화 · Liquibase · TopicSeeder 이동 · Atom 검증 · 배치 테스트 Clock 고정).
 
-## 지금 (in progress) — #35 → PR #36 (발행 이슈가 비는 시간대 결함)
+## 지금 (in progress) — #37 → PR #38 (쿼리로 기사를 구분하는 소스의 URL 정규화)
+- **이슈 #37 → PR #38 (2026-08-01)** — `UriNormalizer`가 쿼리를 통째로 버려 기사가 뭉개지던 문제를 **추적 파라미터만 제거**하는 규칙으로 고쳤다. 브랜치 `feature/37-url-normalize-query`, base=develop. **187 tests 통과**. CodeRabbit 감시 Monitor 가동
+- **실측으로 피해 범위를 확정했다** (시드 9종 실 피드 조회) — 피해 소스는 **AI타임스 하나**(50건 → 고유 1건, 손실 49). BBC는 쿼리가 `at_medium`·`at_campaign` 추적 파라미터 고정이라 손실 0이고(원본 피드에 같은 URL이 2번 실려 생긴 3건은 쿼리와 무관), 매일경제·한국경제 포함 나머지 7종은 전부 path로 기사를 구분한다. **"한국 언론사 다수"로 적어 뒀던 종전 추정보다 범위가 훨씬 좁다**
+- ⚠️ **적재만의 문제가 아니었다** — `DedupClusterer`의 병합 기준 ①이 `normalizedUrl` 완전 일치라, 정규화가 뭉개지면 **제목이 전혀 다른 기사들이 한 클러스터로 병합**된다. 선별은 클러스터 대표 1건만 스코어링하므로 그대로 발행 누락이 된다 — 적재가 `UNIQUE(normalized_url)`에서 먼저 막혀 가려져 있던 두 번째 피해다
+- **뿌리는 설계 의도와 구현의 괴리** — #4의 범위는 "URL 정규화 불변식(**UTM 제거**·호스트 소문자화)"였는데 구현과 테스트(`normalizeRemovesQueryStringAndLowercasesHost`)가 **쿼리 전량 제거**로 확대돼 있었다. 원래 의도로 되돌린 것
+- **결정** — 추적 파라미터 블랙리스트(`utm_*`·`at_*` 접두어 + `fbclid`·`gclid`·`igshid`·`mc_cid`·`mc_eid`·`ref`)만 제거하고 나머지 쿼리는 키 정렬해 보존. 후보였던 «쿼리 전량 유지»는 추적 파라미터가 달라진 같은 기사가 중복 적재되고, «소스별 화이트리스트»는 피해 소스 1종인 지금 과설계
+- **백필 불필요** — BBC는 추적 파라미터를 걷어내면 쿼리가 비어 기존 정규화 결과와 값이 같다. 실제로 값이 바뀌는 건 AI타임스뿐이고, 그 소스는 기존 DB에 옛 키로 1건만 적재돼 있어 신규와 충돌하지 않는다(고아 1건으로 남는다)
+- ✅ **회귀 방어를 실증했다** — 옛 동작(쿼리 전량 제거)을 일시 주입해 돌리니 **새 테스트 8건만 실패하고 기존 19건은 통과**. `DedupClustererTest#articlesDistinguishedOnlyByQueryStayInSeparateClusters` 실패가 위 dedup 오병합의 실재를 증명한다
+- 부수 확인: 실측 중 매일경제가 403을 냈으나 조회 UA 문제였고, `RssFeedAdapter`가 실제로 쓰는 경로(Java 기본 UA)로는 200 — 결함 아니다
+
+## 병합 대기 — #35 → PR #36 (발행 이슈가 비는 시간대 결함)
 - **이슈 #35 → PR #36 (2026-07-31)** — `BuildIssueService`의 점수 조회 하한을 **트리거가 계산한 윈도우 `from`으로 일치**시켰다. 브랜치 `feature/35-issue-lower-bound-zone`, base=develop. **180 tests 통과**. CodeRabbit 감시 Monitor 가동
 - **결함** — 하한이 `runDate.atStartOfDay(ZoneOffset.UTC)`였는데 `runDate`는 시스템 존(KST) 날짜다. KST 날짜 D의 UTC 자정은 KST D 09:00이라 **KST 00:00~09:00에 계산된 점수는 전부 하한 미만**이 되고, 확정 발행 시각 **06:00 Asia/Seoul(#31)이 이 구간 한가운데**다 → 그대로 뒀으면 운영에서 **매일 빈 호**가 나갔다
 - **수정** — `selectTasklet`이 `WINDOW_FROM`을 주입받아 `buildIssueForTopic(topicId, runDate, scoredFrom)`으로 넘긴다. **날짜에서 시각을 유도하는 것 자체를 없앤 것**이 핵심 — 트리거는 이미 윈도우를 전 토픽에 넘기고 있었고 `selectTasklet`만 그걸 안 받고 있었다. `runDate`는 호의 식별자·제목 용도로만 남는다
@@ -17,8 +27,8 @@
 - ⚠️ **rate limit 3번째 재발** — 반영 커밋(`b7e403e`) 이후 CodeRabbit 체크가 다시 `pass` 표시에 실제 내용은 `Review rate limited`. PR #22·#28에 이어 세 번째다. 이번엔 첫 라운드가 정상 리뷰돼 영향이 작지만(후속 커밋만 미리뷰), **체크가 통과로 뜨는 구조는 그대로**다
 
 ## 다음 액션 (next)
-- 👤 **PR #36 리뷰·병합** — CodeRabbit 리뷰가 달리면 Monitor가 세션을 깨운다
-- 🤖 **M2 잔여 태스크 착수** — URL 정규화(👤 결정 필요) · Liquibase · TopicSeeder 이동 · Atom 검증 · 배치 테스트 Clock 고정
+- 👤 **PR #36·#38 리뷰·병합** — CodeRabbit 리뷰가 달리면 Monitor가 세션을 깨운다. 두 PR은 파일이 겹치지 않아 병합 순서 제약이 없다
+- 🤖 **M2 잔여 태스크 착수** — Liquibase · TopicSeeder 이동 · Atom 검증 · 배치 테스트 Clock 고정(`SelectionJobIntegrationTest`를 건드리므로 **PR #36 병합 후**가 안전)
 - 👤 **#25 열린 결정 2건** — ① `sourceScore`를 중립 상수 1.0으로 둠(`source.trust_score` 재검토 시점이 지금) ② 키워드 매칭이 대소문자 무시 부분 문자열(영어 과매칭 수용). 둘 다 되돌리기 쉬운 쪽으로 잡았고 방향 지시가 있으면 후속에서 변경
 - 👤 **#27 ERD 변경 2건 확인** — ① `issue.run_date` + `UNIQUE(topic_id, run_date)`: 기존 스키마엔 "몇 일자 호인가"가 없어 재실행 시 같은 날 호가 두 개 생길 수 있었다 ② `article_score.source_id` 비정규화: 소스 쏠림 완화에 필요한데 article은 Source 소유(D-018)라 조인 불가
 - 👤 **CodeRabbit 리뷰 공백 — 재발 방침 결정** — PR #22에 이어 **PR #28도 `Review limit reached` 상태로 병합**됐다(인라인 0건, 체크는 pass 표시). rate limit이 걸려도 체크가 통과로 뜨므로 리뷰 게이트가 조용히 빈다

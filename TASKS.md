@@ -44,7 +44,13 @@
   - DoD: **fake 포트 서비스 단위 테스트 통과 ✅** (79건 전체 통과, CI pass) — 탈락 해제·신규 합류 시 clusterId 불변·동일 입력 동일 결과 3종 회귀
   - 파생 결정: 윈도우 기준 컬럼 = `article.created_at`, 윈도우 불변식 3종 명문화 (D-032)
 - [~] **#23 `[FEAT] 소스 RSS URL 확정 + source 시드`** — MVP-DESIGN §1 소스 시드 실제 RSS URL 확정(9종: dev/ai/econ 각 3, 한국어 4·영어 5 — 2026-07-26 실 응답 검증) + `SourceSeeder`. **M1-6 e2e 게이트(실 RSS → article 적재)를 여기서 해소** (D-029 잔여물 분리). 브랜치 `feature/23-source-rss-seed`
-- [ ] **`[FIX] 쿼리로 기사를 구분하는 소스의 URL 정규화`** — `UriNormalizer`가 쿼리스트링을 버려, `?idxno=213188`처럼 쿼리로 기사를 구분하는 사이트(AI타임스 등 한국 언론사 다수)의 기사가 **전부 같은 url로 정규화**된다 → `UNIQUE(normalized_url)`에 걸려 50개 중 1건만 적재(#23 e2e 실측). **기사 동일성 판정 규칙 변경**이라 dedup(D-030·D-031)·선별 전제에 영향 — 결정 필요
+- [~] **#37 `[FIX] 쿼리로 기사를 구분하는 소스의 URL 정규화 — 추적 파라미터만 제거`** — PR #38 리뷰 대기 (2026-08-01). `UriNormalizer`가 쿼리를 통째로 버려 `?idxno=213427`처럼 쿼리로 기사를 구분하는 소스의 기사가 **전부 같은 url로 정규화**되던 문제. 브랜치 `feature/37-url-normalize-query`, base=develop. **187 tests 통과**
+  - **실측으로 피해 범위를 확정했다 (2026-08-01, 시드 9종 실 피드 조회)** — 피해 소스는 **AI타임스 하나**(50건 → 고유 1건, 손실 49). BBC는 쿼리가 `at_medium`·`at_campaign` 추적 파라미터 고정이라 손실 0(원본 피드에 같은 URL이 2번 실려 생긴 3건은 쿼리와 무관), 매일경제·한국경제 포함 나머지 7종은 전부 path로 기사를 구분한다
+  - ⚠️ **적재만의 문제가 아니었다** — `DedupClusterer`의 병합 기준 ①이 `normalizedUrl` 완전 일치라, 정규화가 뭉개지면 **제목이 전혀 다른 기사들이 한 클러스터로 병합**된다. 선별은 클러스터 대표 1건만 스코어링하므로 그대로 발행 누락이 된다. 적재가 `UNIQUE`에서 먼저 막혀 가려져 있던 두 번째 피해
+  - **뿌리는 설계 의도와 구현의 괴리** — #4의 범위는 "UTM 제거"였는데 구현·테스트가 "쿼리 전량 제거"로 확대돼 있었다. 원래 의도로 되돌린 것
+  - 결정: **추적 파라미터 블랙리스트만 제거 + 나머지 쿼리 키 정렬 보존**(`utm_*`·`at_*` 접두어 + `fbclid`·`gclid`·`igshid`·`mc_cid`·`mc_eid`·`ref`). 후보였던 «쿼리 전량 유지»는 추적 파라미터가 달라진 같은 기사가 중복 적재되고, «소스별 화이트리스트»는 피해 소스 1종인 지금 과설계
+  - **백필 불필요** — BBC는 추적 파라미터를 걷어내면 쿼리가 비어 기존 정규화 결과와 값이 같다. 실제로 값이 바뀌는 건 AI타임스뿐이고 그 소스는 옛 키로 1건만 적재돼 있어 신규와 충돌하지 않는다(고아 1건으로 남음)
+  - ✅ **회귀 방어 실증** — 옛 동작을 일시 주입하니 **새 테스트 8건만 실패, 기존 19건 통과**. `DedupClustererTest#articlesDistinguishedOnlyByQueryStayInSeparateClusters` 실패가 dedup 오병합의 실재를 증명
 - [x] **#33 `[FEAT] collectionTrigger — 수집 배치 상시 기동`** — PR #34로 develop 병합 완료 (`783529a`, 2026-07-31). CodeRabbit `No actionable comments`. `@Scheduled` 주기 기동 + `launchedAt` 식별 파라미터 + 스케줄러 풀 확보. **수집 주기 매시 10분 확정**(정각은 수집기가 몰린다). 브랜치 `feature/33-collection-trigger`, base=develop
   - 착수 중 발견 2건: ① `collectionJob`은 JobParameters가 없어 **두 번째 주기부터 `JobInstanceAlreadyCompleteException`** ② 스케줄러 풀이 기본 1개라 06:00에 수집이 물리면 그날 발행이 밀린다
   - 범위 제외: 수동 기동 REST 엔드포인트 — 인증 없는 Job 기동 API가 되어 보안 표면이 생긴다. 주기를 설정으로 짧게 바꾸면 확인 목적은 충족
