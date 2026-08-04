@@ -76,7 +76,7 @@
 |---|---|---|
 | Phase/기능 묶음 | 마일스톤 | `TASKS.md` M1~M4 |
 | 태스크 (= PR 1개 분량) | 이슈 | `TASKS.md` 이슈 후보 |
-| 태스크 내 하위 단계 | 이슈 본문 체크리스트 | `BACKLOG.md` (루프가 집는 단위) |
+| 태스크 내 하위 단계 | **이슈 본문 `## TODO` (원본)** | `BACKLOG.md`는 진행 중 이슈 1개의 작업용 장부 (D-035) |
 
 - 태스크가 PR 1개 분량을 넘으면 **이슈를 분할**하고 TASKS.md에 반영한다.
 - 이슈 제목 포맷: `[FEAT|CHORE|FIX|REFACTOR|docs] 요약` — 실제 발행 관행 박제 (예: 이슈 #10 `[FEAT] Source 영속 어댑터`, 이슈 #1 `[chore] 프로젝트 골격 & 모듈 경계`). 본문 구조는 아래 템플릿.
@@ -88,12 +88,12 @@
 - **Assignees·Labels**: 이슈·PR 모두 create 시점에 지정 — `--assignee @me`(사용자 본인) + 타입 일치 라벨 `[FEAT]`→`feature` · `[CHORE]`→`chore` · `[docs]`→`documentation` · `[FIX]`→`bug`. 누락 시 `gh issue/pr edit --add-assignee @me --add-label {라벨}`로 소급 가능 (D-028 — `edit`는 assignee·라벨 용도로만, 제목·본문 수정은 사람).
 
 **절차**
-1. 🤖 **이슈 초안 → 발행** — TASKS.md에서 다음 태스크 선택 → 제목(`[FEAT] ...`)·배경·DoD 작성 → 사용자 확인 후 `gh issue create --assignee @me --label {타입 라벨}` 실행 (D-026) → TASKS/BACKLOG에 `#번호` 태깅
-2. 🤖 **브랜치** — `develop`에서 `feature/{이슈번호}-{영어-kebab-case}` 분기 (예: `feature/12-rss-feed-adapter`). **develop = 통합, main = 배포** (D-025)
-3. 🤖 **구현 루프** — BACKLOG로 분해 → 작은 작업마다: 구현 + build/test 자가검증 → 커밋 (`{type}: {한국어 요약}`) → 다음 작은 작업
-4. 🤖 **push + PR 생성** — `git push -u origin feature/...`(대상 명시 관행) → 자가 리뷰(`/code-review`) → `gh pr create --assignee @me --label {타입 라벨}` (base = develop, 본문에 `close #N` + 체크리스트)
-5. 👤 **리뷰** — CodeRabbit 리뷰 확인, 필요시 `ultrareview`(사람만 트리거 가능 — 과금·사용자 전용). 리뷰 지적 반영은 🤖 후속 커밋
-6. 👤 **병합** — 리뷰 승인 후 병합 (merge commit — 현 관행) → 🤖 develop 갱신 확인, STATE·TASKS 체크
+1. 🧭 **이슈 초안 → 발행** — TASKS.md에서 다음 태스크 선택 → 제목(`[FEAT] ...`)·배경·DoD·**`## TODO`(하위 단계 원본 — D-035)** 작성 → 사용자 확인 후 `gh issue create --assignee @me --label {타입 라벨}` 실행 → TASKS에 `#번호` 태깅
+2. 🔧 **브랜치** — `develop`에서 `feature/{이슈번호}-{영어-kebab-case}` 분기 (예: `feature/12-rss-feed-adapter`). **develop = 통합, main = 배포** (D-025)
+3. 🔧 **구현 루프** — 이슈 본문 `## TODO`를 따라 작은 작업마다: 구현 + build/test 자가검증 → 커밋 (`{type}: {한국어 요약}`) → 다음 작은 작업 (분해가 바뀌면 BACKLOG가 아니라 `.handoff/notes/`로 — D-035)
+4. 🔧 **push + PR 생성** — `git push -u origin feature/...`(대상 명시 관행) → `gh pr create --assignee @me --label {타입 라벨}` (base = develop, 본문에 `close #N` + 체크리스트) → **CodeRabbit 감시 Monitor 등록**
+5. 👀 **검수** — 별도 세션이 diff·CodeRabbit 지적 유효성·**리뷰가 실제로 수행됐는지**를 보고 `.handoff/reviews/`에 리포트. 필요시 👤 `ultrareview`(과금·사용자 전용). 지적 반영은 🔧 후속 커밋, 반영 여부 결정은 👤
+6. 👤 **병합** — 승인 후 병합 (merge commit — 현 관행) → 🧭 develop 갱신 확인, STATE·TASKS 갱신
 7. 👤 **배포 승격** — 마일스톤 단위로 develop → main PR (D-025)
 
 **커밋 컨벤션 (실행 🤖 — D-026)**
