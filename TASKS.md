@@ -81,6 +81,9 @@
 
 ### M2 잔여 (미착수)
 
+- [ ] **#41 `[CHORE] 공개 README 정정 + CodeRabbit 설계 문서 리뷰 허용`** — 2026-08-04 전체 검토에서 발견. ① README가 **존재하지 않는 `.claude/skills/`를 광고**(깨진 링크) ② 역할 분담 서술이 **D-026 이전** ③ `.coderabbit.yaml`의 `!**/*.md`가 설계 문서를 리뷰에서 가려 "문서 갱신 확인 불가"가 PR #30·#36·#38·#40에서 연속 재발
+- [ ] **`[CHORE] Sift용 스킬 박제`** — D-029가 "M2 유스케이스에서 공통 패턴 추출"로 미뤄 둔 것. **M2가 끝나 착수 가능**해졌다. 후보: 헥사고날 유스케이스 풀구현(도메인→포트→서비스→어댑터→테스트) · `code-review` · `create-branch`. #41이 README에서 이 항목을 지우는 이유이기도 하다
+
 - [ ] **`[CHORE] Liquibase 마이그레이션 도입`** — 스키마가 `ddl-auto: update`에만 의존한다(운영 부적합, MVP-DESIGN §2에 "추후 전환 권장"으로만 적혀 있고 태스크로는 미등록이었음). 계기는 #23의 `ON CONFLICT (url)` — **유니크 제약이 없으면 예외인데 `update`는 기존 테이블에 제약을 소급 생성하지 않는다**(PR #24 CodeRabbit 지적 ⑥, e2e DB에서 실측 확인). 도입 시 두 시더(`SourceSeeder`·`TopicSeeder`)의 데이터 시드도 마이그레이션으로 흡수 검토
   - **2026-07-29 실측으로 범위가 좁혀짐 (PR #30 리뷰 계기)**: 기존 DB에 `ddl-auto: update`로 기동해 보니 **nullable 컬럼 추가는 자동 반영된다**(`dedup_cluster_id varchar(64)` 생성 확인). 반면 **유니크 제약은 소급 생성되지 않아** 같은 기동이 `ON CONFLICT (url)`에서 실패했다. 즉 마이그레이션이 실제로 필요한 대상은 **제약·인덱스·데이터 백필**이지 단순 컬럼 추가가 아니다
 - [ ] **`[TEST] 배치 통합 테스트의 시각 의존 제거 (Clock 고정)`** — `SelectionJobIntegrationTest`·`CollectionJobIntegrationTest`가 `Instant.now()`로 윈도우를 잡아 **언제 돌리느냐에 따라 검증 강도가 달라진다**. #35가 그 대가를 실증했다 — 시간대 결함이 하루 15시간은 통과했고 CI(UTC)에서는 영영 안 걸렸다. `Clock` 빈을 test 프로파일에서 고정해 배치 전반을 벽시계와 무관하게 검증한다 (#35에서 분리)
