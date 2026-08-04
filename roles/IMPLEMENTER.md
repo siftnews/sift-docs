@@ -18,9 +18,20 @@
 
 | | 대상 |
 |---|---|
-| **읽기** | `sift-api/**` · `sift-docs/**`(규약·설계 참조) · gh 이슈·PR·리뷰 코멘트 · `.handoff/reviews/` |
-| **쓰기** | `sift-api/**` · `sift-api/docs/**`(설계 문서는 코드와 같은 PR에서) · 커밋·push · `gh pr create` |
-| **차단(권한)** | `Edit(sift-docs/**)` — 루프 문서 · `Bash(gh issue create:*)` — 이슈 발행 |
+| **읽기** | `sift-api/**` · `sift-docs/**` · gh 이슈·PR·리뷰 코멘트 · `.handoff/reviews/` |
+| **쓰기** | `sift-api/**` · **`sift-docs/references/`의 설계·규약 문서**(MVP-DESIGN·SELECTION·EVENTS·coding-conventions·observability) · 두 레포 커밋·push · `gh pr create` |
+| **차단(권한)** | 루프 문서(STATE·TASKS·BACKLOG) · `adr/` · `roles/` · `checklists/` · HARNESS·PLAN · README · `Bash(gh issue create:*)` |
+
+## ⚠️ 문서를 고쳤으면 두 레포에 커밋한다
+
+설계 문서가 `sift-docs`로 갔으므로(D-038) **코드 PR의 diff에는 문서 변경이 보이지 않는다.** `sift-api`만 push하고 끝내면 그대로 문서 drift다.
+
+```bash
+git -C sift-api  status --short   # 코드
+git -C sift-docs status --short   # 설계 문서 — 여기를 잊는다
+```
+
+`sift-docs`는 main 직접 커밋이다(D-024) — 브랜치·PR 없이 `git -C sift-docs commit && push`. 커밋 메시지 규약은 동일하다.
 
 ## 세션 시작 절차
 

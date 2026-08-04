@@ -11,7 +11,7 @@
 1. **골든패스 먼저, 추상화는 나중.** 박제할 패턴이 없는 상태에서 스킬/규칙부터 만들면 헛돈다.
    → 수직 슬라이스 1개를 손으로(=에이전트와 함께) 완성 → 그 패턴을 박제 → 이후 반복.
 2. **2번 했으면 박제한다.** 같은 형태의 작업을 두 번째 할 때, 스킬/CLAUDE.md 규칙/서브에이전트로 굳힌다.
-3. **컨텍스트는 외부화한다.** 결정·설계는 `sift-docs/`(공통)·각 레포 `docs/`(설계)와 메모리에 남겨 다음 세션이 cold start 하지 않게 한다.
+3. **컨텍스트는 외부화한다.** 결정·설계는 **`sift-docs/` 한 곳**과 메모리에 남겨 다음 세션이 cold start 하지 않게 한다 (D-038 — 코드 레포에는 코드만).
 4. **하네스 산출물도 리뷰 대상이다.** 스킬·규칙·에이전트도 코드처럼 검증한다.
 5. **측정을 먼저 깐다.** 개선할 대상엔 베이스라인부터. evals·메트릭을 기능과 *함께*(나중이 아니라) 깐다. 측정 없이 개선 없음.
 6. **워크플로우로 충분하면 에이전트를 쓰지 않는다.** 단순함이 우선 (§0.5).
@@ -117,8 +117,10 @@
 | **기동** | `sift-orch` | `sift-impl` | `sift-review` |
 | **문서** | [ORCHESTRATOR.md](../roles/ORCHESTRATOR.md) | [IMPLEMENTER.md](../roles/IMPLEMENTER.md) | [REVIEWER.md](../roles/REVIEWER.md) |
 | **하는 일** | 상태 파악 · 태스크 선정 · 이슈 발행 · 루프 문서 갱신 · 결정 정리 | 브랜치 · 코드 · 자가검증 · 커밋 · push · PR · 리뷰 반영 | PR 리뷰 · 외부 리뷰 공백 탐지 · 지적 유효성 판정 |
-| **쓰기** | `sift-docs/**` · `sift-harness/**` · `gh issue create` | `sift-api/**` · 커밋·push · `gh pr create` | `.handoff/reviews/` |
-| **권한 차단** | `Edit(sift-api/**)` · `gh pr create` | `Edit(sift-docs/**)` · `gh issue create` | 모든 파일 편집 · git/gh 쓰기 전부 |
+| **쓰기** | `sift-docs/**` · `sift-harness/**` · `gh issue create` | `sift-api/**` · **`sift-docs/references/`의 설계·규약 문서** · 커밋·push · `gh pr create` | `.handoff/reviews/` |
+| **권한 차단** | `Edit(sift-api/**)` · `gh pr create` | 루프 문서·`adr/`·`roles/`·`checklists/`·HARNESS·PLAN·README · `gh issue create` | 모든 파일 편집 · git/gh 쓰기 전부 |
+
+> 구현 세션의 `sift-docs` 차단은 **열거식**이다(D-038) — 설계 문서가 이 레포로 오면서 통째 deny로는 코드를 고치는 세션이 설계 문서를 갱신할 수 없게 되기 때문이다. `deny > allow`라 "전체 deny + 예외 allow"는 성립하지 않으므로 막을 것을 나열한다. `references/`에 새로 생기는 파일은 기본 허용 — 거기가 설계 문서 자리다.
 
 **규칙**
 
@@ -173,7 +175,7 @@
 | ERD, 상태 머신, 시퀀스, 배치 플로우 (구조가 정형) | **Mermaid** (문서 내 코드블록) | 텍스트라 diff 가능, GitHub 자동 렌더, **에이전트가 직접 작성·갱신 가능** |
 
 - 기본값은 Mermaid. draw.io는 Mermaid로 표현이 옹색한 자유형 다이어그램에만.
-- 위치 (D-021): **레포 종속 설계 문서·다이어그램**(ERD·이벤트·선별 등)은 해당 `sift-*` 레포의 `docs/`가 원본 — 구조 변경 PR에서 코드와 같은 diff로 리뷰한다.
+- 위치 (D-038 — D-021 개정): **설계 문서·다이어그램**(ERD·이벤트·선별 등)도 `sift-docs/references/`가 원본이다. 문서 진입점을 한 곳으로 모은 대신 **코드와 같은 diff로 리뷰할 수 없게 됐으므로**, 구조를 바꾸는 작업은 `sift-api`와 `sift-docs` **양쪽에 커밋**한다 — 한쪽 push 누락이 곧 drift다.
   **워크스페이스 공통 문서**(PLAN·HARNESS·루프 문서)는 `sift-docs` 레포(= 루트 `sift-docs/`)가 원본으로 공개된다. 스냅샷 사본은 만들지 않는다(drift 방지) — 크로스 레포 참조는 절대 URL로 링크한다.
 
 **규칙**
@@ -195,7 +197,7 @@
 | 측정 골격 | — | Actuator 메트릭 + 배치 처리량·소요시간 로깅 (evals 토대) | **Phase 0~1 (앞당김)** |
 | 역할 서브에이전트 | 에이전트 | 선별-튜닝 / 성능-측정·분석 / 리뷰 | Phase 2 |
 | 평가 루프 | 에이전트 | 선별 품질 eval, 발송 성능 벤치 (측정→분석→개선) | Phase 2 (토대는 일찍) |
-| 컨텍스트 영속화 | — | `sift-docs`(PLAN·HARNESS·루프 문서) + 각 레포 `docs/`(설계 문서) + 메모리 | 진행 중 |
+| 컨텍스트 영속화 | — | `sift-docs` 단일 원본(기획·하네스·설계·규약·루프 문서) + 메모리 | 진행 중 |
 
 ---
 

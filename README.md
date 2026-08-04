@@ -14,6 +14,9 @@
 | [references/PLAN.md](references/PLAN.md) | 기획 전체 — 도메인(바운디드 컨텍스트), 발송 설계, 성능 로드맵 V1~V4 |
 | [references/coding-conventions.md](references/coding-conventions.md) | 코드 규약 — 패키지 배치·네이밍·`create`/`restore`/`of`·`Clock` 주입·테스트 3층. **`origin/develop`에서 추출한 것만** 담는다 (Mockito 0건, Fake 직접 구현 등) |
 | [references/observability.md](references/observability.md) | 관측 — `[measure]` 로그 규약, 계측을 배치 어댑터에 두는 이유, **지금 있는 것과 없는 것** (Prometheus 미도입) |
+| [references/MVP-DESIGN.md](references/MVP-DESIGN.md) | sift-api 상세 설계 — ERD·테이블 정의, 배치 Job/Step 명세, 포트 시그니처 |
+| [references/SELECTION.md](references/SELECTION.md) | sift-api 선별 파이프라인 — Normalize·Dedup·Filter·Score·Rank & Select |
+| [references/EVENTS.md](references/EVENTS.md) | sift-api 도메인 이벤트 — 모듈 간 통신 계약 |
 | [roles/](roles/) | 세션 역할 3종 — [🧭 조율](roles/ORCHESTRATOR.md) · [🔧 구현](roles/IMPLEMENTER.md) · [👀 검수](roles/REVIEWER.md). 경계는 권한 프로파일로 강제된다 (D-034) |
 | [checklists/](checklists/) | [PR](checklists/pr.md) — REQUIRED / OPTIONAL / **CONDITIONAL**(조건에 걸리면 반드시) · [릴리스](checklists/release.md) develop → main 승격. 조건부 항목은 **실제로 데인 사례**에서 뽑았다 |
 | [adr/DECISIONS.md](adr/DECISIONS.md) | 경량 ADR — D-001부터의 결정 로그 (결정·이유·비고) |
@@ -26,12 +29,17 @@ sift-docs/
 ├─ references/   HARNESS · PLAN          어떻게 개발하는가 · 무엇을 만드는가
 │                coding-conventions      어떤 규약으로 짜는가
 │                observability           무엇을 어떻게 측정하는가
+│                MVP-DESIGN · SELECTION · EVENTS   sift-api를 어떻게 설계했는가
 ├─ roles/        조율 · 구현 · 검수       누가 무엇을 하는가 (D-034)
 ├─ checklists/   pr · release            언제 무엇을 확인하는가
 ├─ adr/          DECISIONS               왜 그렇게 정했는가
 └─ STATE · TASKS · BACKLOG               지금 어디까지 왔는가 (루프 문서)
 ```
 
-## 레포 종속 설계 문서는 각 코드 레포에
+## 문서는 전부 여기에, 코드는 각 레포에
 
-ERD·배치 설계([MVP-DESIGN](https://github.com/siftnews/sift-api/blob/main/docs/MVP-DESIGN.md)), 선별 파이프라인([SELECTION](https://github.com/siftnews/sift-api/blob/main/docs/SELECTION.md)), 도메인 이벤트([EVENTS](https://github.com/siftnews/sift-api/blob/main/docs/EVENTS.md))는 `sift-api/docs/`가 원본이다 — 구조를 바꾸는 PR에서 코드와 같은 diff로 리뷰하기 위함 (D-021).
+설계 문서까지 이 레포로 모았다 (D-038 — D-021 개정). 심사자든 새 세션이든 **한 곳에서 시작**하면 되고, 코드 레포에는 코드만 남는다.
+
+대가는 있다 — 설계 문서가 코드와 **같은 diff에서 리뷰되지 않는다.** 그래서 구조를 바꾸는 작업은 **두 레포에 커밋해야 하고**, 한쪽 push 누락이 곧 문서 drift다. [PR 체크리스트](checklists/pr.md)의 CONDITIONAL과 [구현 세션 절차](roles/IMPLEMENTER.md)가 그 지점을 막는다.
+
+코드는 [sift-api](https://github.com/siftnews/sift-api)(백엔드) · sift-web(예정)에 있다.

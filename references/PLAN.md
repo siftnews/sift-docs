@@ -31,7 +31,7 @@
 - **발송 방식**: 완전 자동 발송 (운영자 개입 0) — 매일, **구독자가 선택한 시각**에 (D-019)
 - **배치 핵심**: 대량 발송 스케줄링 + 재시도/실패 관리
 - **자동 편집**: 템플릿 기반 (LLM 변수 제거 → 배치 성능에 집중)
-- **선별 방식**: 토픽 구독 + 스코어링·랭킹 파이프라인 → 상세 [SELECTION.md](https://github.com/siftnews/sift-api/blob/main/docs/SELECTION.md)
+- **선별 방식**: 토픽 구독 + 스코어링·랭킹 파이프라인 → 상세 [SELECTION.md](./SELECTION.md)
 
 ---
 
@@ -75,7 +75,7 @@
 | 컨텍스트 | 책임 | 비고 |
 |---|---|---|
 | **Source** (수집) | RSS/API 외부 소스 등록·크롤링·정규화, **기사(Article) 저장·소유 (D-018)** | 배치 ① |
-| **Content** (콘텐츠) | **토픽별 선별**(스코어링·랭킹), 템플릿 이슈 구성 — 후보 기사는 Source named interface로 조회 | 배치 ② → [SELECTION.md](https://github.com/siftnews/sift-api/blob/main/docs/SELECTION.md) |
+| **Content** (콘텐츠) | **토픽별 선별**(스코어링·랭킹), 템플릿 이슈 구성 — 후보 기사는 Source named interface로 조회 | 배치 ② → [SELECTION.md](./SELECTION.md) |
 | **Subscriber** (구독) | 구독/해지, **토픽 구독**, 수신 동의, 바운스·옵트아웃 | |
 | **Delivery** (발송) | DeliveryTask 스냅샷, 대량 발송, 재시도 | 배치 ③④ — **성능 핵심** |
 | **Tracking** (추적) | 오픈/클릭/바운스 이벤트 수집·집계 | 배치 ⑤ (2차) |
@@ -126,7 +126,7 @@ RSS/API 수집  ──▶  중복제거·필터링  ──▶  스케줄 도래 
 
 ### 데이터 모델
 
-> **확정 스키마의 원본은 [MVP-DESIGN §2 ERD·테이블 정의](https://github.com/siftnews/sift-api/blob/main/docs/MVP-DESIGN.md)** — 초안 스키마 사본은 제거(D-023 후속 ③, 2026-07-22 — 사본 drift로 `idempotency_key` 누락이 실제 발생).
+> **확정 스키마의 원본은 [MVP-DESIGN §2 ERD·테이블 정의](./MVP-DESIGN.md)** — 초안 스키마 사본은 제거(D-023 후속 ③, 2026-07-22 — 사본 drift로 `idempotency_key` 누락이 실제 발생).
 > 구조 요약: `subscriber → subscription → topic` · `issue → delivery_job → delivery_task`. `delivery_task`(UNIQUE `idempotency_key`)가 멱등성·재시도·집계의 단일 기준점.
 
 ### 상태 머신
@@ -147,7 +147,7 @@ PENDING → SENDING → SENT
 
 ### 헥사고날 매핑 (Delivery 예시)
 
-- inbound port: `DispatchIssueUseCase`, `SendPendingDeliveriesUseCase`, `RetryFailedDeliveriesUseCase` (확정 시그니처는 [MVP-DESIGN §4](https://github.com/siftnews/sift-api/blob/main/docs/MVP-DESIGN.md))
+- inbound port: `DispatchIssueUseCase`, `SendPendingDeliveriesUseCase`, `RetryFailedDeliveriesUseCase` (확정 시그니처는 [MVP-DESIGN §4](./MVP-DESIGN.md))
 - outbound port: `LoadDeliveryTaskPort`, `SaveDeliveryTaskPort`, `SendEmailPort`
 - adapter: 배치 Job/Step(in), JPA(out), ESP 클라이언트(`SendEmailPort` 구현, out)
 
@@ -181,8 +181,8 @@ PENDING → SENDING → SENT
 
 ## 8. 다음 단계
 
-- [x] 선별 로직 구체화 — 토픽 구독 + 스코어링·랭킹 파이프라인 → [SELECTION.md](https://github.com/siftnews/sift-api/blob/main/docs/SELECTION.md)
-- [x] MVP 상세 설계 — ERD, 배치 Job/Step 명세, 포트 인터페이스 시그니처 → [MVP-DESIGN.md](https://github.com/siftnews/sift-api/blob/main/docs/MVP-DESIGN.md)
+- [x] 선별 로직 구체화 — 토픽 구독 + 스코어링·랭킹 파이프라인 → [SELECTION.md](./SELECTION.md)
+- [x] MVP 상세 설계 — ERD, 배치 Job/Step 명세, 포트 인터페이스 시그니처 → [MVP-DESIGN.md](./MVP-DESIGN.md)
 - [x] 프로젝트 스캐폴딩 — Spring 프로젝트 생성, 모듈/패키지 골격 (첫 배치 Job은 TASKS M1 collectionJob 이슈로)
 - [ ] 부하 테스트 환경 + 모니터링 스택 구성 (→ TASKS M4)
 
