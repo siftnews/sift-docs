@@ -12,6 +12,7 @@
 |---|---|
 | [HARNESS.md](HARNESS.md) | **먼저 읽을 것** — 에이전트 하네스 개발 방식: 원칙, 워크플로우 vs 에이전트 분류, 루프 프로토콜, 협업 흐름(이슈→PR→리뷰→병합), 역할 체계, 문서화 규칙 |
 | [roles/](roles/) | 세션 역할 3종 — [🧭 조율](roles/ORCHESTRATOR.md) · [🔧 구현](roles/IMPLEMENTER.md) · [👀 검수](roles/REVIEWER.md). 경계는 권한 프로파일로 강제된다 (D-034) |
+| [checklists/](checklists/) | [PR 체크리스트](checklists/pr.md) — REQUIRED / OPTIONAL / **CONDITIONAL**(조건에 걸리면 반드시) · [릴리스](checklists/release.md) develop → main 승격. 조건부 항목은 **실제로 데인 사례**에서 뽑았다 |
 | [PLAN.md](PLAN.md) | 기획 전체 — 도메인(바운디드 컨텍스트), 발송 설계, 성능 로드맵 V1~V4 |
 | [STATE.md](STATE.md) | 루프의 나침반 — 현재 Phase·진행 상황·다음 액션. "정정" 섹션은 에이전트 기록을 사람이 재검증·수정한 흔적 |
 | [BACKLOG.md](BACKLOG.md) | 루프가 집는 작업 큐 (이슈 내 하위 단계) |
