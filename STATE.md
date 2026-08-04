@@ -4,9 +4,17 @@
 > 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-08-01
 
 ## 현재 Phase
-**Phase 1 (선별) — M2 선별 코드 경로 완주 + 무인 가동.** #17·#19·#21·#23·#25·#27·#29·#31·#33 전부 develop 병합(`783529a`) — 수집·선별 양쪽에 트리거가 붙어 파이프라인이 무인으로 돈다. 남은 M2는 수집 품질·인프라 계열(URL 정규화 · Liquibase · TopicSeeder 이동 · Atom 검증 · 배치 테스트 Clock 고정).
+**Phase 1 (선별) — M2 선별 코드 경로 완주. 지금은 하네스 재정립.** #17~#39 전부 develop 병합(`9f66a6d`) — 수집·선별 양쪽에 트리거가 붙어 파이프라인이 무인으로 돈다. 남은 M2는 인프라 계열(Liquibase · Atom 검증 · 배치 테스트 Clock 고정).
 
-## 지금 (in progress) — #39 → PR #40 (TopicSeeder 인바운드 어댑터 이동)
+## 지금 (in progress) — 하네스 역할 3분할 (D-034, 2026-08-04)
+- **세션을 🧭 조율 / 🔧 구현 / 👀 검수로 나누고 경계를 권한으로 강제했다.** 런처 `sift-orch`·`sift-impl`·`sift-review`(한 스크립트 `sift-harness/bin/sift-role`을 세 이름으로 링크) + 프로파일 `.claude/roles/*.settings.json` 3종 + 역할 문서 `sift-docs/roles/` 3종. 상세는 [D-034](./DECISIONS.md) · [HARNESS §0.8](./HARNESS.md)
+- **루프 문서 쓰기 주인이 구현 → 조율로 이관됐다** (D-016 개정). 구현 세션은 `Edit(sift-docs/**)` deny로 **막힌다** — 지침이 아니라 장치다. 그 대가로 §0.7 절차 3의 "BACKLOG 분해"가 성립하지 않게 돼, **작업 목록 원본을 이슈 본문 `## TODO`로** 옮기고 구현→조율 인계는 `.handoff/notes/`로 처리한다
+- ⚠️ **검증에서 문법 오류를 하나 잡았다** — `Write(경로)` 권한 규칙은 **무효**이고 `Edit(경로)`만 파일 권한 검사에 걸린다(Claude Code가 경고로 직접 알려줌 — Edit 규칙이 Write·Edit·NotebookEdit를 모두 커버). 초안의 `Write(...)` 줄을 전부 제거했다. 실동작 확인: 검수 프로파일로 `sift-api/README.md` 쓰기 → `BLOCKED`, `.handoff/reviews/` 쓰기 → `WROTE`
+- 🚨 **선결 과제가 드러났다 — 루트 하네스 파일이 심링크가 아니라 복사본이었다.** `CLAUDE.md`·`AGENTS.md`·`.claude/CLAUDE.md`·`.claude/settings.json` 넷 다 실체 파일이었고, CLAUDE.md 본문은 "심링크로 배치된다"고 적혀 있었다 — **그동안의 하네스 편집이 Mac Studio로 전달되지 않고 있었다.** `bootstrap.sh` 재실행으로 복원
+- ⚠️ **그 과정에서 두 머신의 갈라짐이 드러났다** — ① 메모리 `sift-api-open-followups.md`가 로컬은 07-25판, harness는 07-21판(로컬이 최신·상위집합) → 로컬 값으로 복원. 반대로 `sift-harness-remote-setup.md`는 harness가 최신이라 유지 ② 홈 `settings.json`의 `model`이 로컬 `opus` vs harness `claude-fable-5[1m]`, `effortLevel: high`는 로컬에만 → 👤 결정으로 로컬 값 병합. **심링크가 아니어서 생긴 drift다 — 복원으로 재발 경로가 닫혔다**
+- `AGENTS.md`가 CLAUDE.md보다 낡아 있었다(존재하지 않는 `.Codex/` 경로, sift-harness 미언급) → 동기화. 단 **런처·권한 프로파일은 Claude Code 전용**이라 다른 CLI에서는 경계가 지침으로만 남는다는 단서를 달았다
+
+## 최근 병합 — #39 → PR #40 (TopicSeeder 인바운드 어댑터 이동)
 - **이슈 #39 → PR #40 (2026-08-01)** — `TopicSeeder`가 `content/adapter/out/persistence`에 놓인 채 JPA 리포지토리를 직접 부르던 헥사고날 위반을 정리했다. 브랜치 `feature/39-topic-seeder-inbound`, base=develop. **182 tests 통과**. CodeRabbit 감시 Monitor 가동
 - **어긋나 있던 것 3가지** — ① 위치가 반대(인바운드인데 out 패키지, 카탈로그 `TopicSeedData`도 함께) ② 유스케이스·포트 우회(`TopicJpaRepository` 직접 호출 + 엔티티 매핑을 시더가 보유, `TopicMapper`가 있는데 미사용) ③ **저장이 conflict-ignore가 아니었다** — "있는지 조회 → 없으면 save"라 두 인스턴스 동시 기동 시 둘 다 없다고 판정한다. slug UNIQUE가 있어 중복은 안 들어가지만 **한쪽 기동이 예외로 죽는다**
 - **변경** — `SeedTopicsUseCase`(in) + `SaveTopicPort`(out) + `SeedTopicsService` 신설(Source와 같은 계약), `TopicPersistenceAdapter`가 `ON CONFLICT (slug) DO NOTHING`으로 구현, 시더 2파일을 `adapter/in/bootstrap`으로 `git mv`(이력 보존)
@@ -16,7 +24,7 @@
 - 🚨 **rate limit 4번째 재발 → 해소** — PR #22·#28·#38에 이어 네 번째로, `Review limit reached`로 리뷰가 **시작조차 안 됐는데 체크는 `CodeRabbit: SUCCESS`**였다(gh로 확인). **base 최신화 머지 커밋을 push하자 리뷰가 자동 재트리거돼 정상 완료**됐다 — 사람이 `@coderabbitai review` 코멘트를 달지 않고도 공백을 메우는 경로가 확인된 셈이다(에이전트가 할 수 있는 유일한 재시도 수단). 다만 **체크가 통과로 뜨는 구조 자체는 그대로**다
 - **CodeRabbit 리뷰 3건 처리 (2026-08-01)** — ① 🔵 Trivial Micrometer 계측: **미반영**. PR #38에서 👤가 이미 패스로 결정한 것과 같은 사안이고, **CodeRabbit 자신의 스크립트가 `SourceSeeder`에 Micrometer 참조가 없음을 확인**했다 — 선례에 없는 계측을 Topic 시더에만 붙이면 두 시더가 비대칭이 되어 이 PR의 목적("Source와 같은 구조로 맞추기")과 어긋난다. 미반영이라 스레드 resolve 안 함(D-033) ② ⚠️ Docstring 36.36%: 반박 유지(3회째 동일) ③ ❓ Linked Issues **Inconclusive** — `docs/MVP-DESIGN.md`가 `!**/*.md`에 걸려 문서 갱신 확인 불가. **PR #30·#38에 이어 세 번째 재발** ✅ Out of Scope 체크는 통과(`existsBySlug` 제거를 미리 반영한 것이 유효)
 
-## 병합 대기 — #37 → PR #38 (쿼리로 기사를 구분하는 소스의 URL 정규화)
+## 최근 병합 — #37 → PR #38 (쿼리로 기사를 구분하는 소스의 URL 정규화)
 - **이슈 #37 → PR #38 (2026-08-01)** — `UriNormalizer`가 쿼리를 통째로 버려 기사가 뭉개지던 문제를 **추적 파라미터만 제거**하는 규칙으로 고쳤다. 브랜치 `feature/37-url-normalize-query`, base=develop. **187 tests 통과**. CodeRabbit 감시 Monitor 가동
 - **실측으로 피해 범위를 확정했다** (시드 9종 실 피드 조회) — 피해 소스는 **AI타임스 하나**(50건 → 고유 1건, 손실 49). BBC는 쿼리가 `at_medium`·`at_campaign` 추적 파라미터 고정이라 손실 0이고(원본 피드에 같은 URL이 2번 실려 생긴 3건은 쿼리와 무관), 매일경제·한국경제 포함 나머지 7종은 전부 path로 기사를 구분한다. **"한국 언론사 다수"로 적어 뒀던 종전 추정보다 범위가 훨씬 좁다**
 - ⚠️ **적재만의 문제가 아니었다** — `DedupClusterer`의 병합 기준 ①이 `normalizedUrl` 완전 일치라, 정규화가 뭉개지면 **제목이 전혀 다른 기사들이 한 클러스터로 병합**된다. 선별은 클러스터 대표 1건만 스코어링하므로 그대로 발행 누락이 된다 — 적재가 `UNIQUE(normalized_url)`에서 먼저 막혀 가려져 있던 두 번째 피해다
@@ -34,7 +42,7 @@
   - ⚠️ **PR #38 본문이 코드와 어긋나 있다** — 백필 커밋 후 본문의 "백필이 필요 없는 이유" 절을 갱신하지 않았다. **본문 edit는 사람 영역(D-028)**이라 교체 문구만 사용자에게 전달했다. 후속 PR에서 반복하지 않으려면 **리뷰 반영 커밋 때 PR 본문 갱신 필요 여부를 함께 점검**할 것
   - 부수 발견: `SourceSeeder` javadoc의 "Liquibase 마이그레이션 전환은 후속(**MVP-DESIGN §2**)" 참조가 **댕글링**이다 — 현재 §2는 ERD이고 Liquibase 서술이 없다(문서 개정 중 소실 추정). 이번 PR에서는 내 문서만 참조를 정리했고 기존 주석은 손대지 않았다
 
-## 병합 대기 — #35 → PR #36 (발행 이슈가 비는 시간대 결함)
+## 최근 병합 — #35 → PR #36 (발행 이슈가 비는 시간대 결함)
 - **이슈 #35 → PR #36 (2026-07-31)** — `BuildIssueService`의 점수 조회 하한을 **트리거가 계산한 윈도우 `from`으로 일치**시켰다. 브랜치 `feature/35-issue-lower-bound-zone`, base=develop. **180 tests 통과**. CodeRabbit 감시 Monitor 가동
 - **결함** — 하한이 `runDate.atStartOfDay(ZoneOffset.UTC)`였는데 `runDate`는 시스템 존(KST) 날짜다. KST 날짜 D의 UTC 자정은 KST D 09:00이라 **KST 00:00~09:00에 계산된 점수는 전부 하한 미만**이 되고, 확정 발행 시각 **06:00 Asia/Seoul(#31)이 이 구간 한가운데**다 → 그대로 뒀으면 운영에서 **매일 빈 호**가 나갔다
 - **수정** — `selectTasklet`이 `WINDOW_FROM`을 주입받아 `buildIssueForTopic(topicId, runDate, scoredFrom)`으로 넘긴다. **날짜에서 시각을 유도하는 것 자체를 없앤 것**이 핵심 — 트리거는 이미 윈도우를 전 토픽에 넘기고 있었고 `selectTasklet`만 그걸 안 받고 있었다. `runDate`는 호의 식별자·제목 용도로만 남는다
@@ -45,9 +53,9 @@
 - ⚠️ **rate limit 3번째 재발** — 반영 커밋(`b7e403e`) 이후 CodeRabbit 체크가 다시 `pass` 표시에 실제 내용은 `Review rate limited`. PR #22·#28에 이어 세 번째다. 이번엔 첫 라운드가 정상 리뷰돼 영향이 작지만(후속 커밋만 미리뷰), **체크가 통과로 뜨는 구조는 그대로**다
 
 ## 다음 액션 (next)
-- 👤 **PR #38·#40 병합** — **#36은 병합 완료**(`83781dd`). 두 PR 모두 develop 최신을 머지해 두었다(#38 `cc6c249` **200 tests** · #40 **184 tests**, 둘 다 충돌 없음). 먼저 병합하는 쪽이 끝나면 나머지 하나는 다시 최신화가 필요하다 — **`MVP-DESIGN.md` §4의 인접 구역(Source 포트 / Content 포트)을 각각 고쳐** 그때 충돌이 날 수 있다
-- 👤 **PR #40 본문 "남긴 것" 문단 교체** — `existsBySlug`를 제거해 서술이 어긋났다(아래 교체 문구는 세션이 전달)
-- 🤖 **M2 잔여 태스크 착수** — Liquibase · Atom 검증 · **배치 테스트 Clock 고정(#36 병합으로 이제 착수 가능 — `SelectionJobIntegrationTest` 충돌 위험 해소)**
+- 👤 **역할 런처로 갈아타기** — 다음 사이클부터 맨 `claude` 대신 `sift-orch`(계획·이슈) → `sift-impl`(구현·PR) → `sift-review`(검수)로 기동한다. 첫 실사용에서 경계가 실제로 맞는지(막혀야 할 게 막히고, 필요한 게 안 막히는지) 확인해 보고 — 과하게 조이면 프로파일 완화, 새는 곳이 있으면 추가
+- 👤 **Mac Studio에 `bootstrap.sh` 재실행 필요** — 역할 런처·프로파일은 링크 배치라 그쪽에서도 한 번 돌려야 생긴다. 심링크 복원도 같은 이유로 그쪽에서 필요할 수 있다
+- 🧭 **M2 잔여 태스크 착수** — Liquibase · Atom 검증 · **배치 테스트 Clock 고정**(#36 병합으로 착수 가능 — `SelectionJobIntegrationTest` 충돌 위험 해소)
 - 👤 **#25 열린 결정 2건** — ① `sourceScore`를 중립 상수 1.0으로 둠(`source.trust_score` 재검토 시점이 지금) ② 키워드 매칭이 대소문자 무시 부분 문자열(영어 과매칭 수용). 둘 다 되돌리기 쉬운 쪽으로 잡았고 방향 지시가 있으면 후속에서 변경
 - 👤 **#27 ERD 변경 2건 확인** — ① `issue.run_date` + `UNIQUE(topic_id, run_date)`: 기존 스키마엔 "몇 일자 호인가"가 없어 재실행 시 같은 날 호가 두 개 생길 수 있었다 ② `article_score.source_id` 비정규화: 소스 쏠림 완화에 필요한데 article은 Source 소유(D-018)라 조인 불가
 - 👤 **CodeRabbit 리뷰 공백 — 재발 방침 결정 (4회째)** — PR #22·#28에 이어 #38(후속 커밋)·#40(첫 라운드부터 0건)까지 왔다. **#40은 새 커밋 push로 해소됐지만**, rate limit이 걸려도 체크가 `SUCCESS`로 뜨는 구조는 그대로라 다음에도 조용히 빌 수 있다. 선택지: ① usage-based reviews 과금 활성화 ② 리뷰 볼륨 축소(라벨 opt-in·증분 자동리뷰 중단) ③ 병합 전 리뷰 실제 수행 여부 확인을 절차로 굳히기(**구현 세션이 gh로 확인해 보고 — 이번처럼**) ④ 현 상태 수용하고 구현 세션 자체 리뷰로 대체
@@ -91,7 +99,7 @@
 
 ## 비고
 - **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성** = 에이전트 (모든 기록은 사용자 명의·기존 스타일 — HARNESS §0.7 컨벤션을 스스로 준수, 검사 장치 없음 D-027). **병합·리뷰 승인·issue/pr close·comment·release·repo/인프라 쓰기** = 사람. issue/pr `edit`는 에이전트 허용이되 assignee·라벨 관리 용도만 (D-028). **반영 완료한 리뷰 스레드의 resolve는 에이전트** — 답글은 여전히 사람 (D-033).
-- **세션 역할 (2026-07-26 개정)**: 07-25의 "루프 문서 쓰기 = 문서 세션 전담"은 **구현 세션이 문서 쓰기까지 겸임**하는 것으로 사용자 확정. 단 쓰기 전 `sift-docs` **fetch 필수** (위 "정정" 07-26 사고 참조).
+- **세션 역할 (2026-08-04 개정 — D-034)**: 세션은 🧭 조율 / 🔧 구현 / 👀 검수 3종이고 경계는 **권한 프로파일로 강제**된다. 루프 문서 쓰기 주인은 **조율 세션**(07-26의 "구현 세션 겸임"에서 이관). 쓰기 전 `sift-docs` **fetch 필수**는 불변 (위 "정정" 07-26 사고 참조). 각 역할 문서는 [`roles/`](./roles/).
 - **구현 리듬 (D-026)**: 작은 작업 1개 → build/test 자가검증 → 에이전트 커밋(`{type}: {한국어 요약}` 한 줄, 트레일러 금지) → 다음 작업.
 - ~~로컬 테스트는 `TZ=UTC`로 돌려야 한다~~ — **해소 (2026-08-01, PR #36 병합)**: 결함 자체가 고쳐졌고 `build.gradle`이 `systemProperty 'user.timezone', 'Asia/Seoul'`로 존을 못 박아 어디서 돌리든 같은 결과가 나온다. 단 **존 고정만으로는 이 계열 결함을 못 잡는다** — 재현이 실행 *시각*에도 좌우되기 때문이다(#35 기록 참조). 남은 방어는 test 프로파일 `Clock` 고정 태스크.
 - 게이트(settings.json deny): gh pr merge/review/ready, issue·pr close/comment/delete, release, repo, workflow run, secret, variable (edit는 D-028로 allow — assignee·라벨 용도만). 파괴 명령: git reset --hard / clean, docker compose down -v. main push 방어 = GitHub 브랜치 보호(D-027). `gh api`는 allow/deny 양쪽 제외(백스톱) — settings.local.json의 `gh api *` allow는 워크스페이스·하네스 시드 양쪽 제거 완료(👤 2026-07-22, 백스톱 복원).
