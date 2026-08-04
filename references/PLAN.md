@@ -186,4 +186,4 @@ PENDING → SENDING → SENT
 - [x] 프로젝트 스캐폴딩 — Spring 프로젝트 생성, 모듈/패키지 골격 (첫 배치 Job은 TASKS M1 collectionJob 이슈로)
 - [ ] 부하 테스트 환경 + 모니터링 스택 구성 (→ TASKS M4)
 
-> 이후 진행 추적은 [STATE.md](./STATE.md)·[TASKS.md](./TASKS.md)로 이관 (2026-07-05).
+> 이후 진행 추적은 [STATE.md](../STATE.md)·[TASKS.md](../TASKS.md)로 이관 (2026-07-05).

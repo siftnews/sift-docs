@@ -1,13 +1,13 @@
 # Sift — STATE (루프 나침반)
 
 > 매 사이클 **시작에 읽고, 종료에 갱신**한다. 현재 상황의 단일 진실원천.
-> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 쓰기 주인: 🧭 조율 세션 (D-034) · 마지막 갱신: 2026-08-04
+> 프로토콜: [HARNESS.md §0.6](./references/HARNESS.md) · 쓰기 주인: 🧭 조율 세션 (D-034) · 마지막 갱신: 2026-08-04
 
 ## 현재 Phase
 **Phase 1 (선별) — M2 선별 코드 경로 완주. 지금은 하네스 재정립.** #17~#39 전부 develop 병합(`9f66a6d`) — 수집·선별 양쪽에 트리거가 붙어 파이프라인이 무인으로 돈다. 남은 M2는 인프라 계열(Liquibase · Atom 검증 · 배치 테스트 Clock 고정).
 
 ## 지금 (in progress) — 하네스 역할 3분할 (D-034, 2026-08-04)
-- **세션을 🧭 조율 / 🔧 구현 / 👀 검수로 나누고 경계를 권한으로 강제했다.** 런처 `sift-orch`·`sift-impl`·`sift-review`(한 스크립트 `sift-harness/bin/sift-role`을 세 이름으로 링크) + 프로파일 `.claude/roles/*.settings.json` 3종 + 역할 문서 `sift-docs/roles/` 3종. 상세는 [D-034](./DECISIONS.md) · [HARNESS §0.8](./HARNESS.md)
+- **세션을 🧭 조율 / 🔧 구현 / 👀 검수로 나누고 경계를 권한으로 강제했다.** 런처 `sift-orch`·`sift-impl`·`sift-review`(한 스크립트 `sift-harness/bin/sift-role`을 세 이름으로 링크) + 프로파일 `.claude/roles/*.settings.json` 3종 + 역할 문서 `sift-docs/roles/` 3종. 상세는 [D-034](./adr/DECISIONS.md) · [HARNESS §0.8](./references/HARNESS.md)
 - **루프 문서 쓰기 주인이 구현 → 조율로 이관됐다** (D-016 개정). 구현 세션은 `Edit(sift-docs/**)` deny로 **막힌다** — 지침이 아니라 장치다. 그 대가로 §0.7 절차 3의 "BACKLOG 분해"가 성립하지 않게 돼, **작업 목록 원본을 이슈 본문 `## TODO`로** 옮기고 구현→조율 인계는 `.handoff/notes/`로 처리한다
 - ⚠️ **검증에서 문법 오류를 하나 잡았다** — `Write(경로)` 권한 규칙은 **무효**이고 `Edit(경로)`만 파일 권한 검사에 걸린다(Claude Code가 경고로 직접 알려줌 — Edit 규칙이 Write·Edit·NotebookEdit를 모두 커버). 초안의 `Write(...)` 줄을 전부 제거했다. 실동작 확인: 검수 프로파일로 `sift-api/README.md` 쓰기 → `BLOCKED`, `.handoff/reviews/` 쓰기 → `WROTE`
 - 🚨 **선결 과제가 드러났다 — 루트 하네스 파일이 심링크가 아니라 복사본이었다.** `CLAUDE.md`·`AGENTS.md`·`.claude/CLAUDE.md`·`.claude/settings.json` 넷 다 실체 파일이었고, CLAUDE.md 본문은 "심링크로 배치된다"고 적혀 있었다 — **그동안의 하네스 편집이 Mac Studio로 전달되지 않고 있었다.** `bootstrap.sh` 재실행으로 복원

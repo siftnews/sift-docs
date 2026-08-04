@@ -1,7 +1,7 @@
 # 🧭 조율 세션 (orchestrator)
 
 > 기동: `sift-orch` · 권한 프로파일: `.claude/roles/orchestrator.settings.json`
-> 역할 체계 전반은 [HARNESS §0.8](../HARNESS.md) · 다른 역할: [🔧 구현](./IMPLEMENTER.md) · [👀 검수](./REVIEWER.md)
+> 역할 체계 전반은 [HARNESS §0.8](../references/HARNESS.md) · 다른 역할: [🔧 구현](./IMPLEMENTER.md) · [👀 검수](./REVIEWER.md)
 
 **한 줄로**: 무엇을 다음에 할지 정하고, 그 결정과 상태를 기록으로 남긴다. 코드는 만지지 않는다.
 

@@ -1,7 +1,7 @@
 # 🔧 구현 세션 (implementer)
 
 > 기동: `sift-impl` · 권한 프로파일: `.claude/roles/implementer.settings.json`
-> 역할 체계 전반은 [HARNESS §0.8](../HARNESS.md) · 다른 역할: [🧭 조율](./ORCHESTRATOR.md) · [👀 검수](./REVIEWER.md)
+> 역할 체계 전반은 [HARNESS §0.8](../references/HARNESS.md) · 다른 역할: [🧭 조율](./ORCHESTRATOR.md) · [👀 검수](./REVIEWER.md)
 
 **한 줄로**: 발행된 이슈 하나를 코드로 만들어 PR까지 낸다. 무엇을 할지는 정하지 않는다.
 

@@ -10,14 +10,23 @@
 
 | 문서 | 내용 |
 |---|---|
-| [HARNESS.md](HARNESS.md) | **먼저 읽을 것** — 에이전트 하네스 개발 방식: 원칙, 워크플로우 vs 에이전트 분류, 루프 프로토콜, 협업 흐름(이슈→PR→리뷰→병합), 역할 체계, 문서화 규칙 |
+| [references/HARNESS.md](references/HARNESS.md) | **먼저 읽을 것** — 에이전트 하네스 개발 방식: 원칙, 워크플로우 vs 에이전트 분류, 루프 프로토콜, 협업 흐름(이슈→PR→리뷰→병합), 역할 체계, 문서화 규칙 |
+| [references/PLAN.md](references/PLAN.md) | 기획 전체 — 도메인(바운디드 컨텍스트), 발송 설계, 성능 로드맵 V1~V4 |
 | [roles/](roles/) | 세션 역할 3종 — [🧭 조율](roles/ORCHESTRATOR.md) · [🔧 구현](roles/IMPLEMENTER.md) · [👀 검수](roles/REVIEWER.md). 경계는 권한 프로파일로 강제된다 (D-034) |
-| [checklists/](checklists/) | [PR 체크리스트](checklists/pr.md) — REQUIRED / OPTIONAL / **CONDITIONAL**(조건에 걸리면 반드시) · [릴리스](checklists/release.md) develop → main 승격. 조건부 항목은 **실제로 데인 사례**에서 뽑았다 |
-| [PLAN.md](PLAN.md) | 기획 전체 — 도메인(바운디드 컨텍스트), 발송 설계, 성능 로드맵 V1~V4 |
+| [checklists/](checklists/) | [PR](checklists/pr.md) — REQUIRED / OPTIONAL / **CONDITIONAL**(조건에 걸리면 반드시) · [릴리스](checklists/release.md) develop → main 승격. 조건부 항목은 **실제로 데인 사례**에서 뽑았다 |
+| [adr/DECISIONS.md](adr/DECISIONS.md) | 경량 ADR — D-001부터의 결정 로그 (결정·이유·비고) |
 | [STATE.md](STATE.md) | 루프의 나침반 — 현재 Phase·진행 상황·다음 액션. "정정" 섹션은 에이전트 기록을 사람이 재검증·수정한 흔적 |
-| [BACKLOG.md](BACKLOG.md) | 루프가 집는 작업 큐 (이슈 내 하위 단계) |
 | [TASKS.md](TASKS.md) | 태스크 트리 — 마일스톤 M1~M4 → 이슈 후보 매핑 |
-| [DECISIONS.md](DECISIONS.md) | 경량 ADR — D-001부터의 결정 로그 (결정·이유·비고) |
+| [BACKLOG.md](BACKLOG.md) | 진행 중인 이슈 1개의 구현 단계 (작업 목록 원본은 이슈 본문 `## TODO` — D-035) |
+
+```
+sift-docs/
+├─ references/   HARNESS · PLAN          어떻게 개발하는가 · 무엇을 만드는가
+├─ roles/        조율 · 구현 · 검수       누가 무엇을 하는가 (D-034)
+├─ checklists/   pr · release            언제 무엇을 확인하는가
+├─ adr/          DECISIONS               왜 그렇게 정했는가
+└─ STATE · TASKS · BACKLOG               지금 어디까지 왔는가 (루프 문서)
+```
 
 ## 레포 종속 설계 문서는 각 코드 레포에
 

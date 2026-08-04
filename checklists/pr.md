@@ -1,7 +1,7 @@
 # PR 체크리스트
 
 > PR을 열기 전 🔧 구현 세션이 확인한다. 검수(👀)와 병합(👤)의 판단 근거이기도 하다.
-> 절차 전체는 [HARNESS §0.7](../HARNESS.md) · 역할은 [roles/](../roles/)
+> 절차 전체는 [HARNESS §0.7](../references/HARNESS.md) · 역할은 [roles/](../roles/)
 
 ## ■ REQUIRED — 예외 없음
 

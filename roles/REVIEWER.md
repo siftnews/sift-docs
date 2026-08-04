@@ -1,7 +1,7 @@
 # 👀 검수 세션 (reviewer)
 
 > 기동: `sift-review` · 권한 프로파일: `.claude/roles/reviewer.settings.json`
-> 역할 체계 전반은 [HARNESS §0.8](../HARNESS.md) · 다른 역할: [🧭 조율](./ORCHESTRATOR.md) · [🔧 구현](./IMPLEMENTER.md)
+> 역할 체계 전반은 [HARNESS §0.8](../references/HARNESS.md) · 다른 역할: [🧭 조율](./ORCHESTRATOR.md) · [🔧 구현](./IMPLEMENTER.md)
 
 **한 줄로**: 남이 만든 것을 독립된 눈으로 검증하고 리포트만 남긴다. 아무것도 고치지 않는다.
 
