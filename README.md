@@ -12,6 +12,8 @@
 |---|---|
 | [references/HARNESS.md](references/HARNESS.md) | **먼저 읽을 것** — 에이전트 하네스 개발 방식: 원칙, 워크플로우 vs 에이전트 분류, 루프 프로토콜, 협업 흐름(이슈→PR→리뷰→병합), 역할 체계, 문서화 규칙 |
 | [references/PLAN.md](references/PLAN.md) | 기획 전체 — 도메인(바운디드 컨텍스트), 발송 설계, 성능 로드맵 V1~V4 |
+| [references/coding-conventions.md](references/coding-conventions.md) | 코드 규약 — 패키지 배치·네이밍·`create`/`restore`/`of`·`Clock` 주입·테스트 3층. **`origin/develop`에서 추출한 것만** 담는다 (Mockito 0건, Fake 직접 구현 등) |
+| [references/observability.md](references/observability.md) | 관측 — `[measure]` 로그 규약, 계측을 배치 어댑터에 두는 이유, **지금 있는 것과 없는 것** (Prometheus 미도입) |
 | [roles/](roles/) | 세션 역할 3종 — [🧭 조율](roles/ORCHESTRATOR.md) · [🔧 구현](roles/IMPLEMENTER.md) · [👀 검수](roles/REVIEWER.md). 경계는 권한 프로파일로 강제된다 (D-034) |
 | [checklists/](checklists/) | [PR](checklists/pr.md) — REQUIRED / OPTIONAL / **CONDITIONAL**(조건에 걸리면 반드시) · [릴리스](checklists/release.md) develop → main 승격. 조건부 항목은 **실제로 데인 사례**에서 뽑았다 |
 | [adr/DECISIONS.md](adr/DECISIONS.md) | 경량 ADR — D-001부터의 결정 로그 (결정·이유·비고) |
@@ -22,6 +24,8 @@
 ```
 sift-docs/
 ├─ references/   HARNESS · PLAN          어떻게 개발하는가 · 무엇을 만드는가
+│                coding-conventions      어떤 규약으로 짜는가
+│                observability           무엇을 어떻게 측정하는가
 ├─ roles/        조율 · 구현 · 검수       누가 무엇을 하는가 (D-034)
 ├─ checklists/   pr · release            언제 무엇을 확인하는가
 ├─ adr/          DECISIONS               왜 그렇게 정했는가
