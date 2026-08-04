@@ -1,7 +1,7 @@
 # Sift — STATE (루프 나침반)
 
 > 매 사이클 **시작에 읽고, 종료에 갱신**한다. 현재 상황의 단일 진실원천.
-> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 마지막 갱신: 2026-08-01
+> 프로토콜: [HARNESS.md §0.6](./HARNESS.md) · 쓰기 주인: 🧭 조율 세션 (D-034) · 마지막 갱신: 2026-08-04
 
 ## 현재 Phase
 **Phase 1 (선별) — M2 선별 코드 경로 완주. 지금은 하네스 재정립.** #17~#39 전부 develop 병합(`9f66a6d`) — 수집·선별 양쪽에 트리거가 붙어 파이프라인이 무인으로 돈다. 남은 M2는 인프라 계열(Liquibase · Atom 검증 · 배치 테스트 Clock 고정).
@@ -14,57 +14,32 @@
 - ⚠️ **그 과정에서 두 머신의 갈라짐이 드러났다** — ① 메모리 `sift-api-open-followups.md`가 로컬은 07-25판, harness는 07-21판(로컬이 최신·상위집합) → 로컬 값으로 복원. 반대로 `sift-harness-remote-setup.md`는 harness가 최신이라 유지 ② 홈 `settings.json`의 `model`이 로컬 `opus` vs harness `claude-fable-5[1m]`, `effortLevel: high`는 로컬에만 → 👤 결정으로 로컬 값 병합. **심링크가 아니어서 생긴 drift다 — 복원으로 재발 경로가 닫혔다**
 - `AGENTS.md`가 CLAUDE.md보다 낡아 있었다(존재하지 않는 `.Codex/` 경로, sift-harness 미언급) → 동기화. 단 **런처·권한 프로파일은 Claude Code 전용**이라 다른 CLI에서는 경계가 지침으로만 남는다는 단서를 달았다
 
-## 최근 병합 — #39 → PR #40 (TopicSeeder 인바운드 어댑터 이동)
-- **이슈 #39 → PR #40 (2026-08-01)** — `TopicSeeder`가 `content/adapter/out/persistence`에 놓인 채 JPA 리포지토리를 직접 부르던 헥사고날 위반을 정리했다. 브랜치 `feature/39-topic-seeder-inbound`, base=develop. **182 tests 통과**. CodeRabbit 감시 Monitor 가동
-- **어긋나 있던 것 3가지** — ① 위치가 반대(인바운드인데 out 패키지, 카탈로그 `TopicSeedData`도 함께) ② 유스케이스·포트 우회(`TopicJpaRepository` 직접 호출 + 엔티티 매핑을 시더가 보유, `TopicMapper`가 있는데 미사용) ③ **저장이 conflict-ignore가 아니었다** — "있는지 조회 → 없으면 save"라 두 인스턴스 동시 기동 시 둘 다 없다고 판정한다. slug UNIQUE가 있어 중복은 안 들어가지만 **한쪽 기동이 예외로 죽는다**
-- **변경** — `SeedTopicsUseCase`(in) + `SaveTopicPort`(out) + `SeedTopicsService` 신설(Source와 같은 계약), `TopicPersistenceAdapter`가 `ON CONFLICT (slug) DO NOTHING`으로 구현, 시더 2파일을 `adapter/in/bootstrap`으로 `git mv`(이력 보존)
-- ⚠️ **JSON 컬럼 한 겹이 더 든다** — `Topic`은 `include_keywords`·`exclude_keywords`·`keyword_weights`·`source_categories` 넷이 `@JdbcTypeCode(SqlTypes.JSON)`인데 **네이티브 insert는 이 매핑을 타지 않는다**. 어댑터가 직렬화한 문자열을 넘기고 리포지토리가 `jsonb`로 캐스팅한다. 직렬화를 손으로 하는 경로라 조용히 깨지면 선별이 빈 키워드로 돌아 후보를 못 고른다 → `seedRoundTripsJsonColumns`로 실 DB 왕복 검증
-- **자체 리뷰로 죽은 코드 발견** — 시더가 포트를 타게 되면서 `existsBySlug`의 사용처가 0이 됐다. 리팩터링 PR에 죽은 코드를 남길 이유가 없어 제거(`9301b08`). ⚠️ **PR #40 본문의 "남긴 것" 문단이 이 커밋으로 부정확해졌다** — 본문 edit는 사람 영역(D-028)이라 교체 문구를 사용자에게 전달
-- 시더는 `SourceSeeder`와 마찬가지로 **Liquibase 도입 시 마이그레이션으로 흡수될 코드**다
-- 🚨 **rate limit 4번째 재발 → 해소** — PR #22·#28·#38에 이어 네 번째로, `Review limit reached`로 리뷰가 **시작조차 안 됐는데 체크는 `CodeRabbit: SUCCESS`**였다(gh로 확인). **base 최신화 머지 커밋을 push하자 리뷰가 자동 재트리거돼 정상 완료**됐다 — 사람이 `@coderabbitai review` 코멘트를 달지 않고도 공백을 메우는 경로가 확인된 셈이다(에이전트가 할 수 있는 유일한 재시도 수단). 다만 **체크가 통과로 뜨는 구조 자체는 그대로**다
-- **CodeRabbit 리뷰 3건 처리 (2026-08-01)** — ① 🔵 Trivial Micrometer 계측: **미반영**. PR #38에서 👤가 이미 패스로 결정한 것과 같은 사안이고, **CodeRabbit 자신의 스크립트가 `SourceSeeder`에 Micrometer 참조가 없음을 확인**했다 — 선례에 없는 계측을 Topic 시더에만 붙이면 두 시더가 비대칭이 되어 이 PR의 목적("Source와 같은 구조로 맞추기")과 어긋난다. 미반영이라 스레드 resolve 안 함(D-033) ② ⚠️ Docstring 36.36%: 반박 유지(3회째 동일) ③ ❓ Linked Issues **Inconclusive** — `docs/MVP-DESIGN.md`가 `!**/*.md`에 걸려 문서 갱신 확인 불가. **PR #30·#38에 이어 세 번째 재발** ✅ Out of Scope 체크는 통과(`existsBySlug` 제거를 미리 반영한 것이 유효)
+## 전체 정합 검토 (2026-08-04)
 
-## 최근 병합 — #37 → PR #38 (쿼리로 기사를 구분하는 소스의 URL 정규화)
-- **이슈 #37 → PR #38 (2026-08-01)** — `UriNormalizer`가 쿼리를 통째로 버려 기사가 뭉개지던 문제를 **추적 파라미터만 제거**하는 규칙으로 고쳤다. 브랜치 `feature/37-url-normalize-query`, base=develop. **187 tests 통과**. CodeRabbit 감시 Monitor 가동
-- **실측으로 피해 범위를 확정했다** (시드 9종 실 피드 조회) — 피해 소스는 **AI타임스 하나**(50건 → 고유 1건, 손실 49). BBC는 쿼리가 `at_medium`·`at_campaign` 추적 파라미터 고정이라 손실 0이고(원본 피드에 같은 URL이 2번 실려 생긴 3건은 쿼리와 무관), 매일경제·한국경제 포함 나머지 7종은 전부 path로 기사를 구분한다. **"한국 언론사 다수"로 적어 뒀던 종전 추정보다 범위가 훨씬 좁다**
-- ⚠️ **적재만의 문제가 아니었다** — `DedupClusterer`의 병합 기준 ①이 `normalizedUrl` 완전 일치라, 정규화가 뭉개지면 **제목이 전혀 다른 기사들이 한 클러스터로 병합**된다. 선별은 클러스터 대표 1건만 스코어링하므로 그대로 발행 누락이 된다 — 적재가 `UNIQUE(normalized_url)`에서 먼저 막혀 가려져 있던 두 번째 피해다
-- **뿌리는 설계 의도와 구현의 괴리** — #4의 범위는 "URL 정규화 불변식(**UTM 제거**·호스트 소문자화)"였는데 구현과 테스트(`normalizeRemovesQueryStringAndLowercasesHost`)가 **쿼리 전량 제거**로 확대돼 있었다. 원래 의도로 되돌린 것
-- **결정** — 추적 파라미터 블랙리스트(`utm_*`·`at_*` 접두어 + `fbclid`·`gclid`·`igshid`·`mc_cid`·`mc_eid`·`ref`)만 제거하고 나머지 쿼리는 키 정렬해 보존. 후보였던 «쿼리 전량 유지»는 추적 파라미터가 달라진 같은 기사가 중복 적재되고, «소스별 화이트리스트»는 피해 소스 1종인 지금 과설계
-- **백필 불필요** — BBC는 추적 파라미터를 걷어내면 쿼리가 비어 기존 정규화 결과와 값이 같다. 실제로 값이 바뀌는 건 AI타임스뿐이고, 그 소스는 기존 DB에 옛 키로 1건만 적재돼 있어 신규와 충돌하지 않는다(고아 1건으로 남는다)
-- ✅ **회귀 방어를 실증했다** — 옛 동작(쿼리 전량 제거)을 일시 주입해 돌리니 **새 테스트 8건만 실패하고 기존 19건은 통과**. `DedupClustererTest#articlesDistinguishedOnlyByQueryStayInSeparateClusters` 실패가 위 dedup 오병합의 실재를 증명한다
-- 부수 확인: 실측 중 매일경제가 403을 냈으나 조회 UA 문제였고, `RssFeedAdapter`가 실제로 쓰는 경로(Java 기본 UA)로는 200 — 결함 아니다
-- **CodeRabbit 리뷰 반영 완료 (`67d4348`)** — 인라인 1건(🟠 Major) 수용: **정규화 규칙이 바뀌면 기존 `normalized_url` 키가 무효해져, 같은 기사를 재수집할 때 `UNIQUE`가 옛 키의 행을 못 찾아 중복 행이 된다**는 지적. 원리가 타당해 `RenormalizeArticleUrlsUseCase` + `ArticleUrlPort` + 기동 러너 `ArticleUrlRenormalizer`로 백필을 구현했다. **198 tests**. 스레드 resolve(D-033)
-  - 규모 재확인: 새 규칙으로 **키가 바뀌는 기사는 AI타임스 50/50, 나머지 8종은 0**(2026-08-01 재실측). 그런데 AI타임스는 결함 때문에 DB에 1행만 적재돼 있으므로 **실제 백필 대상은 1건**이다. 세션은 «영향 1건 + Liquibase 미도입»을 근거로 Liquibase 백필 대상 등록을 권했으나, **👤 이 PR에서 처리로 결정**
-  - 설계: id 커서 페이징(500) + 건별 트랜잭션 — 한 건의 충돌이 앞서 옮긴 행을 되돌리지 않는다. 키 점유는 `UNIQUE` 위반 예외가 아니라 **사전 조회로 판정**한다(예외로 잡으면 트랜잭션이 rollback-only가 돼 false 반환으로 수습이 안 된다). 본문(text)을 싣지 않으려 프로젝션 조회. 멱등이라 매 기동 반복 무해
-  - **기동 러너 순서가 중요하다** — `SourceSeeder` → `ArticleUrlRenormalizer` → Batch `JobLauncherApplicationRunner`(order 0). 재정규화가 수집 뒤로 밀리면 배치가 먼저 새 키로 적재해 같은 기사가 두 행으로 남는다
-  - ⚠️ **이 러너는 Liquibase 도입 시 마이그레이션으로 흡수하고 지울 대상**이다 — 매 기동마다 전 행을 훑을 이유가 없다. 지금 러너인 것은 마이그레이션 인프라가 없어서다
-  - **재리뷰 3건 처리 (2026-08-01)** — ① 🔵 Trivial Micrometer 계측: **미반영**(👤 결정, 스레드도 👤 resolve). 반박 근거는 `.coderabbit.yaml:81`이 대상을 "**새 배치 Job/Step**"으로 한정하는데 이 코드는 `ApplicationRunner`이고, Liquibase 도입 시 지울 일회성 코드라 메트릭을 붙이면 전환 때 대시보드까지 정리해야 한다는 것 ② ⚠️ Docstring 35%: 반박 유지(신규 main 8파일 **전부** javadoc 보유, 35%는 record accessor까지 세는 도구 계산이고 임계 80%는 도구 기본값) ③ ⚠️ Out of Scope: **타당 — 세션 누락**
-  - ⚠️ **PR #38 본문이 코드와 어긋나 있다** — 백필 커밋 후 본문의 "백필이 필요 없는 이유" 절을 갱신하지 않았다. **본문 edit는 사람 영역(D-028)**이라 교체 문구만 사용자에게 전달했다. 후속 PR에서 반복하지 않으려면 **리뷰 반영 커밋 때 PR 본문 갱신 필요 여부를 함께 점검**할 것
-  - 부수 발견: `SourceSeeder` javadoc의 "Liquibase 마이그레이션 전환은 후속(**MVP-DESIGN §2**)" 참조가 **댕글링**이다 — 현재 §2는 ERD이고 Liquibase 서술이 없다(문서 개정 중 소실 추정). 이번 PR에서는 내 문서만 참조를 정리했고 기존 주석은 손대지 않았다
+역할 재정립 직후 문서·환경 전반을 점검했다. **문서가 실제 상태를 못 따라간 것이 공통 원인**이었다.
 
-## 최근 병합 — #35 → PR #36 (발행 이슈가 비는 시간대 결함)
-- **이슈 #35 → PR #36 (2026-07-31)** — `BuildIssueService`의 점수 조회 하한을 **트리거가 계산한 윈도우 `from`으로 일치**시켰다. 브랜치 `feature/35-issue-lower-bound-zone`, base=develop. **180 tests 통과**. CodeRabbit 감시 Monitor 가동
-- **결함** — 하한이 `runDate.atStartOfDay(ZoneOffset.UTC)`였는데 `runDate`는 시스템 존(KST) 날짜다. KST 날짜 D의 UTC 자정은 KST D 09:00이라 **KST 00:00~09:00에 계산된 점수는 전부 하한 미만**이 되고, 확정 발행 시각 **06:00 Asia/Seoul(#31)이 이 구간 한가운데**다 → 그대로 뒀으면 운영에서 **매일 빈 호**가 나갔다
-- **수정** — `selectTasklet`이 `WINDOW_FROM`을 주입받아 `buildIssueForTopic(topicId, runDate, scoredFrom)`으로 넘긴다. **날짜에서 시각을 유도하는 것 자체를 없앤 것**이 핵심 — 트리거는 이미 윈도우를 전 토픽에 넘기고 있었고 `selectTasklet`만 그걸 안 받고 있었다. `runDate`는 호의 식별자·제목 용도로만 남는다
-- ⚠️ **테스트 존 고정만으로는 못 잡는다 — 시각에도 좌우된다.** `build.gradle`에 `user.timezone=Asia/Seoul`을 박았지만, 이 결함은 **실행 시각**이 재현 구간(KST 00:00~09:00)에 들어와야 드러난다. 실제로 이번 작업 중 **KST 23:54에 돌린 전체 테스트는 결함이 있는 상태에서도 통과**했다. 그래서 `runDate`를 UTC 기준 내일로 주어 **시각 의존을 데이터로 제거한** 통합 테스트(`buildsIssueWhenRunDateIsAheadOfUtcDate`)를 함께 넣었다
-- ✅ **회귀 방어를 실증했다** — 옛 구현을 일시 주입해 돌리니 **새 테스트 2건만 실패하고 나머지 178건은 통과.** 새 테스트가 결함을 잡는다는 확인이자, 기존 테스트로는 이 결함을 잡을 수 없었다는 증거다
-- **남긴 것** — `SelectionJobIntegrationTest` 나머지 케이스는 여전히 `Instant.now()` 기반이다. 배치 전반을 벽시계와 무관하게 검증하려면 test 프로파일에서 `Clock`을 고정해야 한다 → TASKS에 별도 태스크로 등록
-- **CodeRabbit 리뷰 반영 완료** — 인라인 1건(🟡 Minor) 수용: `LocalDate`에는 존 정보가 없는데 javadoc이 "존을 가진 날짜"라고 적어, **"어느 존의 자정이냐는 질문이 생긴다"는 바로 다음 절과 앞뒤가 어긋나 있었다**(질문이 생기는 이유가 존을 *안* 가졌기 때문이므로). `docs/SELECTION.md`의 같은 표현과 함께 `b7e403e`로 수정하고 스레드 resolve(D-033). 반박 2건: Docstring Coverage 33% 경고(도구 기본 임계 80%이지 이 레포 컨벤션이 아니다 — 포트 계약·회귀 테스트 의도에는 전부 달았고 빠진 건 테스트 헬퍼 오버로드), Linked Issues 「확인 불가」(아래 md 필터 결함)
-- ⚠️ **rate limit 3번째 재발** — 반영 커밋(`b7e403e`) 이후 CodeRabbit 체크가 다시 `pass` 표시에 실제 내용은 `Review rate limited`. PR #22·#28에 이어 세 번째다. 이번엔 첫 라운드가 정상 리뷰돼 영향이 작지만(후속 커밋만 미리뷰), **체크가 통과로 뜨는 구조는 그대로**다
+- **TASKS: 8개 태스크(#23·#25·#27·#29·#31·#35·#37·#39)가 병합됐는데 `[~]` 리뷰 대기로 방치** + 항목 순서가 번호순도 발행순도 아니었다 → 번호순 재배열 + `gh` 실제 상태와 1:1 대조해 정정
+- **BACKLOG: #27 이후 7개 태스크의 분해가 아예 없었다** — 이중 장부가 실제로는 안 쓰이고 있었다는 증거 → **D-035**로 작업 목록 원본을 이슈 본문 `## TODO`로 일원화, BACKLOG는 진행 중 이슈 1개로 축소(122줄 → 75줄). 되짚을 가치가 있는 기록(e2e가 잡은 수집 결함 5건·회귀 방어 실증 방식)은 남겼다
+- **STATE 자체가 비대했다** — 이날 오전 "병합 대기"를 "최근 병합"으로 이름만 바꿔 40줄짜리 섹션 3개가 "최근 완료"와 중복돼 있었다(106줄) → 중복 제거 + 최근 5건 유지 규칙 복원(68줄)
+- **sift-api README가 사실과 다르다** — 없는 `.claude/skills/`를 광고, 역할 분담이 D-026 이전 서술 → 위 「다음 액션」으로 등록
+- ✅ **코드·설계 문서는 일치했다** — SELECTION·MVP-DESIGN·PLAN 모두 `origin/develop` 코드와 정합. 테스트 205개·CI 전부 통과·에이전트 서명 0건·문서 링크 전부 유효
+- ⚠️ **검토 중 스스로 오진할 뻔했다** — 로컬 sift-api가 삭제된 브랜치에 체크아웃돼 있어 "SELECTION.md가 코드와 어긋난다"고 판단할 뻔했고, `git show origin/develop:`로 대조해서야 잡았다. **워킹트리를 진실로 취급하지 말 것** — 2026-07-26 fetch 누락 사고와 같은 계열이다
 
 ## 다음 액션 (next)
+- 🔧 **sift-api README 정정 — 👤 결정됨 (2026-08-04)** — 공개 README가 **존재하지 않는 `.claude/skills/`를 "자작 스킬"로 광고**하고 있고(깨진 링크), 역할 분담 서술이 **D-026 이전 버전**("git/GitHub 쓰기는 사람이 직접")이다. 2026-08-04 전체 검토에서 발견 — 공개 문서가 사실과 다른 것이 가장 위험한 종류의 흠이라 우선 처리. 스킬 박제 자체는 별도 태스크(D-029가 "M2에서" 로 미뤄 뒀고 M2는 끝났다)
 - 👤 **역할 런처로 갈아타기** — 다음 사이클부터 맨 `claude` 대신 `sift-orch`(계획·이슈) → `sift-impl`(구현·PR) → `sift-review`(검수)로 기동한다. 첫 실사용에서 경계가 실제로 맞는지(막혀야 할 게 막히고, 필요한 게 안 막히는지) 확인해 보고 — 과하게 조이면 프로파일 완화, 새는 곳이 있으면 추가
 - 👤 **Mac Studio에 `bootstrap.sh` 재실행 필요** — 역할 런처·프로파일은 링크 배치라 그쪽에서도 한 번 돌려야 생긴다. 심링크 복원도 같은 이유로 그쪽에서 필요할 수 있다
 - 🧭 **M2 잔여 태스크 착수** — Liquibase · Atom 검증 · **배치 테스트 Clock 고정**(#36 병합으로 착수 가능 — `SelectionJobIntegrationTest` 충돌 위험 해소)
 - 👤 **#25 열린 결정 2건** — ① `sourceScore`를 중립 상수 1.0으로 둠(`source.trust_score` 재검토 시점이 지금) ② 키워드 매칭이 대소문자 무시 부분 문자열(영어 과매칭 수용). 둘 다 되돌리기 쉬운 쪽으로 잡았고 방향 지시가 있으면 후속에서 변경
 - 👤 **#27 ERD 변경 2건 확인** — ① `issue.run_date` + `UNIQUE(topic_id, run_date)`: 기존 스키마엔 "몇 일자 호인가"가 없어 재실행 시 같은 날 호가 두 개 생길 수 있었다 ② `article_score.source_id` 비정규화: 소스 쏠림 완화에 필요한데 article은 Source 소유(D-018)라 조인 불가
 - 👤 **CodeRabbit 리뷰 공백 — 재발 방침 결정 (4회째)** — PR #22·#28에 이어 #38(후속 커밋)·#40(첫 라운드부터 0건)까지 왔다. **#40은 새 커밋 push로 해소됐지만**, rate limit이 걸려도 체크가 `SUCCESS`로 뜨는 구조는 그대로라 다음에도 조용히 빌 수 있다. 선택지: ① usage-based reviews 과금 활성화 ② 리뷰 볼륨 축소(라벨 opt-in·증분 자동리뷰 중단) ③ 병합 전 리뷰 실제 수행 여부 확인을 절차로 굳히기(**구현 세션이 gh로 확인해 보고 — 이번처럼**) ④ 현 상태 수용하고 구현 세션 자체 리뷰로 대체
-- 👤 **`.coderabbit.yaml`의 `!**/*.md`가 설계 문서를 리뷰에서 가린다** — PR #30에서 `MVP-DESIGN.md`·`SELECTION.md`를 실제로 갱신했는데 CodeRabbit은 "문서 갱신 여부 확인 불가"로 판정했다. PR #22의 `!out/**` 수정과 같은 성격의 필터 결함 — "구조 변경 PR에서 설계 문서를 코드와 함께 갱신"(CLAUDE.md) 규칙이 앞으로도 검증 불가로 남는다. **PR #36에서 재발**(`docs/SELECTION.md is excluded by !**/*.md`로 명시 출력) — 이제 CodeRabbit이 제외 사실을 코멘트에 찍어 주므로 재발 여부는 눈으로 확인된다. **PR #38·#40에서 연속 재발** — #40은 아예 Linked Issues 체크가 `Inconclusive`로 떨어졌다("문서 갱신 여부를 확인할 수 없습니다"). 즉 이 필터는 이제 **리뷰 누락을 넘어 체크 판정까지 흐린다**
+- 🔧 **`.coderabbit.yaml`에 `docs/**/*.md` 리뷰 허용 추가 — 👤 결정됨 (2026-08-04)** — `!**/*.md`가 설계 문서를 가려 "문서 갱신 여부 확인 불가"가 PR #30·#36·#38·#40에서 연속 재발했고, #40은 아예 Linked Issues 체크가 `Inconclusive`로 떨어졌다(리뷰 누락을 넘어 **체크 판정까지 흐린다**). PR #22의 `!out/**` 수정과 같은 성격의 필터 결함. 설계 문서만 리뷰 대상으로 되돌린다 — 아래 README 정정과 같은 PR로
 - 👤 **PR #22 확인 부탁 (잔여 1건)** — `updateClusters(Map)` 단일 인자 vs `updateClusters(assigned, cleared)` 2-인자 분리(null 값 계약이 부담이면 재검토). ②`[from, to)` 실경계 검증은 #29에서 해소됨
 - 👤 **markCrawled 배치 반영 결정** — 기본 제외 확정 vs 후속 이슈 (M1부터 계류 — D-029 잔여물 ②)
-- 🤖 **SELECTION.md §3 중복 스키마 → MVP-DESIGN 링크 치환** — sift-api 이슈→PR (D-029 잔여물 ③)
+- 🔧 **SELECTION.md §3 중복 스키마 → MVP-DESIGN 링크 치환** — sift-api 이슈→PR (D-029 잔여물 ③)
+- 🧭 **자작 스킬 박제 착수 가능** — D-029가 "M2 유스케이스에서 공통 패턴 추출"로 미뤄 뒀는데 **M2가 끝났다**. 유스케이스 풀구현·`code-review`·`create-branch` 후보. README가 이걸 이미 광고하고 있었던 것도 이 태스크가 밀린 흔적이다
 - 👤 **PORTFOLIO.md 유실 처리 결정** — 복원(재작성) 또는 폐기 (아래 "정정" 참조)
-- 🤖 **로컬 위생** — 병합 끝난 로컬 feature 브랜치 7개 잔존(`feature/4·8·10·19·21·23` + 원격에도 남은 `feature/6-harness-docs`). 정리 미수행
+- 🔧 **로컬 위생** — ① **sift-api 체크아웃이 삭제된 브랜치(`feature/33-collection-trigger`)에 머물러 있다** — 2026-08-04 검토에서 하마터면 낡은 코드를 근거로 오진단할 뻔했다(`git show origin/develop:`로 대조해 잡음). `git switch develop` 필요 ② 병합 끝난 로컬 feature 브랜치 다수 잔존
 
 ## 정정 (사람 재검증·수정 흔적)
 - **(2026-07-26) 세션이 `sift-docs`를 fetch하지 않고 문서 상태를 오진단** — `sift-api`만 fetch한 채 로컬 `sift-docs` 사본을 읽고 "루프 문서가 4일 뒤처졌고 D-031이 DECISIONS에 없는 댕글링 참조"라고 사용자에게 보고했으나, **실제로는 원격이 최신이었고 로컬 클론이 낡은 것**이었다(원격에는 D-031·D-032 모두 존재). 그 오진단 위에서 D-031을 중복 작성해 커밋 2개(`d2d9cd7`·`8b929c9`)를 만들었고, push 단계에서 non-fast-forward로 발각돼 `git reset --keep origin/main`으로 폐기했다. 원인은 2대 머신(맥북↔Mac Studio) 공유 환경에서 **fetch 없이 로컬 파일을 진실로 취급**한 것 — 메모리에 재발 방지 기록(`fetch-before-reading-loop-docs`).
@@ -80,12 +55,12 @@
 - 이슈 #1 커밋은 4개가 아니라 **3개** (common / 모듈경계+검증테스트 / 테스트인프라).
 
 ## 최근 완료 (최근 4~5건만 유지 — 이전 이력은 git 히스토리, D-023)
+- **`[REFACTOR] TopicSeeder를 인바운드 어댑터로 이동` 병합 ✅ (이슈 #39 → PR #40 → develop `9f66a6d`, 2026-08-04)** — 헥사고날 위반 3가지 정리: 인바운드인데 `adapter/out`에 있었고, `TopicJpaRepository`를 직접 불러 유스케이스·포트를 우회했으며, **저장이 conflict-ignore가 아니라 동시 기동 시 한쪽이 slug UNIQUE로 죽는 창**이 있었다. `SeedTopicsUseCase`+`SaveTopicPort` 신설, `ON CONFLICT (slug) DO NOTHING`, `git mv`로 이력 보존. **184 tests**. ⚠️ JSON 컬럼 4종은 네이티브 insert가 `@JdbcTypeCode` 매핑을 안 타므로 어댑터가 직렬화하고 리포지토리가 `jsonb`로 캐스팅한다 — 조용히 깨지면 선별이 빈 키워드로 돌아 `seedRoundTripsJsonColumns`로 실 DB 왕복 검증
+- **`[FIX] 쿼리로 기사를 구분하는 소스의 URL 정규화` 병합 ✅ (이슈 #37 → PR #38 → develop `a9febc2`, 2026-08-04)** — `UriNormalizer`가 쿼리를 통째로 버려 AI타임스 50건이 고유 1건으로 뭉개지던 문제. **적재만의 피해가 아니었다** — `DedupClusterer`가 `normalizedUrl` 완전 일치로 병합하므로 제목이 전혀 다른 기사들이 한 클러스터가 되어 발행 누락으로 이어진다. 추적 파라미터 블랙리스트만 제거하는 규칙으로 교정 + CodeRabbit Major 수용해 기존 키 백필 러너 추가. **198 tests**
+- **`[FIX] 발행 이슈가 비는 시간대 결함` 병합 ✅ (이슈 #35 → PR #36 → develop `83781dd`, 2026-08-01)** — 점수 조회 하한이 `runDate.atStartOfDay(UTC)`인데 `runDate`는 시스템 존(KST) 날짜여서 **KST 00:00~09:00 계산분이 전부 하한 미만**이 됐다. 확정 트리거 06:00 KST가 그 구간 한가운데라 **운영에서 매일 빈 호가 나갈 상태**였다. `selectTasklet`이 `WINDOW_FROM`을 주입받게 해 날짜에서 시각을 유도하는 것 자체를 없앴다. **180 tests**
 - **`[FEAT] collectionTrigger — 수집 배치 상시 기동` 병합 ✅ (이슈 #33 → PR #34 → develop `783529a`, 2026-07-31)** — `collectionJob` 주기 기동(`@Scheduled`) + `launchedAt` 식별 파라미터 + 스케줄러 풀 2. **178 tests**. CodeRabbit `No actionable comments`. 확정값: 수집 주기 **매시 10분**(정각은 수집기가 몰려 비켜 뒀다 — MVP-DESIGN §3①이 "매시간 등"으로만 남긴 항목). ⚠️ **`collectionJob`은 JobParameters가 없어 두 번째 주기부터 `JobInstanceAlreadyCompleteException`**이 날 상태였다 — 트리거가 없어 안 드러나던 결함이라, 주기 기동을 붙이는 순간 첫 재실행에서 터진다. ⚠️ **스케줄러 풀이 기본 1개**라 06:00에 수집이 물리면 그날 발행이 밀린다. 범위 제외: 수동 기동 REST 엔드포인트(인증 없는 Job 기동 API가 되어 보안 표면이 생긴다)
 - **M2-5 `[FEAT] selectionJob 배치 + selectionTrigger` 병합 ✅ (이슈 #31 → PR #32 → develop `bee0b18`, 2026-07-30)** — Step 3종(tasklet) 조립 + `@Scheduled` 일일 트리거 + `SelectionMetricsListener`. **174 tests 통과**. 🎯 **M2 공통 DoD 충족** — fake 없이 실 DB로 이슈 1건 + 항목 2건 생성 확인(단, UTC 기준이었다 — 위 🚨). 확정값: 윈도우 **24h**, 트리거 **06:00 Asia/Seoul**(D-031·D-032가 "M2-5에서 확정"으로 남긴 항목). **D-032 불변식 (3)을 트리거가 구조로 보장** — 윈도우를 한 번만 계산해 전 토픽 잡에 주입하므로 토픽 간 어긋남이 불가능. ⚠️ `@EnableScheduling`이 없어 배치가 영영 안 돌 뻔했다. 정정: `scoreStep (chunk)` → **tasklet**(윈도우 전체 재계산이 멱등성 전제라 아이템 단위로 못 쪼갬)
-- **M2-5 `[FEAT] Source named interface + 선별 후보 조회·클러스터 갱신 실 배선` 병합 ✅ (이슈 #29 → PR #30 → develop `8bc6c67`, 2026-07-29)** — `@NamedInterface("article-catalog")` 노출 + content `allowedDependencies` 확장 + 두 포트 실 어댑터. **170 tests**. ⚠️ `article.dedup_cluster_id` 컬럼이 ERD엔 처음부터 있었으나 **실제로 만들어진 적이 없었다**(포트가 전부 fake라 아무도 안 써서 안 드러남). PR #22 확인 항목 ② 해소(`[from, to)` 경계 Testcontainers 실검증). ❌ CodeRabbit Major "마이그레이션 함께 배포"는 **실측 반박** — `ddl-auto: update`는 **nullable 컬럼 추가를 자동 반영**한다(유니크 제약만 미소급) → Liquibase 태스크 범위가 제약·인덱스·백필로 좁혀짐. 스레드 미해결 유지(D-033)
-- **M2-4 `[FEAT] 선별 3/3: Rank & Select` 병합 ✅ (이슈 #27 → PR #28 → develop `cd8de49`, 2026-07-29)** — threshold 컷 → 점수 내림차순 → 소스 쏠림 감점(×0.7) → 상위 `maxItems` → `issue`(DRAFT)+`issue_item`. **158 tests**. 전면 MMR은 넣지 않았다 — 같은 클러스터 쏠림은 #25가 대표 1건으로 이미 줄여 이 단계에 도달하지 않으므로 남은 소스 쏠림만 곱셈 감점으로 처리(SELECTION §6 열린 질문은 유지). ERD 2건 추가(`issue.run_date` UNIQUE · `article_score.source_id`). ⚠️ **CodeRabbit 리뷰 없이 병합**(`Review limit reached`, 인라인 0건)
-- **M2-3 `[FEAT] 선별 2/3: Filter + Score` 병합 ✅ (이슈 #25 → PR #26 → develop `ea5626b`, 2026-07-28)** — 토픽 필터 + 4항목 가중합 + `article_score`(breakdown JSON, `(article_id, topic_id)` upsert). **132 tests**. 리뷰 반영 `3ccfd22`(윈도우 검증을 도메인 예외로 통일, 점수 근거 불변식 강제)
-- (이전 완료 이력은 이 레포 git 히스토리로 조회 — D-023: STATE는 최근 4~5건만 유지. 하네스 개편 D-025·D-026, 가드 훅 폐지 D-027, edit 허용 D-028, M1-4·M1-5·M1-6·M2-1·M2-2·#23 병합은 여기서 밀려남)
+- (이전 완료 이력은 이 레포 git 히스토리와 [TASKS.md](./TASKS.md)로 조회 — D-023: STATE는 최근 4~5건만 유지. 하네스 개편 D-025·D-026, 가드 훅 폐지 D-027, edit 허용 D-028, M1 전체와 #23·#25·#27·#29 병합은 여기서 밀려남)
 
 ## 대기 / 블록 (게이트)
 - ~~develop 처리 결정~~ — **해소 (2026-07-17, D-025)**: develop = 통합 브랜치, main = 배포 브랜치로 공식화. develop이 앞서 있는 것은 정상(배포 전 통합분), 승격은 마일스톤 단위로 사람이 결정
