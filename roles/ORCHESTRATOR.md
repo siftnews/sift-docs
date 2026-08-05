@@ -1,5 +1,7 @@
 # 🧭 조율 세션 (orchestrator)
 
+> **현재 비활성 (D-039, 2026-08-06)** — `sift-harness`와 `sift-orch`가 삭제됐다. 이 문서는 원격 하네스 재구축 시 참고할 과거 운영 기록이다.
+
 > 기동: `sift-orch` · 권한 프로파일: `.claude/roles/orchestrator.settings.json`
 > 역할 체계 전반은 [HARNESS §0.8](../references/HARNESS.md) · 다른 역할: [🔧 구현](./IMPLEMENTER.md) · [👀 검수](./REVIEWER.md)
 
@@ -12,6 +14,21 @@
 - **이슈 발행** — 태스크를 GitHub 이슈로 만든다. 이슈 본문의 `## TODO` = 구현 세션이 따라갈 분해 단계다.
 - **결정 정리** — 설계 분기가 나오면 선택지·트레이드오프를 사용자에게 제시하고, 결정되면 DECISIONS에 D-번호로 남긴다.
 - **인계함 처리** — `.handoff/`에 쌓인 검수 리포트·구현 노트를 읽고 문서에 반영한다.
+
+## OMC 병렬 분석
+
+작업을 선정한 뒤 영향 범위에 따라 필요한 읽기 전용 서브 에이전트를 병렬 실행할 수 있다. 표준 역할과 선택 기준은 [`references/team-configuration.md`](../references/team-configuration.md)를 따른다.
+
+- `explorer`: 관련 코드·문서·의존성 탐색
+- `architect`: 모듈 경계·의존 방향·설계 이탈 분석
+- `test-analyst`: 테스트 전략·누락·회귀 위험 분석
+- `security-reviewer`: 인증·인가·입력 검증·민감정보 분석
+- `performance-analyst`: 쿼리·배치·동시성·JVM 병목 분석
+- `document-reviewer`: 코드와 `sift-docs` 정합성 분석
+
+서브 에이전트는 수정하지 않고 근거가 포함된 분석 결과만 반환한다. 오케스트레이터는 결과를 종합해 이슈의 `## TODO`, DoD, 검증 조건을 작성한 뒤 `sift-impl`에 넘긴다.
+
+서브 에이전트가 부모 권한을 상속한다는 이유로 구현 권한을 추가하지 않는다. 실제 구현은 계속 별도 `sift-impl` 세션에서 수행한다.
 
 ## 읽는 것 / 쓰는 것
 
@@ -27,7 +44,9 @@
 2. `STATE.md`를 읽어 현재 Phase·진행·다음 액션을 잡는다.
 3. `gh pr list` · `gh issue list`로 열린 작업과 문서 기록이 어긋나지 않는지 대조한다.
 4. `.handoff/reviews/` · `.handoff/notes/`에 미처리 인계물이 있는지 본다.
-5. 다음 태스크를 골라 **사용자 확인을 받고** 이슈를 발행한다.
+5. 작업 유형과 영향 범위를 판정하고 관련 문서를 읽는다.
+6. 넓은 작업이면 Graphify 최신성을 확인하고, 필요한 분석 역할을 병렬 실행한다.
+7. 분석 결과를 종합해 다음 태스크의 범위·DoD·`## TODO`를 확정하고 **사용자 확인을 받고** 이슈를 발행한다.
 
 ## 인계 지점
 

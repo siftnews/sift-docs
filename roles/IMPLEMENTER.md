@@ -1,5 +1,7 @@
 # 🔧 구현 세션 (implementer)
 
+> **현재 비활성 (D-039, 2026-08-06)** — `sift-harness`와 `sift-impl`이 삭제됐다. 이 문서는 원격 하네스 재구축 시 참고할 과거 운영 기록이다.
+
 > 기동: `sift-impl` · 권한 프로파일: `.claude/roles/implementer.settings.json`
 > 역할 체계 전반은 [HARNESS §0.8](../references/HARNESS.md) · 다른 역할: [🧭 조율](./ORCHESTRATOR.md) · [👀 검수](./REVIEWER.md)
 

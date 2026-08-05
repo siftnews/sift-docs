@@ -16,7 +16,7 @@
 - [x] **#4 `[FEAT] Source 도메인 모델`** (M1-2) — PR #5로 develop 병합 완료 (2026-07-08)
   - 범위: `Source`·`Article` 애그리거트 + URL 정규화 불변식(UTM 제거·호스트 소문자화), `RawArticle`, 도메인 예외(BusinessException 기반). **JPA·Spring 무의존** (D-009·D-018). 선행: 클래스 다이어그램 (D-017)
   - DoD: **도메인 단위 테스트 통과** (정규화 규칙 케이스 포함), 도메인 패키지에 기술 의존 없음
-- [x] **#6 `[docs] 하네스 문서·설계 문서 이동`** — PR #7로 develop 병합 완료 (2026-07-10). 레포 종속 설계 문서 `sift-api/docs/` 이동(D-021) + 권한 게이트 + README
+- [x] **#6 `[docs] 하네스 문서·설계 문서 이동`** — PR #7로 develop 병합 완료 (2026-07-10). 당시 `sift-api/docs/`에서 관리하던 레포 종속 설계 문서를 현재 `sift-docs/references/`로 통합(D-038) + 권한 게이트 + README
 - [x] **#8 `[FEAT] CrawlSources 유스케이스`** (M1-3) — PR #9로 develop 병합 완료 (2026-07-11)
   - 범위: `CrawlSourcesUseCase`(port.in) + `LoadActiveSourcesPort`·`FetchFeedPort`·`SaveArticlePort`(port.out) 정의, `CrawlSourcesService` 구현. 리뷰 반영: `LoadActiveSourcesPort.findActiveById` 추가
   - DoD: **fake 포트 기반 서비스 단위 테스트 통과** ✅
