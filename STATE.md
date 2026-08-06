@@ -1,19 +1,19 @@
 # Sift — STATE (루프 나침반)
 
 > 매 사이클 **시작에 읽고, 종료에 갱신**한다. 현재 상황의 단일 진실원천.
-> 프로토콜: [HARNESS.md §0.6](./references/HARNESS.md) · 현재 운영 결정: [D-039](./adr/DECISIONS.md) · 마지막 갱신: 2026-08-06
+> 프로토콜: [HARNESS](references/harness.md) · 현재 운영 결정: [D-041](adr/decisions.md) · 마지막 갱신: 2026-08-06
 
 ## 현재 운영 상태 (2026-08-06)
 - `sift-harness`를 현재 워크스페이스에서 제거했다. 현재 로컬에는 하네스 레포·역할 런처·권한 프로파일·bootstrap이 없다.
 - 기존 D-034 역할 분리 모델은 역사적 기록으로 보존하지만 현재 활성 절차가 아니다. 지금은 일반 로컬 세션과 `sift-docs` 문서를 사용한다.
-- 루트의 깨진 하네스 심링크를 제거하고, 프로젝트 공통 규칙은 최소 루트 `AGENTS.md`·`CLAUDE.md`로 유지한다.
+- 루트의 깨진 하네스 심링크를 제거하고, 프로젝트 공통 규칙은 루트 `AGENTS.md`로 유지한다.
 - 원격 환경이 필요해질 때 하네스를 새로 설계한다. 기존 구조를 복구하거나 그대로 재생성하지 않는다.
 
 ## 현재 Phase
 **Phase 1 (선별) — M2 선별 코드 경로 완주. 지금은 하네스 재정립.** #17~#39 전부 develop 병합(`9f66a6d`) — 수집·선별 양쪽에 트리거가 붙어 파이프라인이 무인으로 돈다. 남은 M2는 인프라 계열(Liquibase · Atom 검증 · 배치 테스트 Clock 고정).
 
 ## 과거 기록 — 하네스 역할 3분할 (D-034, 2026-08-04)
-- **세션을 🧭 조율 / 🔧 구현 / 👀 검수로 나누고 경계를 권한으로 강제했다.** 런처 `sift-orch`·`sift-impl`·`sift-review`(한 스크립트 `sift-harness/bin/sift-role`을 세 이름으로 링크) + 프로파일 `.claude/roles/*.settings.json` 3종 + 역할 문서 `sift-docs/roles/` 3종. 상세는 [D-034](./adr/DECISIONS.md) · [HARNESS §0.8](./references/HARNESS.md)
+- **세션을 🧭 조율 / 🔧 구현 / 👀 검수로 나누고 경계를 권한으로 강제했다.** 런처 `sift-orch`·`sift-impl`·`sift-review`(한 스크립트 `sift-harness/bin/sift-role`을 세 이름으로 링크) + 프로파일 `.claude/roles/*.settings.json` 3종 + 역할 문서 `sift-docs/roles/` 3종. 상세는 [D-034](adr/decisions.md) · [HARNESS §0.8](references/harness.md)
 - **루프 문서 쓰기 주인이 구현 → 조율로 이관됐다** (D-016 개정). 구현 세션은 `Edit(sift-docs/**)` deny로 **막힌다** — 지침이 아니라 장치다. 그 대가로 §0.7 절차 3의 "BACKLOG 분해"가 성립하지 않게 돼, **작업 목록 원본을 이슈 본문 `## TODO`로** 옮기고 구현→조율 인계는 `.handoff/notes/`로 처리한다
 - ⚠️ **검증에서 문법 오류를 하나 잡았다** — `Write(경로)` 권한 규칙은 **무효**이고 `Edit(경로)`만 파일 권한 검사에 걸린다(Claude Code가 경고로 직접 알려줌 — Edit 규칙이 Write·Edit·NotebookEdit를 모두 커버). 초안의 `Write(...)` 줄을 전부 제거했다. 실동작 확인: 검수 프로파일로 `sift-api/README.md` 쓰기 → `BLOCKED`, `.handoff/reviews/` 쓰기 → `WROTE`
 - 🚨 **선결 과제가 드러났다 — 루트 하네스 파일이 심링크가 아니라 복사본이었다.** `CLAUDE.md`·`AGENTS.md`·`.claude/CLAUDE.md`·`.claude/settings.json` 넷 다 실체 파일이었고, CLAUDE.md 본문은 "심링크로 배치된다"고 적혀 있었다 — **그동안의 하네스 편집이 Mac Studio로 전달되지 않고 있었다.** `bootstrap.sh` 재실행으로 복원
@@ -87,7 +87,7 @@
 
 ## 비고
 - **역할 분담 (D-026)**: 이슈 발행·브랜치·구현·자가검증·**커밋·push·PR 생성** = 에이전트 (모든 기록은 사용자 명의·기존 스타일 — HARNESS §0.7 컨벤션을 스스로 준수, 검사 장치 없음 D-027). **병합·리뷰 승인·issue/pr close·comment·release·repo/인프라 쓰기** = 사람. issue/pr `edit`는 에이전트 허용이되 assignee·라벨 관리 용도만 (D-028). **반영 완료한 리뷰 스레드의 resolve는 에이전트** — 답글은 여전히 사람 (D-033).
-- **세션 역할 (2026-08-04 개정 — D-034)**: 세션은 🧭 조율 / 🔧 구현 / 👀 검수 3종이고 경계는 **권한 프로파일로 강제**된다. 루프 문서 쓰기 주인은 **조율 세션**(07-26의 "구현 세션 겸임"에서 이관). 쓰기 전 `sift-docs` **fetch 필수**는 불변 (위 "정정" 07-26 사고 참조). 각 역할 문서는 [`roles/`](./roles/).
+- **현재 세션 운영 (D-041)**: 일반 작업 세션은 비-Git 루트 `siftnews/`에서 시작하고, 주 세션이 범위 확정·OMX 병렬 위임·결과 통합·최종 검증을 맡는다. 독립적인 읽기 전용 탐색·검토만 병렬화하며, 같은 저장소의 의존적인 구현은 한 소유자가 수행한다. D-034의 역할 런처·권한 프로파일·`roles/`는 과거 기록이며 현재 사용하지 않는다.
 - **구현 리듬 (D-026)**: 작은 작업 1개 → build/test 자가검증 → 에이전트 커밋(`{type}: {한국어 요약}` 한 줄, 트레일러 금지) → 다음 작업.
 - ~~로컬 테스트는 `TZ=UTC`로 돌려야 한다~~ — **해소 (2026-08-01, PR #36 병합)**: 결함 자체가 고쳐졌고 `build.gradle`이 `systemProperty 'user.timezone', 'Asia/Seoul'`로 존을 못 박아 어디서 돌리든 같은 결과가 나온다. 단 **존 고정만으로는 이 계열 결함을 못 잡는다** — 재현이 실행 *시각*에도 좌우되기 때문이다(#35 기록 참조). 남은 방어는 test 프로파일 `Clock` 고정 태스크.
 - 게이트(settings.json deny): gh pr merge/review/ready, issue·pr close/comment/delete, release, repo, workflow run, secret, variable (edit는 D-028로 allow — assignee·라벨 용도만). 파괴 명령: git reset --hard / clean, docker compose down -v. main push 방어 = GitHub 브랜치 보호(D-027). `gh api`는 allow/deny 양쪽 제외(백스톱) — settings.local.json의 `gh api *` allow는 워크스페이스·하네스 시드 양쪽 제거 완료(👤 2026-07-22, 백스톱 복원).

@@ -2,7 +2,7 @@
 
 > **현재 진행 중인 이슈 1개의 구현 단계**를 담는다. 그 이상은 담지 않는다.
 > 작업 목록의 **원본은 GitHub 이슈 본문의 `## TODO`**다 (D-035) — 조율 세션이 이슈를 발행할 때 함께 쓰고, 구현 세션은 그것을 따라간다.
-> 태스크 트리(이슈 후보)는 [TASKS.md](./TASKS.md) · 진행 상태는 [STATE.md](./STATE.md) · 역할 분담은 [HARNESS §0.8](./references/HARNESS.md)
+> 태스크 트리(이슈 후보)는 [TASKS.md](./TASKS.md) · 진행 상태는 [STATE.md](./STATE.md) · 역할 분담은 [HARNESS §0.8](references/harness.md)
 > 표기: `[ ]` 대기 · `[~]` 진행 · `[x]` 완료 · `[G]` 게이트(사람 검증 필요) · 분류: `(W)` 워크플로우 · `(A)` 에이전트
 
 ---

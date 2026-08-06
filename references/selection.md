@@ -1,7 +1,7 @@
 # Sift — 선별 파이프라인 설계 (Selection Pipeline)
 
 > 이 프로젝트의 심장. "원하는 뉴스만 걸러준다"를 실제로 구현하는 부분.
-> 상위 기획은 [PLAN.md](./PLAN.md) 참고. · 최종 수정: 2026-07-07
+> 상위 기획은 [PLAN.md](plan.md) 참고. · 최종 수정: 2026-07-07
 
 ---
 
@@ -94,7 +94,7 @@ score = w_kw * keywordScore     // 토픽 키워드 매치. 제목 매치 > 본�
 | 제목·본문 동시 매치 | 제목 몫만 (2배까지) | 같은 단어를 본문에 도배한 글이 유리해지면 안 된다 |
 | `trendScore` | `(clusterSize − 1) / (maxClusterSize − 1)`, 윈도우에 묶인 게 없으면 0 | 크기 1(단독 보도)이 0점 기준. 전원 만점을 주면 항목이 상수가 되어 순위에 기여하지 못한다 |
 | `recencyScore` | `publishedAt`이 null이면 0, 미래 시각은 나이 0으로 클램프 | 발행시각 없는 피드는 의도된 설계 — 탈락이 아니라 최신성 이득만 못 본다. 미래 시각을 싣는 피드가 있어 클램프가 없으면 1을 넘는다 |
-| `sourceScore` | **중립 상수 1.0** | `source.trust_score`는 M1-4에서 범위 제외되고 "M2 스코어링에서 재검토"로 남아 있다([MVP-DESIGN §2](./MVP-DESIGN.md)). 근거 없는 값을 지어내느니 항목만 배선하고 상수로 둔다 — 실측 근거가 생기면 이 상수만 실제 조회로 바꾸면 된다 |
+| `sourceScore` | **중립 상수 1.0** | `source.trust_score`는 M1-4에서 범위 제외되고 "M2 스코어링에서 재검토"로 남아 있다([MVP-DESIGN §2](mvp-design.md)). 근거 없는 값을 지어내느니 항목만 배선하고 상수로 둔다 — 실측 근거가 생기면 이 상수만 실제 조회로 바꾸면 된다 |
 | 키워드 매칭 | 대소문자 무시 **부분 문자열** | 한국어는 조사가 붙어("금리가") 단어 경계로 자르면 놓친다. 대신 영어에서 `Java`가 `JavaScript`에 걸리는 과매칭을 수용한다 — breakdown 로그로 오탐 빈도를 본 뒤 형태소·단어 경계 도입을 판단 |
 
 > 가중치는 breakdown에 **함께 저장한다** — 나중에 가중치를 튜닝하면 과거 점수를 재현할 수 없게 되는데, 당시 값을 같이 남기면 계속 설명된다.
@@ -136,7 +136,7 @@ issue_item    (id, issue_id, article_id, rank, score)
 > `article`은 수집 배치가 채우고(**Source 소유, D-018** — Content는 named interface로 조회), `article_score`/`issue`/`issue_item`은 가공(선별) 배치가 채운다.
 > `dedup_cluster_id` 갱신은 **Source가 named interface에 노출하는 갱신 오퍼레이션**을 Content가 호출해 수행한다 (D-030 — D-018 꼬리 해소). 후보 조회도 Source named interface 경유.
 > **실 배선 완료 (이슈 #29)** — `ArticleCatalog.findCandidates(from, to)` / `updateDedupClusters(map)`. 윈도우는 `article.created_at` 기준 `[from, to)` 반열림이며 **Testcontainers로 경계를 실검증**했다(from 포함·to 미포함). #19~#27까지는 fake 포트로만 확인되던 경로다.
-> 이후 발송 배치가 `issue` → 토픽 구독자 → `delivery_task` 스냅샷을 만든다 ([PLAN.md](./PLAN.md) 5장).
+> 이후 발송 배치가 `issue` → 토픽 구독자 → `delivery_task` 스냅샷을 만든다 ([PLAN.md](plan.md) 5장).
 
 ---
 
@@ -152,7 +152,7 @@ Job: selectionJob
  └─ Step 4. selectStep      (by topic)            issue + issue_item 생성
 ```
 
-> **MVP 구현은 Step 1·2를 `normalizeDedupStep` 하나로 통합** ([MVP-DESIGN §3 ③](./MVP-DESIGN.md) 기준, TASKS M2 "선별 1/3: Normalize + Dedup"과 일치).
+> **MVP 구현은 Step 1·2를 `normalizeDedupStep` 하나로 통합** ([MVP-DESIGN §3 ③](mvp-design.md) 기준, TASKS M2 "선별 1/3: Normalize + Dedup"과 일치).
 
 - 토픽별 처리는 **파티셔닝 후보**(성능 로드맵 V3와 연결). MVP는 단순 루프로 시작 → 측정 후 파티셔닝 전환.
 - Step 간 데이터는 DB 경유(상태 컬럼/중간 테이블)로 멱등성 확보.
