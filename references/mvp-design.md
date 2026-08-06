@@ -30,16 +30,17 @@
 
 > 발송 주기는 전 토픽 **DAILY 고정** — cadence는 토픽 속성이 아님 (D-019).
 
-### 소스 시드 (RSS 9종 — 이슈 #23에서 확정)
+### 소스 시드 (RSS 9종 + Atom 1종 — 이슈 #23, #52)
 
 > 원본은 `SourceSeedData` — 아래 표는 그 사본이 아니라 **설계 의도(토픽별 커버리지·언어 배분)** 를 남기는 자리다.
-> 모든 url은 2026-07-26 실제 응답으로 검증했다 (HTTP 200 + RSS 루트 태그 + 최근 갱신).
+> 모든 url은 실제 응답으로 검증했다 (HTTP 200 + RSS/Atom 루트 태그 + 최근 갱신).
 
 | 토픽 | name | lang | category | url |
 |---|---|---|---|---|
 | dev | Hacker News | en | PROGRAMMING | https://news.ycombinator.com/rss |
 | dev | 토스 기술블로그 | ko | DEV | https://toss.tech/rss.xml |
 | dev | Ars Technica | en | DEV | https://feeds.arstechnica.com/arstechnica/index |
+| dev | 네이버 D2 | ko | PROGRAMMING | https://d2.naver.com/d2.atom |
 | ai | AI타임스 | ko | AI | https://www.aitimes.com/rss/allArticle.xml |
 | ai | Import AI | en | AI | https://importai.substack.com/feed |
 | ai | Google AI Blog | en | AI | https://blog.google/technology/ai/rss/ |
@@ -49,7 +50,7 @@
 
 - **제외한 후보**: 우아한형제들·LINE 기술블로그·CNBC(403), Yahoo Finance(429), 연합뉴스 경제(연결 실패), Anthropic(404 — 공식 RSS 미제공), 카카오테크(200이나 최신 글 2026-06-23로 정체).
 - **대용량 히스토리 피드 제외**: Hugging Face(831건)·OpenAI(1050건)는 전체 글을 담은 피드라 첫 수집에 수백 건이 한꺼번에 유입돼 e2e 확인을 방해한다 → 20건 규모 피드로 대체. 부하 측정용 데이터가 필요해지면 M4에서 재검토.
-- **Atom 미지원 확인 필요**: 네이버 D2 등 Atom(`<feed>`/`<entry>`) 피드는 `rome`이 파싱은 하지만 `RssFeedAdapter` 테스트가 RSS 픽스처만 다뤄 미검증 — 후속 이슈.
+- **Atom 검증 완료**: 네이버 D2(`https://d2.naver.com/d2.atom`)의 Atom(`<feed>`/`<entry>`) 응답을 픽스처로 고정해 `RssFeedAdapter`가 title·link·content를 변환하는 경로를 검증했다(이슈 #52). D2는 `published` 없이 `updated`를 제공하므로 `published_at`은 null이며, 이는 선별 설계상 허용된다.
 - 피드 url은 **정규화하지 않고 원본 그대로** 저장한다 (`Source.create`). `UriNormalizer`는 **기사 동일성 판정 전용**이다 — 추적 파라미터(`utm_*`·`at_*`·`fbclid` …)를 걷어내는데, 피드 url에서는 그중 무엇이 피드를 구분하는 파라미터인지 알 수 없다(`?feed=rss2`·`?id=02`처럼 쿼리로 피드를 나누는 사이트가 있다). 재사용하면 다른 피드를 가리킬 위험만 진다.
 
 ---

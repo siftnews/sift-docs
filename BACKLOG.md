@@ -5,10 +5,9 @@
 
 ## 진행 중
 
-### [#50 Liquibase 마이그레이션 도입](https://github.com/siftnews/sift-api/issues/50)
+### [#52 Atom 피드 파싱 검증 및 네이버 D2 소스 추가](https://github.com/siftnews/sift-api/issues/52)
 
-- [x] Liquibase 의존성·master changelog·애플리케이션/Batch 스키마 changeset을 추가했다.
-- [x] local·test 자동 DDL을 끄고 Hibernate 검증 모드로 전환했다.
-- [x] URL 재정규화 백필을 changeset으로 옮기고 기동 러너·전용 포트·테스트를 제거했다.
-- [x] Spring Modulith `event_publication` 스키마를 포함하고 전체 테스트를 통과했다.
-- [ ] PR 생성 및 CI 검증.
+- [x] Atom 피드 픽스처와 `RssFeedAdapter` 회귀 테스트를 추가했다.
+- [x] 네이버 D2 Atom URL의 실제 응답을 확인했다.
+- [x] `SourceSeedData`에 네이버 D2를 추가하고 시더 멱등성 기대값을 10개로 갱신했다.
+- [ ] 전체 테스트·문서 검증 및 PR 생성.

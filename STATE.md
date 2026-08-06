@@ -12,9 +12,10 @@
 ## 현재 작업
 
 - [#47 배치 통합 테스트의 시각 의존 제거](https://github.com/siftnews/sift-api/issues/47): 구현·검증·병합 완료(PR #48, 후속 보정 PR #49).
-- [#50 Liquibase 마이그레이션 도입](https://github.com/siftnews/sift-api/issues/50): 구현 중.
+- [#50 Liquibase 마이그레이션 도입](https://github.com/siftnews/sift-api/issues/50): PR #51 병합 완료.
+- [#52 Atom 피드 파싱 검증 및 네이버 D2 소스 추가](https://github.com/siftnews/sift-api/issues/52): 구현 중.
 
 ## 다음 우선순위
 
-1. #50 Liquibase 마이그레이션 도입 구현·검증·PR
-2. Atom 피드 파싱 검증
+1. #52 Atom 피드 파싱 검증 및 네이버 D2 소스 추가 구현·검증·PR
+2. M2 공통 패턴 정리 또는 M3 구독 도메인 착수
