@@ -224,7 +224,7 @@ out  ArticleUrlPort           findUrlsAfter(afterId, limit) // 커서 페이징 
 ```
 > **시더는 인바운드 어댑터** (`adapter.in.bootstrap.SourceSeeder`). 기동을 자극으로 받아 `SeedSourcesUseCase`를 호출할 뿐이고, 카탈로그(`SourceSeedData`)도 같은 인바운드에 둔다 — 저장은 `SaveSourcePort`로 내려간다. `content`의 `TopicSeeder`는 아직 out 어댑터에 남아 있다(후속).
 > **기동 러너 순서**: `SourceSeeder`(수집의 전제) → `ArticleUrlRenormalizer`(옛 키 정리) → Spring Batch `JobLauncherApplicationRunner`(order 0). 재정규화가 수집보다 뒤로 밀리면 배치가 먼저 새 키로 적재해 같은 기사가 두 행으로 남는다.
-> **`ArticleUrlRenormalizer`는 Liquibase 도입 시 마이그레이션으로 옮기고 지운다** — 정규화 규칙이 바뀌면 기존 `normalized_url` 키가 무효해져 재수집 시 중복 행이 생기므로 한 번 훑어 옮겨야 하는데, 마이그레이션 인프라가 아직 없어 기동 러너로 둔 것이다. 멱등이라 매 기동마다 돌아도 결과가 덧나지 않는다 (이슈 #37).
+> **`ArticleUrlRenormalizer`는 Liquibase changeset으로 이관했다** — 정규화 규칙이 바뀌어 기존 `normalized_url` 키가 무효해진 행을 `0003-backfill-normalized-article-url.sql`에서 한 번 보정하고, 매 기동 스캔하던 러너는 제거했다 (이슈 #50, 기존 이슈 #37).
 > **Article 애그리거트는 Source 소유 (D-018).** article 테이블 스키마·멱등(UNIQUE normalized_url)의 책임자는 Source.
 >
 > named interface는 `com.siftnews.source.api` 패키지(`@NamedInterface("article-catalog")`)로 노출하고, Content는 `allowedDependencies = {"common", "source :: article-catalog"}`로 이것만 본다. 경계를 건너는 타입은 `Article` 애그리거트가 아니라 **`ArticleCandidate` record** — 애그리거트를 공개하면 Content가 Source 내부 구조 변경에 묶인다. `category`도 enum이 아니라 문자열로 넘긴다(`Category`는 Source internal). Content 쪽 `adapter/out/source/ArticleCatalogAdapter`가 이를 `CandidateArticle`로 옮긴다 — 이 매핑 한 겹이 두 모듈의 스키마를 떼어 놓는다 (이슈 #29).

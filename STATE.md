@@ -11,11 +11,10 @@
 
 ## 현재 작업
 
-- [#47 배치 통합 테스트의 시각 의존 제거](https://github.com/siftnews/sift-api/issues/47): 구현과 검증 완료.
-- [PR #48](https://github.com/siftnews/sift-api/pull/48): CI 성공·병합 가능 상태이며, 리뷰·병합 대기.
+- [#47 배치 통합 테스트의 시각 의존 제거](https://github.com/siftnews/sift-api/issues/47): 구현·검증·병합 완료(PR #48, 후속 보정 PR #49).
+- [#50 Liquibase 마이그레이션 도입](https://github.com/siftnews/sift-api/issues/50): 구현 중.
 
 ## 다음 우선순위
 
-1. PR #48 리뷰·병합
-2. Liquibase 마이그레이션 도입
-3. Atom 피드 파싱 검증
+1. #50 Liquibase 마이그레이션 도입 구현·검증·PR
+2. Atom 피드 파싱 검증

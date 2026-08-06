@@ -5,12 +5,13 @@
 
 ## 현재 진행
 
-- [~] [#47 `[CHORE] 배치 통합 테스트의 시각 의존 제거 (Clock 고정)`](https://github.com/siftnews/sift-api/issues/47) — [PR #48](https://github.com/siftnews/sift-api/pull/48) 리뷰·병합 대기
+- [x] [#47 `[CHORE] 배치 통합 테스트의 시각 의존 제거 (Clock 고정)`](https://github.com/siftnews/sift-api/issues/47) — PR #48 및 후속 PR #49 병합
+- [~] [#50 `[CHORE] Liquibase 마이그레이션 도입`](https://github.com/siftnews/sift-api/issues/50) — 구현·전체 테스트 완료, PR 생성 전
 
 ## M2 잔여
 
 - [ ] **`[CHORE] Sift용 스킬 박제`** — M2 유스케이스에서 공통 패턴을 추출해 헥사고날 유스케이스 구현·코드 검토·브랜치 생성 절차를 정리한다.
-- [ ] **`[CHORE] Liquibase 마이그레이션 도입`** — 제약·인덱스·데이터 백필을 버전드 마이그레이션으로 관리하고, 기존 시더의 이전 범위를 결정한다.
+- [x] **`[#50] [CHORE] Liquibase 마이그레이션 도입`** — 제약·인덱스·데이터 백필을 버전드 마이그레이션으로 관리하고, 기존 시더의 이전 범위를 결정한다.
 - [ ] **`[FEAT] Atom 피드 파싱 검증`** — Atom 피드 픽스처 테스트를 추가하고 실제 소스 추가 가능 여부를 확인한다.
 
 ## M3 — 구독·발송
