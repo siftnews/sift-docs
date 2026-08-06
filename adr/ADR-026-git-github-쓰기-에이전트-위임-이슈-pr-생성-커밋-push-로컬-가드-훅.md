@@ -1,0 +1,7 @@
+# D-026 · git/GitHub 쓰기 에이전트 위임 — 이슈·PR 생성·커밋·push + 로컬 가드 훅 (2026-07-17 · 가드 훅 항목 개정 → D-027 · 역할별 쓰기 주인 분할 → D-034)
+
+> [ADR 인덱스](README.md) · 결정 ID: D-026
+
+- **결정**: D-013·D-014의 "쓰기 = 사람 전담"을 개정 — 에이전트가 **이슈 생성(`gh issue create`)·PR 생성(`gh pr create`)·`git commit`·`git push`**까지 실행한다(settings allow 승격 + deny 해제, `git add`·`git switch` 포함). **유지되는 게이트(deny)**: `gh pr merge`·`review`·`ready`, issue/pr `edit`·`close`·`comment`·`delete`, `release`, `repo *`, `workflow run`, `secret`, `variable set`, 파괴 명령(`git reset --hard`·`clean`, `compose down -v`). `gh api`는 D-024대로 allow/deny 양쪽 제외(프롬프트 백스톱). **스타일 강제**: 모든 기록은 사용자 명의로, 기존 관행 그대로 — 이슈 제목 `[FEAT|CHORE|FIX|REFACTOR|docs]` 접두어 + Description/TODO 템플릿, PR 본문 `close #N` + 체크리스트, 커밋 `{type}: {한국어 요약}` 한 줄·**트레일러 금지(Co-Authored-By 등 에이전트 서명 금지)**. **로컬 가드 훅 도입**(`.claude/hooks/git-gh-guard.sh`, PreToolUse/Bash): ① main 직접 push 차단 + push는 `origin {브랜치}` 명시 강제 ② 커밋 메시지 형식·트레일러 검사 ③ 이슈/PR 제목 접두어·PR 본문 `close #N` 검사.
+- **이유**: 사용자 결정(2026-07-17) — 루프 자율성을 높이되 기록의 명의·스타일은 본인 것으로 유지. 병합·공개 상태 변경·인프라 쓰기만 사람 게이트로 남기면 되돌리기 어려운 지점은 보호된다(main은 브랜치 보호 + 훅 이중 방어). 형식은 규칙(기억)이 아니라 훅(장치)으로 강제 — D-023 철학.
+- **비고**: 테스트 게이트 훅(push 전 `./gradlew test` 강제)은 **채택 안 함** — Testcontainers 포함 수 분짜리 실행이라 훅 타임아웃·루프 리듬과 충돌. 자가검증(§0.6)과 CI·브랜치 보호가 담당. settings 사본 정합 대상에 훅 스크립트 추가(루트·sift-api 동일 유지). ⚠️ 잔여 구멍: `~/.claude/settings.local.json`의 `Bash(gh api *)` allow가 백스톱을 무력화 — 전역 보호 훅이 이 파일 편집을 차단하므로 **사용자가 직접 해당 줄 제거 필요**.

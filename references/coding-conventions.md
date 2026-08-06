@@ -1,7 +1,7 @@
 # 코드 규약 (sift-api)
 
 > **이 문서는 지어낸 규칙이 아니라 `origin/develop`에서 추출한 관행이다.** 코드가 바뀌면 이 문서가 틀린 것이므로 함께 고친다.
-> 원본이 다른 곳에 있는 것은 링크만 둔다 — 아키텍처 결정은 [DECISIONS](../adr/decisions.md), ERD·배치 설계는 [MVP-DESIGN](mvp-design.md), 개발 절차는 [HARNESS](harness.md).
+> 원본이 다른 곳에 있는 것은 링크만 둔다 — 아키텍처 결정은 [DECISIONS](../adr/README.md), ERD·배치 설계는 [MVP-DESIGN](mvp-design.md), 개발 절차는 [HARNESS](harness.md).
 
 구현 세션이 매번 코드를 읽어 스타일을 역추론하지 않도록 하는 것이 목적이다. **여기 없는 것은 규약이 아니다** — 판단이 필요하면 추정하지 말고 보고한다.
 
