@@ -2,11 +2,13 @@
 
 Sift의 활성 개발 기준이다. 문서 구조는 안정적으로 유지하며, 아직 도입하지 않은 기술 영역은 도입 이슈에서 해당 설계·검증 문서를 구체화한다.
 
+> 문서 원본 지도: 현재 상태·다음 행동은 [STATE](../STATE.md), 작업 후보는 [TASKS](../TASKS.md), 진행 중인 한 이슈의 단계는 [BACKLOG](../BACKLOG.md), 구현 컨벤션은 [코드 규약](coding-conventions.md)이다.
+
 ## 작업 트리거
 
 | 영역 | 트리거 예시 | 필수 참조 |
 |---|---|---|
-| API | REST API, Controller, Endpoint | [API 설계](api-design.md) · [보안](security.md) |
+| API | REST API, Controller, Endpoint | [API 설계](api-design.md) · [보안](security.md) · [코드 규약](coding-conventions.md) |
 | 서비스 | Business Logic, Use Case | [아키텍처](architecture.md) · [코드 규약](coding-conventions.md) |
 | 영속성 | JPA, QueryDSL, Persistence | [데이터베이스 설계](database-design.md) |
 | 트랜잭션 | `@Transactional`, Isolation, Lock | [아키텍처](architecture.md) · [데이터베이스 설계](database-design.md) |
@@ -21,11 +23,13 @@ Sift의 활성 개발 기준이다. 문서 구조는 안정적으로 유지하�
 
 ## 기본 흐름
 
-1. **사전 확인**: 루트 `AGENTS.md`, [아키텍처](architecture.md), [개발 절차](development.md), [코드 규약](coding-conventions.md), [협업 구성](team-configuration.md)을 읽는다.
-2. **설계**: 영향에 따라 API·DB·보안 설계를 확인하고 결정·완료 조건을 정한다.
-3. **구현**: controller·service·repository·integration 변경을 작은 단위로 수행한다.
-4. **검증**: 단위·통합·성능·보안 검증 중 필요한 항목을 실행한다.
-5. **릴리스**: [PR](../workflows/create-pr.md), 배포, 롤백, 릴리스 노트를 준비한다.
+1. **현재 상태 확인**: 루트 `AGENTS.md`, [STATE](../STATE.md), [TASKS](../TASKS.md), [BACKLOG](../BACKLOG.md)를 읽고 대상 저장소의 기존 변경을 보존한다.
+2. **사전 확인**: [아키텍처](architecture.md), [개발 절차](development.md), [코드 규약](coding-conventions.md), [협업 구성](team-configuration.md)을 읽는다. 코드베이스 질문은 `graphify-out/`이 있으면 graph query를 먼저 실행한다.
+3. **설계**: 영향에 따라 API·DB·보안 설계를 확인하고 결정·완료 조건을 정한다. REST는 `/api/v{major}` 버전과 오류 계약을 먼저 확정한다.
+4. **구현**: controller·service·repository·integration 변경을 작은 단위로 수행한다. public 인터페이스·DTO·enum은 별도 파일로 만들고 선언 레이아웃을 코드 규약대로 맞춘다.
+5. **검증**: 대상 테스트를 먼저 실행한 뒤 빌드·전체 테스트·포맷·정적 분석과 조건부 검증을 실행한다.
+6. **SSOT 갱신**: 완료된 작업 단위와 설계 계약을 원본 문서에 반영한다. 코드 레포에는 문서 원본을 복사하지 않고 `sift-docs` 링크를 사용한다.
+7. **릴리스**: [PR](../workflows/create-pr.md), 배포, 롤백, 릴리스 노트를 준비한다.
 
 ## GitHub 이슈 발행 규약
 
@@ -41,9 +45,17 @@ Sift의 활성 개발 기준이다. 문서 구조는 안정적으로 유지하�
 
 ## 검증 정책
 
-- **필수**: 빌드 성공, 전체 테스트 통과, 컴파일 오류 없음, 포맷 적용, 정적 분석 통과
+- **필수**: 빌드 성공, 전체 테스트 통과, 컴파일 오류 없음, 포맷 적용, `git diff --check`, 정적 분석 통과
 - **선택**: 성능 벤치마크, 부하 테스트, 아키텍처 검토, 의존성 업그레이드 검토
-- **조건부**: DB 마이그레이션, 캐시 무효화, API 버전 관리, 호환성 파괴 검토, 롤백 계획
+- **조건부**: DB 마이그레이션, 캐시 무효화, API 버전 관리, 호환성 파괴 검토, 롤백 계획. API 변경은 `/api/v{major}`, DTO 분리, 오류 계약, 보안 영향을 확인한다.
+
+## 코드 품질 게이트
+
+- public 인터페이스·DTO·enum은 선언별 별도 파일인지 확인한다.
+- DTO가 Controller 안에 중첩되거나 인라인 선언으로 남아 있지 않은지 확인한다.
+- 인터페이스 메서드, enum 상수, record 컴포넌트가 규약의 줄바꿈 형식인지 확인한다.
+- 필드·생성자·메서드 사이의 빈 줄과 한 줄 메서드 금지 규칙을 확인한다.
+- API 경로가 `/api/v{major}`로 시작하고 설계 문서의 계약과 일치하는지 확인한다.
 
 ## 사용자 결정 게이트
 

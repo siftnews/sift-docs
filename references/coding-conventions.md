@@ -44,6 +44,48 @@ com.siftnews.{module}/
 | 배치 | `{Job}JobConfig` · `{Job}JobParameters` · `{Job}MetricsListener` · `{Job}Trigger` | `CollectionJobConfig` |
 | 예외 | `{Module}Exception` extends `BusinessException` | `ContentException` · `SourceException` |
 
+### 2.1 선언·레이아웃
+
+- 하나의 public 인터페이스·DTO·enum은 하나의 파일에 둔다. 중첩 DTO·인라인 인터페이스 선언은 사용하지 않는다.
+- 인터페이스는 메서드를 한 줄에 몰아 쓰지 않고, 메서드 사이에 빈 줄을 둔다.
+
+```java
+public interface LoadSubscriberPort {
+
+    Optional<Subscriber> load(Long subscriberId);
+
+    Optional<Subscriber> loadByEmail(String email);
+}
+```
+
+- enum 상수는 상수마다 한 줄을 사용한다. enum에 메서드가 없으면 마지막 상수 뒤에 세미콜론을 붙이지 않는다.
+
+```java
+public enum SubscriberStatus {
+    ACTIVE,
+    UNSUB,
+    BOUNCED
+}
+```
+
+- 필드·생성자·메서드 사이에는 빈 줄을 둔다. 한 줄 메서드·생성자(`{} ` 포함)는 사용하지 않는다.
+- DTO는 `adapter/in/web/dto/`에 DTO마다 별도 파일로 둔다. DTO는 `record`를 우선하고, 선언부와 각 컴포넌트를 여러 줄로 작성한다.
+
+```java
+public record SubscriberSummary(
+        Long subscriberId,
+        String email,
+        String status,
+        int preferredSendHour
+) {
+
+    public static SubscriberSummary from(Subscriber subscriber) {
+        return new SubscriberSummary(subscriber.getSubscriberId(), subscriber.getEmail(),
+                subscriber.getStatus().name(), subscriber.getPreferredSendHour());
+    }
+}
+```
+
 **포트 이름의 동사는 그 포트가 하는 일 하나를 가리킨다.** `SaveArticlePort`·`ArticleQueryPort`처럼 저장과 조회를 나누는 것이 관행이다 — 리포지토리 한 덩어리로 묶지 않는다.
 
 ### 도메인 팩토리 메서드 — `create` / `restore` / `of`
@@ -104,13 +146,25 @@ private static final Clock CLOCK = Clock.fixed(NOW, ZoneOffset.UTC);   // 테스
 
 ```java
 private record FakeLoadTopicPort(Topic topic) implements LoadTopicPort {
-    @Override public Optional<Topic> load(Long topicId) { return Optional.ofNullable(topic); }
-    @Override public List<Topic> loadActive() { return topic == null ? List.of() : List.of(topic); }
+
+    @Override
+    public Optional<Topic> load(Long topicId) {
+        return Optional.ofNullable(topic);
+    }
+
+    @Override
+    public List<Topic> loadActive() {
+        return topic == null ? List.of() : List.of(topic);
+    }
 }
 
 private static final class FakeSaveArticleScorePort implements SaveArticleScorePort {
     private final List<ArticleScore> saved = new ArrayList<>();
-    @Override public void saveAll(List<ArticleScore> scores) { saved.addAll(scores); }
+
+    @Override
+    public void saveAll(List<ArticleScore> scores) {
+        saved.addAll(scores);
+    }
 }
 ```
 
@@ -139,6 +193,11 @@ private static final class FakeSaveArticleScorePort implements SaveArticleScoreP
 **`@Data`·`@Builder`·`@Setter`는 쓰지 않는다.** 도메인 불변식을 팩토리 메서드로 지키는데 setter·builder가 그것을 우회하기 때문이다. (`@Value`가 코드에 보이면 Lombok이 아니라 **Spring의 프로퍼티 주입**이다.)
 
 ## 8. 설정
+
+### 8.1 REST API
+
+- 외부 REST 경로는 `/api/v{major}` 버전 프리픽스를 사용한다. 현재 MVP의 첫 버전은 `/api/v1`이다.
+- Controller 내부에 요청·응답 DTO를 선언하지 않는다. DTO는 각자 별도 파일로 분리한다.
 
 - 애플리케이션 고유 설정은 **`sift.*` 네임스페이스** 아래에 둔다 (`sift.collection.cron`, `sift.selection.window-hours`).
 - 기본 프로파일은 `local`, 운영·CI는 `SPRING_PROFILES_ACTIVE`로 override.

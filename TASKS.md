@@ -5,6 +5,7 @@
 
 ## 현재 진행
 
+- [ ] [#55 `[FEAT] Subscriber/Subscription 도메인 및 구독 API`](https://github.com/siftnews/sift-api/issues/55) — 구현 진행 (`feature/55-subscriber-subscription`)
 - [x] [#47 `[CHORE] 배치 통합 테스트의 시각 의존 제거 (Clock 고정)`](https://github.com/siftnews/sift-api/issues/47) — PR #48 및 후속 PR #49 병합
 - [x] [#52 `[FEAT] Atom 피드 파싱 검증 및 네이버 D2 소스 추가`](https://github.com/siftnews/sift-api/issues/52) — PR #54 병합
 

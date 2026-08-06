@@ -5,7 +5,16 @@
 
 ## 진행 중
 
-현재 진행 중인 이슈 없음. 다음 작업은 M2 공통 패턴 정리 또는 M3 구독 도메인 이슈로 발행한다.
+### [#55 Subscriber/Subscription 도메인 및 구독 API](https://github.com/siftnews/sift-api/issues/55)
+
+- [x] 이슈·브랜치 생성 및 API 계약 확정
+- [x] subscriber·subscription Liquibase 스키마 초안 추가
+- [x] Subscriber/Subscription 도메인·서비스·영속 어댑터 초안 추가
+- [x] Content named interface를 통한 활성 토픽 조회 연결
+- [x] REST 어댑터와 경계 오류 응답 추가
+- [ ] 웹·영속 통합 검증·문서 검증
+
+
 
 ## 최근 완료
 
