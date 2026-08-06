@@ -12,7 +12,8 @@
 - [x] Subscriber/Subscription 도메인·서비스·영속 어댑터 초안 추가
 - [x] Content named interface를 통한 활성 토픽 조회 연결
 - [x] REST 어댑터와 경계 오류 응답 추가
-- [ ] 웹·영속 통합 검증·문서 검증
+- [x] 웹·영속 통합 검증·문서 검증
+- [ ] PR #56 리뷰·CI 확인 및 병합
 
 
 
