@@ -11,7 +11,7 @@
 |---|---|
 | Spring Boot Actuator (`health`·`info`·`modulith`) | **Prometheus 엔드포인트 미노출** — micrometer 레지스트리 추가 시 |
 | `spring-modulith-actuator` · `spring-modulith-observability` (runtimeOnly) | Grafana 대시보드 (계획: `sift-infra`) |
-| 배치 `MetricsListener` 2종 → `[measure]` 로그 | 부하 도구(k6) — M4 |
+| 배치 `MetricsListener` 3종 → `[measure]` 로그 | 부하 도구(k6) — M4 |
 | Spring Batch가 글로벌 레지스트리에 발행하는 `spring.batch.*` 타이머 | 알림·SLO |
 
 ```yaml
@@ -26,7 +26,8 @@ management:
 
 ## 2. 계측은 **배치 어댑터**에 둔다 — 서비스가 아니라
 
-`CollectionMetricsListener`(source) · `SelectionMetricsListener`(content) 둘 다 `adapter/in/batch/`에 있다.
+`CollectionMetricsListener`(source) · `SelectionMetricsListener`(content) ·
+`DispatchMetricsListener`(delivery)는 모두 `adapter/in/batch/`에 있다.
 
 **이유**: 애플리케이션 서비스는 배치를 몰라야 한다(헥사고날 — Spring Batch Job은 인바운드 어댑터다). 서비스에 `MeterRegistry`를 주입하면 도메인 쪽이 실행 수단을 알게 된다.
 
@@ -60,6 +61,12 @@ tasklet Step에서 `read=0 write=0`은 **결함이 아니다.** 리스너는 그
 2. `afterStep`에 소요시간 + (chunk면) 카운트, `afterJob`에 Job 결과 + 식별 파라미터(`topicId`·`runDate` 등)를 남긴다.
 3. 실패 예외를 `log.warn`으로 함께 남긴다.
 4. 시간 계산은 `start == null || end == null → Duration.ZERO` 가드를 둔다 — Job이 비정상 종료하면 null이 온다.
+
+`snapshotStep`처럼 tasklet이 수신자 목록을 직접 생성하는 경우, Step의 read/write count는 0이다.
+생성 건수는 `DispatchIssueService`가 `[measure] delivery snapshot createdTasks={}`로 남기고,
+`DispatchMetricsListener`가 execution context에서 이를 읽어 `sift.delivery.tasks.created` Counter에 기록한다.
+소요시간은 `sift.delivery.snapshot.duration`·`sift.delivery.dispatch.duration` Timer로 기록하며,
+모든 태그는 유한한 `status`만 쓴다.
 
 [PR 체크리스트](../checklists/pr.md)의 CONDITIONAL에 "배치 Job/Step 추가 시 계측" 항목이 있다.
 
