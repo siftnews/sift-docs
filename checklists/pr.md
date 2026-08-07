@@ -13,6 +13,7 @@
 - [ ] Assignees(`chltjsdl0119`)와 작업 유형 Label을 지정했다.
 - [ ] 사용자가 초안을 명시하지 않았다면 `--draft` 없이 PR을 생성했고 Ready for review 상태다.
 - [ ] base branch가 `develop`이고 CI와 CodeRabbit 상태를 확인했다.
+- [ ] CodeRabbit이 설정된 저장소에서는 Review Monitor를 시작했고, 최신 PR head SHA의 리뷰·인라인 댓글·CI 결과를 통합 보고했다.
 - [ ] 반영한 리뷰 변경은 검증·커밋·푸시 뒤 PR head에 포함됐음을 확인했고, 그 뒤 스레드를 resolve했다.
 - [ ] 미반영 리뷰는 근거를 스레드에 남긴 뒤 resolve했으며, 미결정·미검증 스레드는 열어 두었다.
 
