@@ -5,7 +5,8 @@
 
 ## 현재 진행
 
-- [ ] [#55 `[FEAT] Subscriber/Subscription 도메인 및 구독 API`](https://github.com/siftnews/sift-api/issues/55) — PR #56 리뷰 대기
+- [ ] [#58 `[FEAT] 발송 스냅샷과 매시 pull 스캔 구현`](https://github.com/siftnews/sift-api/issues/58) — 이슈 발행, 구현 시작
+- [x] [#55 `[FEAT] Subscriber/Subscription 도메인 및 구독 API`](https://github.com/siftnews/sift-api/issues/55) — PR #56 및 후속 PR #57 병합
 - [x] [#47 `[CHORE] 배치 통합 테스트의 시각 의존 제거 (Clock 고정)`](https://github.com/siftnews/sift-api/issues/47) — PR #48 및 후속 PR #49 병합
 - [x] [#52 `[FEAT] Atom 피드 파싱 검증 및 네이버 D2 소스 추가`](https://github.com/siftnews/sift-api/issues/52) — PR #54 병합
 
@@ -17,8 +18,8 @@
 
 ## M3 — 구독·발송
 
-- [ ] **`[FEAT] Subscriber/Subscription 도메인 + 구독 API`** — 구독/해지 UseCase, REST 어댑터, `preferred_send_hour`를 포함한다.
-- [ ] **`[FEAT] 발송 스냅샷 (delivery_job/delivery_task)`** — DispatchIssueUseCase와 멱등 키를 정의하고 매시 pull 스캔 트리거를 구현한다.
+- [x] **`[#55] [FEAT] Subscriber/Subscription 도메인 + 구독 API`** — 구독/해지 UseCase, REST 어댑터, `preferred_send_hour`를 구현했다(PR #56, 후속 PR #57).
+- [ ] **`[#58] [FEAT] 발송 스냅샷 (delivery_job/delivery_task)`** — DispatchIssueUseCase와 멱등 키를 정의하고 매시 pull 스캔 트리거를 구현한다.
 - [ ] **`[FEAT] sendStep — 템플릿 렌더링 + SendEmailPort`** — 메일 템플릿 엔진 선택과 단일 스레드 발송을 구현한다.
 - [ ] **`[FEAT] retryJob — 오류 분류 + 지수 백오프`** — 재시도·격리·다음 재시도 시각을 정의한다.
 
