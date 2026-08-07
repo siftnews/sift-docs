@@ -29,7 +29,9 @@ Sift의 활성 개발 기준이다. 문서 구조는 안정적으로 유지하�
 4. **구현**: controller·service·repository·integration 변경을 작은 단위로 수행한다. public 인터페이스·DTO·enum은 별도 파일로 만들고 선언 레이아웃을 코드 규약대로 맞춘다.
 5. **검증**: 대상 테스트를 먼저 실행한 뒤 빌드·전체 테스트·포맷·정적 분석과 조건부 검증을 실행한다.
 6. **SSOT 갱신**: 완료된 작업 단위와 설계 계약을 원본 문서에 반영한다. 코드 레포에는 문서 원본을 복사하지 않고 `sift-docs` 링크를 사용한다.
-7. **릴리스**: [PR](../workflows/create-pr.md)을 Ready for review로 생성한 뒤, 현재 세션의 Review Monitor가 CodeRabbit 리뷰·CI 결과를 통합 보고할 때까지 PR 사이클을 닫지 않는다. 그 다음 배포, 롤백, 릴리스 노트를 준비한다.
+7. **사이클 종료**: [Sift 태스크 사이클](../workflows/task-cycle.md)이 PR을 Ready for review로 만들고 최신 head의 CodeRabbit·CI 후속 처리를 정리한 뒤 `ready` 상태로 종료한다. merge·배포는 별도 사용자 게이트다.
+
+전체 실행은 [Sift 태스크 사이클](../workflows/task-cycle.md)을 단일 계약으로 사용한다.
 
 ## GitHub 이슈 발행 규약
 

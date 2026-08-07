@@ -6,18 +6,19 @@
 ## 현재 운영 상태
 
 - 일반 작업 세션은 비-Git 루트 `siftnews/`에서 시작하며, Git·빌드·테스트는 대상 하위 저장소에서 실행한다.
-- `sift-harness`와 역할 런처는 현재 사용하지 않는다. 협업·병렬화·사용자 결정 게이트는 루트 `AGENTS.md`와 HARNESS를 따른다.
+- `sift-harness`와 과거 역할 런처는 현재 사용하지 않는다. “다음 태스크를 탐색하고 진행하라” 사이클은 루트 `$task-cycle`와 `workflows/task-cycle.md`를 따르고, 협업·병렬화·사용자 결정 게이트는 루트 `AGENTS.md`와 HARNESS를 따른다.
 - `sift-api` 코드 탐색용 Graphify 인덱스는 `sift-api/graphify-out/`만 사용한다.
 
 ## 현재 작업
 
-- [#58 발송 스냅샷과 매시 pull 스캔 구현](https://github.com/siftnews/sift-api/issues/58): 이슈 발행 완료, 구현 시작.
+- [#58 발송 스냅샷과 매시 pull 스캔 구현](https://github.com/siftnews/sift-api/issues/58): 구현·검증·병합 완료(PR #59).
 - [#47 배치 통합 테스트의 시각 의존 제거](https://github.com/siftnews/sift-api/issues/47): 구현·검증·병합 완료(PR #48, 후속 보정 PR #49).
 - [#50 Liquibase 마이그레이션 도입](https://github.com/siftnews/sift-api/issues/50): PR #51 병합 완료.
 - [#52 Atom 피드 파싱 검증 및 네이버 D2 소스 추가](https://github.com/siftnews/sift-api/issues/52): PR #54 병합 완료.
 - [#55 Subscriber/Subscription 도메인 및 구독 API](https://github.com/siftnews/sift-api/issues/55): 구현·검증·병합 완료(PR #56, 후속 보정 PR #57).
+- [#60 sendStep 고정 HTML 렌더링 및 로컬 SMTP 발송](https://github.com/siftnews/sift-api/issues/60): 구현·전용 회귀 검증 완료, task-cycle 사이클에서 커밋·PR 생성 및 CodeRabbit 후속 처리를 진행한다.
 
 ## 다음 우선순위
 
-1. #58 발송 스냅샷과 매시 pull 스캔 구현
-2. M3 sendStep·retryJob 구현
+1. #60 task-cycle 사이클 재개 및 PR 리뷰 종료
+2. M3 retryJob — 오류 분류 + 지수 백오프 구현

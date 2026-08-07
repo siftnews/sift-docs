@@ -5,19 +5,27 @@
 
 ## 진행 중
 
-### [#58 발송 스냅샷과 매시 pull 스캔 구현](https://github.com/siftnews/sift-api/issues/58)
+### [#60 sendStep 고정 HTML 렌더링 및 로컬 SMTP 발송](https://github.com/siftnews/sift-api/issues/60)
 
-- [x] 이슈 발행 및 구현 범위 확정
-- [x] delivery_job·delivery_task Liquibase 스키마와 제약 추가
-- [x] Delivery 도메인·포트·서비스 및 멱등 키 구현
-- [x] Content·Subscriber 모듈 경계 조회 연결
-- [x] 매시 pull 스캔 트리거와 snapshotStep 구현
-- [ ] 영속·배치 통합 및 동시성 회귀 검증
-- [x] delivery_job 상태 전이·완료 판정 설계 원본 갱신
-
+- [x] 이슈 발행·구현 범위 확정·브랜치 생성
+- [x] Content 렌더링 계약·고정 HTML 렌더러 구현
+- [x] SendEmailPort·로컬 SMTP 어댑터와 상태 전이 구현
+- [x] sendStep 배치·통합 회귀 검증
+- [x] 설계 원본·작업 장부 갱신 및 전체 테스트·모듈 경계·diff 정적 검사
 
 
 ## 최근 완료
+
+### [#58 발송 스냅샷과 매시 pull 스캔 구현](https://github.com/siftnews/sift-api/issues/58)
+
+- [x] delivery_job·delivery_task Liquibase 스키마와 제약을 추가했다.
+- [x] Delivery 도메인·포트·서비스 및 멱등 키를 구현했다.
+- [x] Content·Subscriber named interface 조회를 연결했다.
+- [x] 매시 pull 스캔 트리거와 snapshotStep을 구현했다.
+- [x] 도메인·서비스·영속 회귀와 전체 테스트를 검증했다.
+- [ ] dispatchJob 트리거·Job 실행의 통합 회귀는 후속 점검 항목이다.
+- [x] delivery_job 상태 전이·완료 판정 설계 원본을 갱신했다.
+- [x] PR #59를 병합했다.
 
 ### [#55 Subscriber/Subscription 도메인 및 구독 API](https://github.com/siftnews/sift-api/issues/55)
 

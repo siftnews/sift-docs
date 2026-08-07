@@ -65,8 +65,9 @@ tasklet Step에서 `read=0 write=0`은 **결함이 아니다.** 리스너는 그
 `snapshotStep`처럼 tasklet이 수신자 목록을 직접 생성하는 경우, Step의 read/write count는 0이다.
 생성 건수는 `DispatchIssueService`가 `[measure] delivery snapshot createdTasks={}`로 남기고,
 `DispatchMetricsListener`가 execution context에서 이를 읽어 `sift.delivery.tasks.created` Counter에 기록한다.
-소요시간은 `sift.delivery.snapshot.duration`·`sift.delivery.dispatch.duration` Timer로 기록하며,
-모든 태그는 유한한 `status`만 쓴다.
+소요시간은 `sift.delivery.snapshot.duration`·`sift.delivery.send.duration`·
+`sift.delivery.dispatch.duration` Timer로 기록한다. `sendStep`의 write count는
+`sift.delivery.tasks.processed` Counter로 남긴다. 모든 태그는 유한한 `status`만 쓴다.
 
 [PR 체크리스트](../checklists/pr.md)의 CONDITIONAL에 "배치 Job/Step 추가 시 계측" 항목이 있다.
 
