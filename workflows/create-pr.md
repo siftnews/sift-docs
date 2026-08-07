@@ -4,8 +4,8 @@
 2. [PR 체크리스트](../checklists/pr.md)의 REQUIRED와 해당 CONDITIONAL 항목을 완료한다.
 3. 코드·설계 문서·다이어그램이 함께 바뀌어야 하는지 확인한다.
 4. 제목은 연결 이슈 제목을 **문자 단위까지 그대로** 사용한다. PR 제목에 별도의 `{type}:` 형식을 적용하지 않는다. 본문은 PR 템플릿의 `close #이슈번호`와 `Check list`를 유지한 채 배경·변경 내용·검증 결과·롤백 정보를 적는다.
-5. 생성 시 `--assignee chltjsdl0119`와 작업 유형에 맞는 `--label`을 함께 지정한다. 라벨 매핑은 이슈와 동일하게 `feature`·`bug`·`chore`를 사용한다. 사용자가 초안을 명시하지 않은 PR은 **Ready for review** 상태로 생성한다.
-6. 생성 직후 `gh pr view`로 제목과 연결 이슈 제목의 완전 일치, 연결 이슈, Check list, Assignees, Label, base branch(`develop`), head branch, Ready for review 상태, CI 상태를 확인한다. 하나라도 누락·불일치하면 리뷰 요청 전에 보정한다.
+5. 생성 시 `--assignee chltjsdl0119`와 작업 유형에 맞는 `--label`을 함께 지정한다. 라벨 매핑은 이슈와 동일하게 `feature`·`bug`·`chore`를 사용한다. **기본 생성 명령에 `--draft`를 넣지 않는다.** 사용자가 초안을 명시적으로 요청한 경우에만 draft PR을 만든다.
+6. 생성 직후 `gh pr view`로 제목과 연결 이슈 제목의 완전 일치, 연결 이슈, Check list, Assignees, Label, base branch(`develop`), head branch, Ready for review 상태, CI와 CodeRabbit 상태를 확인한다. 하나라도 누락·불일치하면 리뷰 요청 전에 보정한다. CodeRabbit이 설정된 저장소에서는 리뷰가 완료되거나 대기 상태임을 보고한다.
 7. 독립 검토가 필요한 위험과 미해결 사항을 명시한다.
 
 ## 리뷰 후속 처리
