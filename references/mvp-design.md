@@ -113,11 +113,13 @@ issue_item    (id, issue_id FK, article_id FK, rank, score)
               · UNIQUE(issue_id, article_id)
 
 delivery_job  (id, issue_id FK, total_count, status[CREATED|SENDING|DONE], created_at)
+              · UNIQUE(issue_id) -- 한 호의 발송 작업은 재실행해도 하나만 유지
 
 delivery_task (id, delivery_job_id FK, subscriber_id FK, email,
                status[PENDING|SENDING|SENT|FAILED|DEAD],
                attempt_count, next_retry_at, last_error, sent_at, idempotency_key)
-              · UNIQUE(idempotency_key)  -- = hash(delivery_job_id, subscriber_id)
+              · UNIQUE(idempotency_key)  -- = hash(issue_id, subscriber_id)
+              -- job 재생성·수신 시각 변경에도 같은 호를 중복 발송하지 않는다
               · INDEX(status, next_retry_at)
 ```
 
@@ -182,7 +184,7 @@ Step selectStep          (tasklet)  threshold·랭킹·소스 다양성 → issu
 ```
 Step snapshotStep               당일 SCHEDULED issue × preferred_send_hour=현재 시각인
                                 토픽 ACTIVE 구독자 → delivery_job 생성 + delivery_task(PENDING)
-  → in: DispatchIssueUseCase.dispatch(issueId)   (멱등: idempotency_key)
+  → in: DispatchIssueUseCase.dispatch(issueId)   (멱등: hash(issue_id, subscriber_id))
 Step sendStep    (chunk = 500)  PENDING task 읽어 렌더링 후 SendEmailPort 호출
   reader     LoadPendingTasksPort (status=PENDING)
   processor  템플릿 렌더링(개인화 토큰 치환)
@@ -295,6 +297,6 @@ out  SendEmailPort                  send(email): SendResult               // SUC
 - [ ] 스케줄러 선택: Spring `@Scheduled` (MVP 충분) vs Quartz (분산 시) → TASKS M2 selectionJob 이슈
 - [ ] 템플릿 엔진: Thymeleaf vs Mustache (메일 렌더링) → TASKS M3 sendStep 이슈
 - [ ] 부하 테스트 시나리오: 구독자 10만 시드 데이터 생성 방법 → TASKS M4 (선호 시각 분포 포함 — D-019)
-- [ ] issue 상태 완료 판정: 발송이 24시간에 분산(D-019)될 때 SENDING → SENT 전이 시점 정의 (마지막 시간대 완료? 일 마감?) → M3 발송 스냅샷 이슈
+- [x] issue 상태 완료 판정: 선별 완료 시 `SCHEDULED`; delivery_job은 스냅샷에서 `CREATED`로 만들고, sendStep·retryJob이 모든 task를 `SENT` 또는 `DEAD`로 종결한 뒤 `DONE`으로 전이한다. `Issue`의 `SENT` 전이는 그 완료 전이를 따르며 후속 sendStep 이슈에서 구현한다(#58, 2026-08-07).
 - [x] `Source.markCrawled()` 영속 반영: 전용 포트 `UpdateSourcePort` 신설로 결정 (D-022, 2026-07-13). `source.trust_score` 컬럼은 M1-4 범위에서 제외(도메인 미사용) — M2 스코어링 구현 시 재검토
 - [x] → 다음: **프로젝트 스캐폴딩** (`sift-api` Spring 골격 + 모듈/패키지) — 완료, 첫 배치 Job은 TASKS M1

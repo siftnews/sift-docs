@@ -21,8 +21,8 @@
 
 ### 발생 시점
 - delivery_job이 SENDING → DONE으로 전이된 **트랜잭션이 커밋된 후** 발행된다.
-- ⚠️ DONE의 정의(1차 발송 종료 시점 vs 재시도 포함 전 task 종결 시점)는 M3 발송 스냅샷 이슈에서 확정
-  — 확정 시 이 항목 갱신.
+- `DONE`은 재시도를 포함한 모든 `delivery_task`가 `SENT` 또는 `DEAD`로 종결된 시점이다. snapshotStep은
+  `CREATED`까지만 만들며, sendStep·retryJob이 이 전이를 수행한다(#58).
 
 ### Payload
 
@@ -110,4 +110,3 @@ public record BounceDetected(
   DEAD 반복 구독자를 상태에 반영할지(`PermanentFailureDetected` 유사 이벤트)는 2차 바운스 이슈에서 함께 결정.
 
 ---
-

@@ -8,12 +8,12 @@
 ### [#58 발송 스냅샷과 매시 pull 스캔 구현](https://github.com/siftnews/sift-api/issues/58)
 
 - [x] 이슈 발행 및 구현 범위 확정
-- [ ] delivery_job·delivery_task Liquibase 스키마와 제약 추가
-- [ ] Delivery 도메인·포트·서비스 및 멱등 키 구현
-- [ ] Content·Subscriber 모듈 경계 조회 연결
-- [ ] 매시 pull 스캔 트리거와 snapshotStep 구현
-- [ ] 도메인·서비스·영속·배치 통합 및 모듈 경계 검증
-- [ ] delivery_job 상태 전이·완료 판정 설계 원본 갱신
+- [x] delivery_job·delivery_task Liquibase 스키마와 제약 추가
+- [x] Delivery 도메인·포트·서비스 및 멱등 키 구현
+- [x] Content·Subscriber 모듈 경계 조회 연결
+- [x] 매시 pull 스캔 트리거와 snapshotStep 구현
+- [ ] 영속·배치 통합 및 동시성 회귀 검증
+- [x] delivery_job 상태 전이·완료 판정 설계 원본 갱신
 
 
 
