@@ -17,10 +17,10 @@
 - [#52 Atom 피드 파싱 검증 및 네이버 D2 소스 추가](https://github.com/siftnews/sift-api/issues/52): PR #54 병합 완료.
 - [#55 Subscriber/Subscription 도메인 및 구독 API](https://github.com/siftnews/sift-api/issues/55): 구현·검증·병합 완료(PR #56, 후속 보정 PR #57).
 - [#60 sendStep 고정 HTML 렌더링 및 로컬 SMTP 발송](https://github.com/siftnews/sift-api/issues/60): 구현·리뷰 후속 커밋 `6cfd123` push 완료, 부모 PR #61은 `develop` 대상으로 열려 있다.
-- [#62 retryJob 오류 분류 및 지수 백오프](https://github.com/siftnews/sift-api/issues/62): `feature/60-send-step` 위에 `feature/62-retry-job`으로 스택 구현·검증 중이다.
+- [#62 retryJob 오류 분류 및 지수 백오프](https://github.com/siftnews/sift-api/issues/62): `feature/60-send-step` 위에 `feature/62-retry-job`으로 구현·검증했고 스택 PR #63을 열었다. child PR은 non-default base라 GitHub Actions/CodeRabbit 자동 검토가 skip된다.
 
 ## 다음 우선순위
 
-1. #62 스택드 PR 생성 및 CI/CodeRabbit review 확인
+1. #63 스택드 PR review 확인 및 부모 PR #61 병합 후 base 정리
 2. #60 부모 PR #61 리뷰 종료 후 child PR base 정리
 3. M4 10만 구독자 시드 생성기
