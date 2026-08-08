@@ -12,7 +12,7 @@
 - [x] 오류 분류·지수 백오프·시도 횟수·SENT/DEAD 상태 전이 구현
 - [x] retryJob/retryStep·주기 트리거·계측 구현
 - [x] 단위·reader·트리거·메트릭·Testcontainers 통합 회귀 검증
-- [x] 설계 원본·작업 장부 갱신 및 전체 테스트·모듈 경계·diff 정적 검사를 완료하고 스택드 PR #63을 생성했다.
+- [x] 설계 원본·작업 장부 갱신 및 전체 테스트(246건)·모듈 경계·diff 정적 검사를 완료하고 스택드 PR #63을 생성했다.
 - [ ] PR #63의 최신 head `034c1aa`에 대한 stacked base 자동 CI/CodeRabbit 검토는 GitHub가 skip하므로 로컬 검증 증거로 대체한다.
 
 
