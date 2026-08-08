@@ -5,16 +5,23 @@
 
 ## 진행 중
 
-### [#60 sendStep 고정 HTML 렌더링 및 로컬 SMTP 발송](https://github.com/siftnews/sift-api/issues/60)
+### [#62 retryJob 오류 분류 및 지수 백오프](https://github.com/siftnews/sift-api/issues/62)
 
-- [x] 이슈 발행·구현 범위 확정·브랜치 생성
-- [x] Content 렌더링 계약·고정 HTML 렌더러 구현
-- [x] SendEmailPort·로컬 SMTP 어댑터와 상태 전이 구현
-- [x] sendStep 배치·통합 회귀 검증
-- [x] 설계 원본·작업 장부 갱신 및 전체 테스트·모듈 경계·diff 정적 검사
+- [x] 이슈 발행·구현 범위 확정·`feature/60-send-step` 기반 스택 브랜치 생성
+- [x] FAILED task 키셋 reader와 조건부 점유 포트 구현
+- [x] 오류 분류·지수 백오프·시도 횟수·SENT/DEAD 상태 전이 구현
+- [x] retryJob/retryStep·주기 트리거·계측 구현
+- [x] 단위·reader·트리거·메트릭·Testcontainers 통합 회귀 검증
+- [ ] 설계 원본·작업 장부 갱신 및 전체 테스트·모듈 경계·diff 정적 검사 후 스택드 PR 생성
 
 
 ## 최근 완료
+
+### [#60 sendStep 고정 HTML 렌더링 및 로컬 SMTP 발송](https://github.com/siftnews/sift-api/issues/60)
+
+- [x] 구현·전용 회귀 검증 및 설계 원본 갱신을 완료했다.
+- [x] CodeRabbit actionable 지적 9건을 반영한 후속 커밋 `6cfd123`을 PR #61에 push했다.
+- [ ] PR #61 병합 및 최신 CodeRabbit review 종료는 부모 PR 게이트에 남아 있다.
 
 ### [#58 발송 스냅샷과 매시 pull 스캔 구현](https://github.com/siftnews/sift-api/issues/58)
 

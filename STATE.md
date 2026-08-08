@@ -1,7 +1,7 @@
 # Sift — 현재 상태
 
 > 현재 운영 상태와 다음 행동의 단일 진실원천이다. 과거 이력은 GitHub 이슈·PR, Git, [ADR](adr/README.md)에서 조회한다.
-> 프로토콜: [HARNESS](references/harness.md) · 현재 운영 결정: [D-041](adr/ADR-041-루트-omx-오케스트레이터-sift-api-전용-graphify.md) · 마지막 갱신: 2026-08-07
+> 프로토콜: [HARNESS](references/harness.md) · 현재 운영 결정: [D-041](adr/ADR-041-루트-omx-오케스트레이터-sift-api-전용-graphify.md) · 마지막 갱신: 2026-08-08
 
 ## 현재 운영 상태
 
@@ -16,9 +16,11 @@
 - [#50 Liquibase 마이그레이션 도입](https://github.com/siftnews/sift-api/issues/50): PR #51 병합 완료.
 - [#52 Atom 피드 파싱 검증 및 네이버 D2 소스 추가](https://github.com/siftnews/sift-api/issues/52): PR #54 병합 완료.
 - [#55 Subscriber/Subscription 도메인 및 구독 API](https://github.com/siftnews/sift-api/issues/55): 구현·검증·병합 완료(PR #56, 후속 보정 PR #57).
-- [#60 sendStep 고정 HTML 렌더링 및 로컬 SMTP 발송](https://github.com/siftnews/sift-api/issues/60): 구현·전용 회귀 검증 완료, task-cycle 사이클에서 커밋·PR 생성 및 CodeRabbit 후속 처리를 진행한다.
+- [#60 sendStep 고정 HTML 렌더링 및 로컬 SMTP 발송](https://github.com/siftnews/sift-api/issues/60): 구현·리뷰 후속 커밋 `6cfd123` push 완료, 부모 PR #61은 `develop` 대상으로 열려 있다.
+- [#62 retryJob 오류 분류 및 지수 백오프](https://github.com/siftnews/sift-api/issues/62): `feature/60-send-step` 위에 `feature/62-retry-job`으로 스택 구현·검증 중이다.
 
 ## 다음 우선순위
 
-1. #60 task-cycle 사이클 재개 및 PR 리뷰 종료
-2. M3 retryJob — 오류 분류 + 지수 백오프 구현
+1. #62 스택드 PR 생성 및 CI/CodeRabbit review 확인
+2. #60 부모 PR #61 리뷰 종료 후 child PR base 정리
+3. M4 10만 구독자 시드 생성기

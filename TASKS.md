@@ -21,7 +21,7 @@
 - [x] **`[#55] [FEAT] Subscriber/Subscription 도메인 + 구독 API`** — 구독/해지 UseCase, REST 어댑터, `preferred_send_hour`를 구현했다(PR #56, 후속 PR #57).
 - [x] **`[#58] [FEAT] 발송 스냅샷 (delivery_job/delivery_task)`** — DispatchIssueUseCase와 멱등 키를 정의하고 매시 pull 스캔 트리거를 구현했다(PR #59).
 - [x] **`[#60] [FEAT] sendStep — 고정 HTML 렌더링 + SendEmailPort`** — 템플릿 엔진 없이 단일 스레드 로컬 SMTP 발송을 구현했다. PR·CodeRabbit 후속 처리는 task-cycle에서 진행한다.
-- [ ] **`[FEAT] retryJob — 오류 분류 + 지수 백오프`** — 재시도·격리·다음 재시도 시각을 정의한다.
+- [x] **`[#62] [FEAT] retryJob — 오류 분류 + 지수 백오프`** — 재시도·격리·다음 재시도 시각을 정의하고 스택드 PR로 구현 중이다.
 
 ## M4 — 측정·부하
 

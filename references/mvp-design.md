@@ -127,7 +127,7 @@ delivery_task (id, delivery_job_id FK, subscriber_id FK, email,
 
 ## 3. 배치 Job / Step 명세
 
-4개 Job + 1개 스케줄 트리거. 각 Spring Batch Job은 **인바운드 어댑터**로 UseCase를 호출.
+4개 Job + 4개 스케줄 트리거. 각 Spring Batch Job은 **인바운드 어댑터**로 UseCase를 호출.
 
 ### ① collectionJob — 수집 (collectionTrigger로 기동 — **매시 10분 확정, 이슈 #33**)
 ```
@@ -199,9 +199,17 @@ Step sendStep    (chunk = 500)  PENDING task를 키셋 페이지로 읽어 고�
 ### ⑤ retryJob — 재시도 (주기: 수 분 간격)
 ```
 Step retryStep   (chunk = 500)
-  reader     LoadRetriableTasksPort (status=FAILED AND next_retry_at <= now AND attempt < max)
-  processor  지수 백오프 계산
-  writer     재전송 → SENT / FAILED(+attempt, next_retry_at) / DEAD(max 초과·영구오류)
+  reader     LoadRetriableDeliveryTasksPort
+             (status=FAILED AND next_retry_at <= now AND attempt_count < max_attempts)
+             → 키셋 페이지 + ItemStream ExecutionContext cursor
+  writer     SendDeliveryTaskUseCase.send(task)
+             → 조건부 FAILED → SENDING 점유를 별도 커밋
+             → 일시 오류: 재전송 → SENT / FAILED(+attempt_count, next_retry_at)
+             → 영구 오류 또는 최대 시도 초과: DEAD
+
+- 기본 정책: 최대 3회, 60초 초기 지연, 1시간 상한의 지수 백오프(1m → 2m → 4m …)
+- 오류 분류: SMTP 전송 실패는 TRANSIENT, 메시지 구성·주소 오류는 PERMANENT로 분류한다.
+  PERMANENT와 분류 불가 오류는 즉시 DEAD로 격리하며, last_error에는 수신자·SMTP 원문을 저장하지 않는다.
 ```
 
 상태 전이: `PENDING → SENDING → SENT` / `→ FAILED →(retry)→ SENT | DEAD`
@@ -271,13 +279,17 @@ in   DispatchIssueUseCase           dispatch(issueId, topicId, sendHour): Dispat
 in   SendDeliveryTaskUseCase        send(task)
 out  LoadDeliveryJobPort            loadByIssueId(issueId): Optional<DeliveryJob>
 out  LoadPendingDeliveryTasksPort   loadPending(jobId, afterTaskId, limit): List<DeliveryTask>
+out  LoadRetriableDeliveryTasksPort  loadRetriable(now, afterTaskId, maxAttempts, limit): List<DeliveryTask>
 out  SaveDeliveryJobPort / SaveDeliveryTaskPort
-out  UpdateDeliveryTaskPort         claimPending(taskId), markSent(taskId), markFailed(taskId, error)
+out  UpdateDeliveryTaskPort         claimPending(taskId), claimFailed(taskId, now, maxAttempts),
+                                     markSent(taskId), markFailed(taskId, error, attemptCount, nextRetryAt),
+                                     markDead(taskId, error)
 out  SendEmailPort                  send(recipient, subject, htmlBody): void
 ```
 
 > `SendEmailPort` 구현: `LocalSmtpAdapter`(개발·부하), `TestSendEmailAdapter`(테스트) — 프로파일 전환.
 > `LocalSmtpAdapter`는 메시지 구성 오류와 SMTP 오류를 `DeliveryException`으로 분류하되, `last_error`에는 수신자·원문 SMTP 응답을 저장하지 않는다.
+> 재시도 설정은 `sift.delivery.retry.cron`, `max-attempts`, `base-delay-seconds`, `max-delay-seconds`로 관리한다.
 
 ---
 

@@ -69,6 +69,11 @@ tasklet Step에서 `read=0 write=0`은 **결함이 아니다.** 리스너는 그
 `sift.delivery.dispatch.duration` Timer로 기록한다. `sendStep`의 write count는
 `sift.delivery.tasks.processed` Counter로 남긴다. 모든 태그는 유한한 `status`만 쓴다.
 
+`retryJob`은 `RetryMetricsListener`가 `sift.delivery.retry.duration`·
+`sift.delivery.retry.job.duration` Timer와 `sift.delivery.retry.tasks.processed` Counter로
+재시도 Step/Job 소요시간과 처리 건수를 기록한다. `sendStep`과 동일하게 실패 원인 예외는
+`[measure]` 경고 로그에 남기고, 메트릭 태그에는 유한한 상태만 사용한다.
+
 [PR 체크리스트](../checklists/pr.md)의 CONDITIONAL에 "배치 Job/Step 추가 시 계측" 항목이 있다.
 
 ## 5. 앞으로 (도입 시점에 이 문서를 고친다)
