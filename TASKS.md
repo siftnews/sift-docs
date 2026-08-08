@@ -5,7 +5,8 @@
 
 ## 현재 진행
 
-- [ ] [#64 `[CHORE] 10만 구독자 시드 생성기`](https://github.com/siftnews/sift-api/issues/64) — `loadtest` 프로파일 전용 결정적 시드와 수신 시각 분포를 구현 중이다.
+- [x] [#64 `[CHORE] 10만 구독자 시드 생성기`](https://github.com/siftnews/sift-api/issues/64) — 구현·검증을 완료하고 PR #65를 열었다. 병합은 사용자 게이트다.
+- [x] [#66 `[CHORE] 모니터링 스택`](https://github.com/siftnews/sift-api/issues/66) — Prometheus scrape endpoint와 발송 Timer histogram을 구현하고 PR #67을 열었다. Grafana/infra 배치는 D-044에 따라 `sift-infra` 후속 범위다.
 - [x] [#58 `[FEAT] 발송 스냅샷과 매시 pull 스캔 구현`](https://github.com/siftnews/sift-api/issues/58) — PR #59 병합
 - [x] [#55 `[FEAT] Subscriber/Subscription 도메인 및 구독 API`](https://github.com/siftnews/sift-api/issues/55) — PR #56 및 후속 PR #57 병합
 - [x] [#47 `[CHORE] 배치 통합 테스트의 시각 의존 제거 (Clock 고정)`](https://github.com/siftnews/sift-api/issues/47) — PR #48 및 후속 PR #49 병합
@@ -27,5 +28,5 @@
 ## M4 — 측정·부하
 
 - [x] **`[#64] [CHORE] 10만 구독자 시드 생성기`** — 재실행 가능한 100,000건 subscriber 시드와 D-019 아침 피크 수신 시각 분포를 제공하는 stacked PR #65를 열었다. subscription fan-out과 V1 발송 측정은 후속 태스크다.
-- [ ] **`[CHORE] 모니터링 스택`** — Prometheus·Grafana와 배치 대시보드의 위치를 결정한다.
+- [x] **`[#66] [CHORE] 모니터링 스택`** — `sift-api`의 Prometheus scrape 계약과 V1 대시보드 지표를 확정했다(PR #67). Prometheus/Grafana 실행 파일은 `sift-infra` 후속 범위다.
 - [ ] **`[FEAT] V1 부하 측정 — 베이스라인 확보`** — 10만 건 발송의 소요 시간·TPS를 측정한다.

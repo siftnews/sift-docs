@@ -5,18 +5,26 @@
 
 ## 진행 중
 
-### [#64 10만 구독자 시드 생성기](https://github.com/siftnews/sift-api/issues/64)
+### [#66 모니터링 스택](https://github.com/siftnews/sift-api/issues/66)
 
-- [x] 이슈 발행·구현 범위 확정·`feature/62-retry-job` 기반 stacked 브랜치 생성
-- [x] 기본 100,000건·email domain 설정과 `loadtest` 프로파일 전용 ApplicationRunner 구현
-- [x] D-019 아침 피크 `preferred_send_hour` 결정적 분포 생성 및 회귀 테스트 추가
-- [x] 이메일 UNIQUE 기준 1,000건 JDBC bulk `ON CONFLICT DO NOTHING` 저장 구현
-- [x] 단위 테스트·모듈 경계·diff 정적 검사를 통과했다.
-- [ ] Testcontainers 통합 테스트는 Docker 데몬 기동 후 재실행한다.
-- [x] `chore/64-100k-subscriber-seed` head `4e2ee66`을 stacked PR #65로 생성했다.
+- [x] 이슈 발행·범위 확정·`develop` 기반 독립 브랜치 생성
+- [x] `micrometer-registry-prometheus` runtime registry와 Actuator scrape endpoint 구현
+- [x] dispatch/send/retry Timer histogram 설정 및 기존 endpoint 노출 보존
+- [x] Prometheus 응답·custom metric/histogram 노출 통합 회귀 테스트 추가
+- [x] 대상 테스트·전체 테스트(249건)·`check`·모듈 경계·diff 정적 검사를 통과했다.
+- [x] 관측 문서와 D-044로 Prometheus/Grafana 인프라 경계를 기록했다.
+- [x] `chore/66-monitoring-stack` head `585f09a`를 PR #67로 생성했다.
+- [ ] PR #67 리뷰 및 병합은 사용자 게이트다.
 
 
 ## 최근 완료
+
+### [#64 10만 구독자 시드 생성기](https://github.com/siftnews/sift-api/issues/64)
+
+- [x] `loadtest` 프로파일 전용 결정적 100,000건 subscriber 시드와 D-019 아침 피크 분포를 구현했다.
+- [x] 이메일 UNIQUE 기준 bulk 멱등 저장과 회귀 검증을 완료했다.
+- [x] stacked PR #65의 CI·CodeRabbit 검토가 통과했다.
+- [ ] PR #65 병합은 사용자 게이트다.
 
 ### [#62 retryJob 오류 분류 및 지수 백오프](https://github.com/siftnews/sift-api/issues/62)
 

@@ -5,24 +5,36 @@
 
 ---
 
-## 1. 현재 상태 — 로그 기반 측정
+## 1. 현재 상태 — Actuator + Prometheus scrape
 
 | 있는 것 | 없는 것 |
 |---|---|
-| Spring Boot Actuator (`health`·`info`·`modulith`) | **Prometheus 엔드포인트 미노출** — micrometer 레지스트리 추가 시 |
-| `spring-modulith-actuator` · `spring-modulith-observability` (runtimeOnly) | Grafana 대시보드 (계획: `sift-infra`) |
+| Spring Boot Actuator (`health`·`info`·`modulith`·`prometheus`) | Grafana 대시보드 (계획: `sift-infra`) |
+| `micrometer-registry-prometheus` runtime registry + `/actuator/prometheus` | Prometheus/Grafana 실행 환경 (현재 `sift-infra` 레포 미생성) |
 | 배치 `MetricsListener` 3종 → `[measure]` 로그 | 부하 도구(k6) — M4 |
 | Spring Batch가 글로벌 레지스트리에 발행하는 `spring.batch.*` 타이머 | 알림·SLO |
 
 ```yaml
 management:
+  prometheus:
+    metrics:
+      export:
+        enabled: true
   endpoints:
     web:
       exposure:
-        include: health, info, modulith   # prometheus는 micrometer 레지스트리 추가 시 노출
+        include: health, info, modulith, prometheus
+  metrics:
+    distribution:
+      percentiles-histogram:
+        "[sift.delivery.dispatch.duration]": true
+        "[sift.delivery.snapshot.duration]": true
+        "[sift.delivery.send.duration]": true
+        "[sift.delivery.retry.duration]": true
+        "[sift.delivery.retry.job.duration]": true
 ```
 
-**"아직 없다"는 결함이 아니라 순서다** — 발송(delivery) 모듈이 성능 핵심인데 아직 M2(선별) 단계다. 측정할 병목이 생기는 시점에 도입한다(하네스 원칙 1).
+`sift-api`는 메트릭을 `/actuator/prometheus`로 노출하는 애플리케이션 경계만 소유한다. Prometheus scrape 설정·Grafana 대시보드·대시보드 provisioning 파일은 애플리케이션 레포에 넣지 않고 향후 `sift-infra`에 둔다(D-044). 기존 `[measure]` 로그는 단건 실행 원인 추적을 위해 유지한다.
 
 ## 2. 계측은 **배치 어댑터**에 둔다 — 서비스가 아니라
 
@@ -81,11 +93,33 @@ tasklet Step에서 `read=0 write=0`은 **결함이 아니다.** 리스너는 그
 
 [PR 체크리스트](../checklists/pr.md)의 CONDITIONAL에 "배치 Job/Step 추가 시 계측" 항목이 있다.
 
-## 5. 앞으로 (도입 시점에 이 문서를 고친다)
+## 5. M4 모니터링 경계와 대시보드 계약
+
+### scrape 대상
+
+- 애플리케이션: `sift-api:8080`
+- 경로: `/actuator/prometheus`
+- Prometheus job 이름: `sift-api`
+- 기존 `health`·`info`·`modulith` 노출은 유지하고, Prometheus endpoint만 추가한다.
+
+### V1 대시보드 패널
+
+| 패널 | Prometheus 지표 | 목적 |
+|---|---|---|
+| Dispatch p95 | `histogram_quantile(0.95, sum by (le) (rate(sift_delivery_dispatch_duration_seconds_bucket[5m])))` | 발송 Job 지연 |
+| 처리량 | `rate(sift_delivery_tasks_processed_total[5m])` | 초당 처리 task |
+| 실패율 | `rate(sift_delivery_tasks_failed_total[5m])` | 발송 실패 추세 |
+| 스냅샷 생성량 | `rate(sift_delivery_tasks_created_total[5m])` | fan-out 규모 |
+| Retry 처리량 | `rate(sift_delivery_retry_tasks_processed_total[5m])` | 재시도 부하 |
+| JVM/DB 상태 | `jvm_*`, `process_*`, `hikaricp_*` | 실행 환경 병목 |
+
+`status`는 `COMPLETED`, `COMPLETED_WITH_ERRORS` 등 유한한 상태만 사용한다. 배포 환경이 생기면 Grafana provisioning 파일은 이 표의 이름을 기준으로 `sift-infra`에서 관리한다.
+
+## 6. 앞으로 (도입 시점에 이 문서를 고친다)
 
 | 시점 | 도입 | 목적 |
 |---|---|---|
-| 발송 배치 착수 (M3) | `micrometer-registry-prometheus` + `prometheus` 엔드포인트 노출 | V1 베이스라인 수치 확보 |
+| 발송 배치 착수 (M3) | `micrometer-registry-prometheus` + `prometheus` 엔드포인트 노출 | V1 베이스라인 수치 확보 — 완료 |
 | 성능 사이클 시작 (V1→V2) | Grafana 대시보드, k6 부하 스크립트 (`sift-infra`) | 부하 측정 → 병목 분석 → 개선 → 재측정 |
 | V2~ | DB wait·커넥션 풀·TPS 지표 | [PLAN §6](plan.md) 측정 지표 표 |
 

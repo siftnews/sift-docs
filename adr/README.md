@@ -5,6 +5,7 @@
 
 ## 결정 목록
 
+- [D-044 · Prometheus scrape endpoint와 인프라 레포 경계 (2026-08-08)](ADR-044-prometheus-scrape-endpoint와-인프라-레포-경계.md)
 - [D-043 · `task-cycle` 상태 기반 전체 개발 사이클 (2026-08-07 · D-034·D-033·D-040 개정)](ADR-043-task-cycle-상태-기반-전체-개발-사이클.md)
 - [D-042 · 결정 1건 = ADR 파일 1개 (2026-08-06 · D-023·D-036 문서 분할 항목 개정)](ADR-042-결정-1건-adr-파일-1개.md)
 - [D-041 · 루트 OMX 오케스트레이터 + `sift-api` 전용 Graphify (2026-08-06)](ADR-041-루트-omx-오케스트레이터-sift-api-전용-graphify.md)
