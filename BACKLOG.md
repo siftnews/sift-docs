@@ -5,18 +5,25 @@
 
 ## 진행 중
 
-### [#62 retryJob 오류 분류 및 지수 백오프](https://github.com/siftnews/sift-api/issues/62)
+### [#64 10만 구독자 시드 생성기](https://github.com/siftnews/sift-api/issues/64)
 
-- [x] 이슈 발행·구현 범위 확정·`feature/60-send-step` 기반 스택 브랜치 생성
-- [x] FAILED task 키셋 reader와 조건부 점유 포트 구현
-- [x] 오류 분류·지수 백오프·시도 횟수·SENT/DEAD 상태 전이 구현
-- [x] retryJob/retryStep·주기 트리거·계측 구현
-- [x] 단위·reader·트리거·메트릭·Testcontainers 통합 회귀 검증
-- [x] 설계 원본·작업 장부 갱신 및 전체 테스트(246건)·모듈 경계·diff 정적 검사를 완료하고 스택드 PR #63을 생성했다.
-- [ ] PR #63의 최신 head `034c1aa`에 대한 stacked base 자동 CI/CodeRabbit 검토는 GitHub가 skip하므로 로컬 검증 증거로 대체한다.
+- [x] 이슈 발행·구현 범위 확정·`feature/62-retry-job` 기반 stacked 브랜치 생성
+- [x] 기본 100,000건·email domain 설정과 `loadtest` 프로파일 전용 ApplicationRunner 구현
+- [x] D-019 아침 피크 `preferred_send_hour` 결정적 분포 생성 및 회귀 테스트 추가
+- [x] 이메일 UNIQUE 기준 1,000건 JDBC bulk `ON CONFLICT DO NOTHING` 저장 구현
+- [x] 단위 테스트·모듈 경계·diff 정적 검사를 통과했다.
+- [ ] Testcontainers 통합 테스트는 Docker 데몬 기동 후 재실행한다.
+- [x] `chore/64-100k-subscriber-seed` head `4e2ee66`을 stacked PR #65로 생성했다.
 
 
 ## 최근 완료
+
+### [#62 retryJob 오류 분류 및 지수 백오프](https://github.com/siftnews/sift-api/issues/62)
+
+- [x] `feature/60-send-step` 위에 `feature/62-retry-job`으로 구현·검증했다.
+- [x] 단위·reader·트리거·메트릭·Testcontainers 통합 회귀 검증과 전체 테스트(246건)를 완료했다.
+- [x] 스택드 PR #63을 생성했다.
+- [ ] PR #63의 최신 head `034c1aa`는 non-default base라 GitHub Actions/CodeRabbit 자동 검토가 skip된다.
 
 ### [#60 sendStep 고정 HTML 렌더링 및 로컬 SMTP 발송](https://github.com/siftnews/sift-api/issues/60)
 

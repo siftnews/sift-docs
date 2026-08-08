@@ -315,7 +315,7 @@ out  SendEmailPort                  send(recipient, subject, htmlBody): void
 - [ ] 소스 RSS URL 실제 확정 (한/영 토픽당 2~3개) → TASKS M2 Topic 이슈
 - [ ] 스케줄러 선택: Spring `@Scheduled` (MVP 충분) vs Quartz (분산 시) → TASKS M2 selectionJob 이슈
 - [x] 메일 렌더링: 템플릿 엔진 없이 고정 HTML과 외부 데이터 이스케이프를 사용한다 (#60, 2026-08-07).
-- [ ] 부하 테스트 시나리오: 구독자 10만 시드 데이터 생성 방법 → TASKS M4 (선호 시각 분포 포함 — D-019)
+- [x] 부하 테스트 시나리오: 구독자 10만 시드 데이터 생성 방법 → #64 / PR #65 (loadtest 프로파일, 선호 시각 분포 포함 — D-019). 기본 100,000건을 결정적 email 패턴과 아침 피크 시간 패턴으로 생성하고, 이메일 UNIQUE 기준 1,000건 JDBC bulk `ON CONFLICT DO NOTHING`으로 재실행한다. subscription fan-out과 실제 발송 측정은 후속 M4 태스크다.
 - [x] issue 상태 완료 판정: 선별 완료 시 `SCHEDULED`; delivery_job은 스냅샷에서 `CREATED`로 만들고, sendStep·retryJob이 모든 task를 `SENT` 또는 `DEAD`로 종결한 뒤 `DONE`으로 전이한다. `Issue`의 `SENT` 전이는 그 완료 전이를 따르며 후속 sendStep 이슈에서 구현한다(#58, 2026-08-07).
 - [x] `Source.markCrawled()` 영속 반영: 전용 포트 `UpdateSourcePort` 신설로 결정 (D-022, 2026-07-13). `source.trust_score` 컬럼은 M1-4 범위에서 제외(도메인 미사용) — M2 스코어링 구현 시 재검토
 - [x] → 다음: **프로젝트 스캐폴딩** (`sift-api` Spring 골격 + 모듈/패키지) — 완료, 첫 배치 Job은 TASKS M1

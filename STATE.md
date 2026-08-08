@@ -18,9 +18,10 @@
 - [#55 Subscriber/Subscription 도메인 및 구독 API](https://github.com/siftnews/sift-api/issues/55): 구현·검증·병합 완료(PR #56, 후속 보정 PR #57).
 - [#60 sendStep 고정 HTML 렌더링 및 로컬 SMTP 발송](https://github.com/siftnews/sift-api/issues/60): 부모 PR #61에 결과 구분·부분 실패 ExitStatus·실패 전이 통합 검증을 추가해 `c44e75c`까지 push했다. `SENDING` lease 만료 복구는 별도 설계 게이트이며 PR 병합도 사용자 게이트다.
 - [#62 retryJob 오류 분류 및 지수 백오프](https://github.com/siftnews/sift-api/issues/62): `feature/60-send-step` 위에 `feature/62-retry-job`으로 구현·검증했고 스택 PR #63 head `034c1aa`를 열었다. child PR은 non-default base라 GitHub Actions/CodeRabbit 자동 검토가 skip되어 로컬 검증을 사용한다.
+- [#64 10만 구독자 시드 생성기](https://github.com/siftnews/sift-api/issues/64): `feature/62-retry-job` 위에 `chore/64-100k-subscriber-seed`로 구현해 stacked PR [#65](https://github.com/siftnews/sift-api/pull/65)를 열었다. `loadtest` 프로파일 전용 결정적 시드, 아침 피크 `preferred_send_hour` 분포, 이메일 기준 bulk 멱등 저장을 포함한다.
 
 ## 다음 우선순위
 
-1. 부모 PR #61의 `SENDING` lease 만료 복구 범위 결정 및 병합
-2. #63 스택드 PR을 부모 병합 후 `develop` 기준으로 base 정리
-3. M4 10만 구독자 시드 생성기
+1. #64 stacked PR #65 검증 및 Docker 환경에서 통합 테스트 재실행
+2. 부모 PR #61 및 #63의 `SENDING` lease 범위·병합·base 정리 결정
+3. M4 V1 10만 건 발송 기준선 측정
