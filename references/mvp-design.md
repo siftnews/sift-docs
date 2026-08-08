@@ -184,12 +184,16 @@ Step selectStep          (tasklet)  threshold·랭킹·소스 다양성 → issu
 ```
 Step snapshotStep               당일 SCHEDULED issue × preferred_send_hour=현재 시각인
                                 토픽 ACTIVE 구독자 → delivery_job 생성 + delivery_task(PENDING)
-  → in: DispatchIssueUseCase.dispatch(issueId)   (멱등: hash(issue_id, subscriber_id))
-Step sendStep    (chunk = 500)  PENDING task 읽어 고정 HTML 렌더링 후 SendEmailPort 호출
-  reader     LoadPendingDeliveryTasksPort (status=PENDING)
-  writer     PENDING → SENDING → SendEmailPort → SENT / FAILED 기록
+  → in: DispatchIssueUseCase.dispatch(issueId, topicId, sendHour)   (멱등: hash(issue_id, subscriber_id))
+Step sendStep    (chunk = 500)  PENDING task를 키셋 페이지로 읽어 고정 HTML 발송
+  reader     LoadPendingDeliveryTasksPort.loadPending(jobId, afterTaskId, limit)
+             → ItemStream ExecutionContext에 마지막 task id 저장·재시작 복원
+  writer     SendDeliveryTaskUseCase.send(task)
+             → application service가 Content named interface 조회·HTML 렌더링을 조정
+             → 조건부 PENDING → SENDING 점유를 별도 커밋한 뒤 SendEmailPort 호출
+             → SENT / FAILED 결과도 task별 별도 트랜잭션으로 기록
              (재시도 분류·DEAD 전이는 retryJob 범위)
-  · V1은 single-thread. Rate Limit throttle 자리만 마련.
+  · V1은 single-thread. DB task 멱등 키와 조건부 점유로 배치 재실행 중복 발송을 방지한다.
 ```
 
 ### ⑤ retryJob — 재시도 (주기: 수 분 간격)
@@ -263,15 +267,17 @@ out  LoadTopicSubscribersPort     loadActive(topicId, sendHour): List<Subscriber
 
 ### Delivery
 ```
-in   DispatchIssueUseCase           dispatch(issueId): DeliveryJobId      // 스냅샷+전송 트리거
-in   SendPendingDeliveriesUseCase   send(deliveryJobId)
-in   RetryFailedDeliveriesUseCase   retry()
-out  LoadIssuePort / LoadPendingTasksPort / LoadRetriableTasksPort
+in   DispatchIssueUseCase           dispatch(issueId, topicId, sendHour): DispatchIssueSummary
+in   SendDeliveryTaskUseCase        send(task)
+out  LoadDeliveryJobPort            loadByIssueId(issueId): Optional<DeliveryJob>
+out  LoadPendingDeliveryTasksPort   loadPending(jobId, afterTaskId, limit): List<DeliveryTask>
 out  SaveDeliveryJobPort / SaveDeliveryTaskPort
-out  SendEmailPort                  send(email): SendResult               // SUCCESS | TRANSIENT | PERMANENT
+out  UpdateDeliveryTaskPort         claimPending(taskId), markSent(taskId), markFailed(taskId, error)
+out  SendEmailPort                  send(recipient, subject, htmlBody): void
 ```
 
-> `SendEmailPort` 구현: `LocalSmtpAdapter`(개발·부하), `SesAdapter`(실증) — 프로파일 전환.
+> `SendEmailPort` 구현: `LocalSmtpAdapter`(개발·부하), `TestSendEmailAdapter`(테스트) — 프로파일 전환.
+> `LocalSmtpAdapter`는 메시지 구성 오류와 SMTP 오류를 `DeliveryException`으로 분류하되, `last_error`에는 수신자·원문 SMTP 응답을 저장하지 않는다.
 
 ---
 
