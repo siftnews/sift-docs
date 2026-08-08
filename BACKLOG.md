@@ -13,6 +13,7 @@
 - [x] retryJob/retryStep·주기 트리거·계측 구현
 - [x] 단위·reader·트리거·메트릭·Testcontainers 통합 회귀 검증
 - [x] 설계 원본·작업 장부 갱신 및 전체 테스트·모듈 경계·diff 정적 검사를 완료하고 스택드 PR #63을 생성했다.
+- [ ] PR #63의 최신 head `034c1aa`에 대한 stacked base 자동 CI/CodeRabbit 검토는 GitHub가 skip하므로 로컬 검증 증거로 대체한다.
 
 
 ## 최근 완료
@@ -21,7 +22,9 @@
 
 - [x] 구현·전용 회귀 검증 및 설계 원본 갱신을 완료했다.
 - [x] CodeRabbit actionable 지적 9건을 반영한 후속 커밋 `6cfd123`을 PR #61에 push했다.
-- [ ] PR #61 병합 및 최신 CodeRabbit review 종료는 부모 PR 게이트에 남아 있다.
+- [x] 최신 CodeRabbit 지적 중 task별 실패 결과·부분 실패 ExitStatus와 `SENDING → FAILED` 회귀 검증을 반영하고 `c44e75c`까지 push했다.
+- [ ] `SENDING` lease 만료 복구는 스키마·운영 정책을 추가하는 별도 범위라 PR #61에 미결정 게이트로 남아 있다. 최신 CodeRabbit 검토는 rate limit 상태다.
+- [ ] PR #61 병합은 사용자 게이트다.
 
 ### [#58 발송 스냅샷과 매시 pull 스캔 구현](https://github.com/siftnews/sift-api/issues/58)
 

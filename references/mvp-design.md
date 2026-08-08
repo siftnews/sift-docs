@@ -191,7 +191,8 @@ Step sendStep    (chunk = 500)  PENDING task를 키셋 페이지로 읽어 고�
   writer     SendDeliveryTaskUseCase.send(task)
              → application service가 Content named interface 조회·HTML 렌더링을 조정
              → 조건부 PENDING → SENDING 점유를 별도 커밋한 뒤 SendEmailPort 호출
-             → SENT / FAILED 결과도 task별 별도 트랜잭션으로 기록
+             → SENT / CLAIM_SKIPPED / FAILED 결과를 반환하고 task별 별도 트랜잭션으로 기록
+             → FAILED 건수는 ExecutionContext에 누적해 sendStep을 COMPLETED_WITH_ERRORS로 표시
              (재시도 분류·DEAD 전이는 retryJob 범위)
   · V1은 single-thread. DB task 멱등 키와 조건부 점유로 배치 재실행 중복 발송을 방지한다.
 ```

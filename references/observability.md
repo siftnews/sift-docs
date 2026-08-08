@@ -67,12 +67,17 @@ tasklet Step에서 `read=0 write=0`은 **결함이 아니다.** 리스너는 그
 `DispatchMetricsListener`가 execution context에서 이를 읽어 `sift.delivery.tasks.created` Counter에 기록한다.
 소요시간은 `sift.delivery.snapshot.duration`·`sift.delivery.send.duration`·
 `sift.delivery.dispatch.duration` Timer로 기록한다. `sendStep`의 write count는
-`sift.delivery.tasks.processed` Counter로 남긴다. 모든 태그는 유한한 `status`만 쓴다.
+`sift.delivery.tasks.processed` Counter로, task별 실패 건수는
+`sift.delivery.tasks.failed` Counter로 남긴다. 발송 task 실패가 있으면 Step ExitStatus는
+`COMPLETED_WITH_ERRORS`로 구분한다. claim 경합은 실패로 세지 않으며, task별 INFO 로그를 추가하지
+않고 상태·카운터·기존 `[measure]` 로그로 관측한다. 모든 태그는 유한한 `status`만 쓴다.
 
 `retryJob`은 `RetryMetricsListener`가 `sift.delivery.retry.duration`·
 `sift.delivery.retry.job.duration` Timer와 `sift.delivery.retry.tasks.processed` Counter로
-재시도 Step/Job 소요시간과 처리 건수를 기록한다. `sendStep`과 동일하게 실패 원인 예외는
-`[measure]` 경고 로그에 남기고, 메트릭 태그에는 유한한 상태만 사용한다.
+재시도 Step/Job 소요시간과 처리 건수를 기록한다. 실패 task는
+`sift.delivery.retry.tasks.failed` Counter와 `COMPLETED_WITH_ERRORS` ExitStatus로 구분한다.
+`sendStep`과 동일하게 실패 원인 예외는 `[measure]` 경고 로그에 남기고, 메트릭 태그에는 유한한
+상태만 사용한다.
 
 [PR 체크리스트](../checklists/pr.md)의 CONDITIONAL에 "배치 Job/Step 추가 시 계측" 항목이 있다.
 
