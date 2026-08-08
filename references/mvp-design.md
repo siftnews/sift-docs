@@ -284,7 +284,7 @@ out  LoadRetriableDeliveryTasksPort  loadRetriable(now, afterTaskId, maxAttempts
 out  SaveDeliveryJobPort / SaveDeliveryTaskPort
 out  UpdateDeliveryTaskPort         claimPending(taskId), claimFailed(taskId, now, maxAttempts),
                                      markSent(taskId), markFailed(taskId, error, attemptCount, nextRetryAt),
-                                     markDead(taskId, error)
+                                     markDead(taskId, error, attemptCount)
 out  SendEmailPort                  send(recipient, subject, htmlBody): void
 ```
 
